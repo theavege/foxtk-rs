@@ -1,0 +1,7 @@
+[package]
+name = "foxtk"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+foxtk-sys = { path = "../foxtk-sys" }
