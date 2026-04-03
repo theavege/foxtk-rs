@@ -23,7 +23,7 @@ fox-devel >= 1.6.59
 ## Alternatives
 
 - [FLTK-rs](https://github.com/fltk-rs)
-- [RSTK](https://codeberg.org/JustSoup321/efl-rs)
+- [RSTK](https://codeberg.org/peterlane/rstk)
 - [GTK-rs](https://github.com/gtk-rs)
 - [EFL-rs](https://codeberg.org/JustSoup321/efl-rs)
 
