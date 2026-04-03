@@ -3,36 +3,44 @@ extern "C" {
 #endif
 
 // Opaque handles
-typedef void* FXWidgetPtr;
-typedef void* FXAppPtr;
-typedef long (*CWidgetCb)(FXWidgetPtr widget, void* context);
-typedef long (*CTimerCb)(FXAppPtr application, void* context);
-typedef void* CTargetPtr;
-typedef void* CTimeoutPtr;
-typedef void* FXParentPtr;
+typedef void* ObjectPtr;
+typedef long (*CWidgetCb)(ObjectPtr widget, void* context);
+typedef long (*CTimerCb)(ObjectPtr application, void* context);
 
-// APPLICATION
-FXAppPtr fox_app_new(const char* name, const char* vendor);
-void fox_app_init(FXAppPtr app, int argc, char** argv);
-int fox_app_run(FXAppPtr app);
-CTimeoutPtr fox_app_add_timeout(FXAppPtr app, CTimerCb cb, unsigned int ns, void* ctx);
+// FXIdExt
+    ObjectPtr fx_id_get_app(ObjectPtr wgt);
 
-// WINDOW
-FXParentPtr fox_main_window_new(FXAppPtr app, const char* title, int width, int height);
-void fox_main_window_show(FXAppPtr window);
+// FXAppExt
+    ObjectPtr fx_app_new(const char* name, const char* vendor, int argc, char** argv);
+    int fx_app_run(ObjectPtr app);
+    ObjectPtr fx_app_add_timeout(ObjectPtr app, CTimerCb cb, unsigned int ns, void* ctx);
 
-// FRAME
-FXParentPtr fox_vertical_frame_new(FXParentPtr win);
+// FXLabelExt
+    void fx_label_set_text(ObjectPtr wgt, const char* text);
+    const char* fx_label_get_text(ObjectPtr wgt);
+    void fx_label_set_justify(ObjectPtr wgt, unsigned int justify);
+    unsigned int fx_label_get_justify(ObjectPtr wgt);
 
-// BUTTON
-FXWidgetPtr fox_button_new(FXParentPtr frm, const char* title);
-void fox_button_set_target(FXWidgetPtr btn, CWidgetCb callback, void* context);
-unsigned int fox_button_get_state(FXWidgetPtr btn);
-const char* fox_button_get_text(FXWidgetPtr btn);
+// FXWindowExt
+    void fx_window_set_target(ObjectPtr wgt, CWidgetCb callback, void* context);
 
-// TextField
-FXWidgetPtr fox_textfield_new(FXParentPtr frm, int ncols);
-void fox_textfield_set_text(FXWidgetPtr wgt, const char* text);
+// FXTextFieldExt
+    ObjectPtr fx_textfield_new(ObjectPtr frm, int ncols);
+    void fx_textfield_set_text(ObjectPtr wgt, const char* text);
+    const char* fx_textfield_get_text(ObjectPtr wgt);
+
+// FXButtonExt
+    ObjectPtr fx_button_new(ObjectPtr parent_, const char* title);
+
+// FXMainWindowExt
+    ObjectPtr fx_main_window_new(ObjectPtr app, const char* title, int width, int height);
+    void fx_main_window_show(ObjectPtr wgt_);
+
+// FXVerticalFrameExt
+    ObjectPtr fx_vertical_frame_new(ObjectPtr parent_);
+
+// FXHorizontalFrameExt
+    ObjectPtr fx_horizontal_frame_new(ObjectPtr parent_);
 
 #ifdef __cplusplus
 }

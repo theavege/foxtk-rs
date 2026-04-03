@@ -1,13 +1,14 @@
-pub struct Frame(foxtk_sys::FXParentPtr);
+pub struct VerticalFrame(foxtk_sys::ObjectPtr);
 
-impl Frame {
-    pub fn new(parent: &crate::MainWindow) -> Self {
-        Self(unsafe { foxtk_sys::fox_vertical_frame_new(super::Parent::as_raw(parent)) })
-    }
-}
-
-impl super::Parent for Frame {
-    fn as_raw(&self) -> foxtk_sys::FXParentPtr {
+impl super::ObjectExt for VerticalFrame {
+    fn as_raw(&self) -> foxtk_sys::ObjectPtr {
         self.0
     }
+    fn from_raw(ptr: foxtk_sys::ObjectPtr) -> Self {
+        Self(ptr)
+    }
 }
+
+impl super::IdExt for VerticalFrame {}
+impl super::WindowExt for VerticalFrame {}
+impl super::VerticalFrameExt for VerticalFrame {}

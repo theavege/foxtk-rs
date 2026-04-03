@@ -9,11 +9,11 @@ protected:
     CTarget() {}
 private:
   CWidgetCb callback = nullptr;
-  FXWidgetPtr widget = nullptr;
+  ObjectPtr widget = nullptr;
   void*      context = nullptr;
 public:
   enum { Selector = FXMainWindow::ID_LAST, ID_LAST };
-  CTarget(CWidgetCb cb, FXWidgetPtr wgt, void* ctx) : callback(cb), widget(wgt) , context(ctx) {}
+  CTarget(CWidgetCb cb, ObjectPtr wgt, void* ctx) : callback(cb), widget(wgt) , context(ctx) {}
   long onCommand(FXObject*, FXSelector, void*) {
     long result = 1;
     if (this -> callback) result = this -> callback(this -> widget, this -> context);
@@ -31,13 +31,13 @@ class CTimeout : public FXObject {
 protected:
     CTimeout() {}
 private:
-  FXAppPtr application = nullptr;
+  ObjectPtr application = nullptr;
   CTimerCb    callback = nullptr;
   unsigned int nanosec = 0;
   void*        context = nullptr;
 public:
   enum { Selector = FXMainWindow::ID_LAST, ID_LAST };
-  CTimeout(FXAppPtr app, CTimerCb cb, unsigned int ns, void* ctx) {
+  CTimeout(ObjectPtr app, CTimerCb cb, unsigned int ns, void* ctx) {
     this -> application = app;
     this -> callback = cb;
     this -> nanosec = ns;
@@ -59,62 +59,78 @@ FXDEFMAP(CTimeout) CTimeoutMap[] = {
 FXIMPLEMENT(CTimeout, FXObject, CTimeoutMap, ARRAYNUMBER(CTimeoutMap))
 
 extern "C" {
+// FXWindowExt
+    void fx_window_set_target(ObjectPtr wgt_, CWidgetCb cb, void* ctx) {
+        auto wgt = static_cast<FXWindow*>(wgt_);
+        wgt->setTarget(static_cast<FXObject*>(new CTarget(cb, wgt_, ctx)));
+        wgt->setSelector(FXMainWindow::ID_LAST);
+    }
 
-// APPLICATION
-    FXAppPtr fox_app_new(const char* name, const char* vendor) {
-        return new FXApp(name, vendor);
+// FXAppExt
+    ObjectPtr fx_app_new(const char* name, const char* vendor, int argc, char** argv) {
+        auto app = new FXApp(name, vendor);
+        app->init(argc, argv);
+        return app;
     }
-    void fox_app_init(FXAppPtr app, int argc, char** argv) {
-        static_cast<FXApp*>(app)->init(argc, argv);
+    int fx_app_run(ObjectPtr app_) {
+        auto app = static_cast<FXApp*>(app_);
+        app->create();
+        return app->run();
     }
-    int fox_app_run(FXAppPtr app) {
-        auto obj = static_cast<FXApp*>(app);
-        obj->create();
-        return obj->run();
-    }
-    CTimeoutPtr fox_app_add_timeout(FXAppPtr app, CTimerCb cb, unsigned int ns, void* ctx) {
+    ObjectPtr fx_app_add_timeout(ObjectPtr app, CTimerCb cb, unsigned int ns, void* ctx) {
         return new CTimeout(app, cb, ns, ctx);
     }
 
-// WINDOW
-    FXParentPtr fox_main_window_new(FXAppPtr app, const char* title, int width, int height) {
-        auto obj = static_cast<FXApp*>(app);
-        return new FXMainWindow(obj, title, nullptr, nullptr, DECOR_ALL, 0, 0, width, height);
+// FXLabelExt
+    const char* fx_label_get_text(ObjectPtr wgt) {
+        return static_cast<FXLabel*>(wgt)->getText().text();
+    }
+    void fx_label_set_text(ObjectPtr wgt, const char* text) {
+        static_cast<FXLabel*>(wgt) -> setText(text);
+    }
+    unsigned int fx_label_get_justify(ObjectPtr wgt) {
+        return static_cast<FXLabel*>(wgt)->getJustify();
+    }
+    void fx_label_set_justify(ObjectPtr wgt, unsigned int justify) {
+        static_cast<FXLabel*>(wgt) -> setJustify(justify);
     }
 
-    void fox_main_window_show(FXParentPtr window) {
-        static_cast<FXMainWindow*>(window)-> show(PLACEMENT_SCREEN);
+// FXButtonExt
+    ObjectPtr fx_button_new(ObjectPtr parent_, const char* title) {
+        auto parent = static_cast<FXComposite*>(parent_);
+        return new FXButton(parent, title);
     }
 
-// VerticalFrame
-    FXParentPtr fox_vertical_frame_new(FXParentPtr win) {
-        auto parent = static_cast<FXMainWindow*>(win);
+// FXTextFieldExt
+    ObjectPtr fx_textfield_new(ObjectPtr parent_, int ncols) {
+        auto parent = static_cast<FXComposite*>(parent_);
+        return new FXTextField(parent, ncols);
+    }
+    const char* fx_textfield_get_text(ObjectPtr wgt) {
+        return static_cast<FXTextField*>(wgt)->getText().text();
+    }
+    void fx_textfield_set_text(ObjectPtr wgt, const char* text) {
+        static_cast<FXTextField*>(wgt) -> setText(text);
+    }
+
+// FXVerticalFrameExt
+    ObjectPtr fx_vertical_frame_new(ObjectPtr parent_) {
+        auto parent = static_cast<FXComposite*>(parent_);
         return new FXVerticalFrame(parent, LAYOUT_FILL_X | LAYOUT_FILL_Y);
     }
 
-// Button
-    FXWidgetPtr fox_button_new(FXParentPtr frm, const char* title) {
-        auto parent = static_cast<FXVerticalFrame*>(frm);
-        return new FXButton(parent, title);
-    }
-    void fox_button_set_target(FXWidgetPtr btn, CWidgetCb cb, void* ctx) {
-        auto button = static_cast<FXButton*>(btn);
-        button->setTarget(static_cast<FXObject*>(new CTarget(cb, btn, ctx)));
-        button->setSelector(FXMainWindow::ID_LAST);
-    }
-    uint fox_button_get_state(FXWidgetPtr btn) {
-        return static_cast<FXButton*>(btn)->getState();
-    }
-    const char* fox_button_get_text(FXWidgetPtr btn) {
-        return static_cast<FXButton*>(btn)->getText().text();
+// FXHorizontalFrameExt
+    ObjectPtr fx_horizontal_frame_new(ObjectPtr parent_) {
+        auto parent = static_cast<FXComposite*>(parent_);
+        return new FXHorizontalFrame(parent, LAYOUT_FILL_X | LAYOUT_FILL_Y);
     }
 
-// TextField
-    FXWidgetPtr fox_textfield_new(FXParentPtr frm, int ncols) {
-        auto parent = static_cast<FXVerticalFrame*>(frm);
-        return new FXTextField(parent, ncols);
+// FXMainWindowExt
+    ObjectPtr fx_main_window_new(ObjectPtr app_, const char* title, int width, int height) {
+        auto obj = static_cast<FXApp*>(app_);
+        return new FXMainWindow(obj, title, nullptr, nullptr, DECOR_ALL, 0, 0, width, height);
     }
-    void fox_textfield_set_text(FXWidgetPtr wgt, const char* text) {
-        static_cast<FXTextField*>(wgt) -> setText(text);
+    void fx_main_window_show(ObjectPtr wgt) {
+        static_cast<FXMainWindow*>(wgt)-> show(PLACEMENT_SCREEN);
     }
 }

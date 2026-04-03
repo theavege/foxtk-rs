@@ -15,7 +15,7 @@ enum Msg {
     SetVal(i32),
 }
 
-use foxtk::{Component, Widget};
+use foxtk::prelude::*;
 
 #[derive(Default)]
 struct Simple(foxtk::TextField);
@@ -33,7 +33,7 @@ impl Component for Simple {
         self.0.set_text(&model.value().to_string());
     }
     fn view(&mut self, parent: &foxtk::MainWindow, sender: foxtk::Sender<Self::Event>) {
-        let vframe = foxtk::Frame::new(parent);
+        let vframe = foxtk::VerticalFrame::new(parent);
         foxtk::Button::new(&vframe, "+").set_callback({
             let sender = sender.clone();
             move |_| {

@@ -1,20 +1,14 @@
-pub struct MainWindow(foxtk_sys::FXParentPtr);
+pub struct MainWindow(foxtk_sys::ObjectPtr);
 
-impl MainWindow {
-    pub fn new(app: &crate::Application, title_: &str, w: i32, h: i32) -> Self {
-        let title = std::ffi::CString::new(title_).unwrap();
-        let wgt =
-            Self(unsafe { foxtk_sys::fox_main_window_new(app.as_raw(), title.as_ptr(), w, h) });
-        wgt.show();
-        wgt
-    }
-    pub fn show(&self) {
-        unsafe { foxtk_sys::fox_main_window_show(self.0) }
-    }
-}
-
-impl super::Parent for MainWindow {
-    fn as_raw(&self) -> foxtk_sys::FXParentPtr {
+impl super::ObjectExt for MainWindow {
+    fn as_raw(&self) -> foxtk_sys::ObjectPtr {
         self.0
     }
+    fn from_raw(ptr: foxtk_sys::ObjectPtr) -> Self {
+        Self(ptr)
+    }
 }
+
+impl super::IdExt for MainWindow {}
+impl super::WindowExt for MainWindow {}
+impl super::MainWindowExt for MainWindow {}
