@@ -118,6 +118,18 @@ extern "C" {
         static_cast<FXRadioButton*>(wgt)->setCheck();
     }
 
+// FXCheckButtonExt
+    ObjectPtr fx_check_button_new(ObjectPtr parent_, const char* title) {
+        auto parent = static_cast<FXComposite*>(parent_);
+        return new FXCheckButton(parent, title);
+    }
+    unsigned char fx_check_button_get_check(ObjectPtr wgt) {
+        return static_cast<FXCheckButton*>(wgt)->getCheck();
+    }
+    void fx_check_button_set_check(ObjectPtr wgt, unsigned char check) {
+        static_cast<FXCheckButton*>(wgt)->setCheck(check);
+    }
+
 // FXTextFieldExt
     ObjectPtr fx_textfield_new(ObjectPtr parent_, int ncols) {
         auto parent = static_cast<FXComposite*>(parent_);
@@ -128,6 +140,36 @@ extern "C" {
     }
     void fx_textfield_set_text(ObjectPtr wgt, const char* text) {
         static_cast<FXTextField*>(wgt) -> setText(text);
+    }
+
+// FXSpinnerExt
+    ObjectPtr fx_spinner_new(ObjectPtr parent_, int cols, ObjectPtr tgt, int sel, unsigned int opts, int x, int y, int w, int h, int pl, int pr, int pt, int pb) {
+        auto parent = static_cast<FXComposite*>(parent_);
+        return new FXSpinner(parent, cols, static_cast<FXObject*>(tgt), sel, opts, x, y, w, h, pl, pr, pt, pb);
+    }
+    int fx_spinner_get_value(ObjectPtr wgt) {
+        return static_cast<FXSpinner*>(wgt)->getValue();
+    }
+    void fx_spinner_set_value(ObjectPtr wgt, int value) {
+        static_cast<FXSpinner*>(wgt)->setValue(value);
+    }
+    void fx_spinner_get_range(ObjectPtr wgt, int* lo, int* hi) {
+        FXint lower, upper;
+        static_cast<FXSpinner*>(wgt)->getRange(lower, upper);
+        if (lo) *lo = lower;
+        if (hi) *hi = upper;
+    }
+    void fx_spinner_set_range(ObjectPtr wgt, int lo, int hi) {
+        static_cast<FXSpinner*>(wgt)->setRange(lo, hi);
+    }
+    void fx_spinner_set_increment(ObjectPtr wgt, int inc) {
+        static_cast<FXSpinner*>(wgt)->setIncrement(inc);
+    }
+    void fx_spinner_increment(ObjectPtr wgt) {
+        static_cast<FXSpinner*>(wgt)->increment();
+    }
+    void fx_spinner_decrement(ObjectPtr wgt) {
+        static_cast<FXSpinner*>(wgt)->decrement();
     }
 
 // FXVerticalFrameExt
