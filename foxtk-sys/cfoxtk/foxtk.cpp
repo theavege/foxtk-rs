@@ -12,7 +12,7 @@ private:
   ObjectPtr widget = nullptr;
   void*      context = nullptr;
 public:
-  enum { Selector = FXMainWindow::ID_LAST, ID_LAST };
+  enum { SEL_COMMAND, ID_LAST };
   CTarget(CWidgetCb cb, ObjectPtr wgt, void* ctx) : callback(cb), widget(wgt) , context(ctx) {}
   long onCommand(FXObject*, FXSelector, void*) {
     long result = 1;
@@ -22,7 +22,7 @@ public:
 };
 
 FXDEFMAP(CTarget) CTargetMap[] = {
-    FXMAPFUNC(SEL_COMMAND, CTarget::Selector, CTarget::onCommand),
+    FXMAPFUNC(SEL_COMMAND, CTarget::SEL_COMMAND, CTarget::onCommand),
 };
 FXIMPLEMENT(CTarget, FXObject, CTargetMap, ARRAYNUMBER(CTargetMap))
 
@@ -36,34 +36,39 @@ private:
   unsigned int nanosec = 0;
   void*        context = nullptr;
 public:
-  enum { Selector = FXMainWindow::ID_LAST, ID_LAST };
+  enum { SEL_TIMEOUT, ID_LAST };
   CTimeout(ObjectPtr app, CTimerCb cb, unsigned int ns, void* ctx) {
     this -> application = app;
     this -> callback = cb;
     this -> nanosec = ns;
-    static_cast<FXApp*>(app)->addTimeout(this, FXMainWindow::ID_LAST, ns, ctx);
+    static_cast<FXApp*>(app)->addTimeout(this, CTimeout::SEL_TIMEOUT, ns, ctx);
   }
   long onTimeout(FXObject*, FXSelector, void* ctx) {
         long result = 1;
         if (this -> callback) {
             result = this -> callback(this -> application, ctx);
-            static_cast<FXApp*>(application)->addTimeout(this, FXMainWindow::ID_LAST, nanosec, ctx);
+            static_cast<FXApp*>(application)->addTimeout(this, CTimeout::SEL_TIMEOUT, nanosec, ctx);
         };
         return result;
     }
 };
 
 FXDEFMAP(CTimeout) CTimeoutMap[] = {
-    FXMAPFUNC(SEL_TIMEOUT, CTimeout::Selector, CTimeout::onTimeout),
+    FXMAPFUNC(SEL_TIMEOUT, CTimeout::SEL_TIMEOUT, CTimeout::onTimeout),
 };
 FXIMPLEMENT(CTimeout, FXObject, CTimeoutMap, ARRAYNUMBER(CTimeoutMap))
 
 extern "C" {
+// FXIdExt
+    ObjectPtr fx_id_get_app(ObjectPtr wgt) {
+        return static_cast<FXId*>(wgt) -> getApp();
+    }
+
 // FXWindowExt
     void fx_window_set_target(ObjectPtr wgt_, CWidgetCb cb, void* ctx) {
         auto wgt = static_cast<FXWindow*>(wgt_);
         wgt->setTarget(static_cast<FXObject*>(new CTarget(cb, wgt_, ctx)));
-        wgt->setSelector(FXMainWindow::ID_LAST);
+        wgt->setSelector(CTarget::SEL_COMMAND);
     }
 
 // FXAppExt

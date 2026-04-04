@@ -29,9 +29,9 @@ fox-devel >= 1.6.59
 
 ## Work in process
 
-- [ ] [FXObject](http://fox-toolkit.org/ref/classFX_1_1FXObject.html#details)
+- [x] [FXObject](http://fox-toolkit.org/ref/classFX_1_1FXObject.html#details)
    - [x] [FXApp](http://fox-toolkit.org/ref/classFX_1_1FXApp.html#details)
-   - [ ] [FXId](http://fox-toolkit.org/ref/classFX_1_1FXId.html#details)
+   - [x] [FXId](http://fox-toolkit.org/ref/classFX_1_1FXId.html#details)
     - [ ] [FXDrawable](http://fox-toolkit.org/ref/classFX_1_1FXDrawable.html#details)
       - [ ] [FXFont](http://fox-toolkit.org/ref/classFX_1_1FXFont.html#details)
       - [ ] [FXWindow](http://fox-toolkit.org/ref/classFX_1_1FXWindow.html#details)
