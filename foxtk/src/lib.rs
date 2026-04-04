@@ -3,6 +3,7 @@ pub mod button;
 pub mod checkbutton;
 pub mod frame;
 pub mod prelude;
+pub mod progressbar;
 pub mod radiobutton;
 pub mod slider;
 pub mod spinner;
@@ -15,8 +16,8 @@ use std::{
 };
 pub use {
     app::App, button::Button, checkbutton::CheckButton, frame::HorizontalFrame,
-    frame::VerticalFrame, radiobutton::RadioButton, slider::RangeSlider, spinner::Spinner,
-    std::sync::mpsc::Sender, textfield::TextField, window::MainWindow,
+    frame::VerticalFrame, progressbar::ProgressBar, radiobutton::RadioButton, slider::RangeSlider,
+    spinner::Spinner, std::sync::mpsc::Sender, textfield::TextField, window::MainWindow,
 };
 
 unsafe extern "C" fn ccallback<T: ObjectExt>(
@@ -199,6 +200,53 @@ pub trait RangeSliderExt: WindowExt {
     }
     fn set_increment(&self, inc: i32) {
         unsafe { foxtk_sys::fx_slider_set_increment(self.as_raw(), inc) }
+    }
+}
+pub trait ProgressBarExt: WindowExt {
+    fn new(parent: &impl ObjectExt) -> Self {
+        Self::from_raw(unsafe {
+            foxtk_sys::fx_progressbar_new(
+                parent.as_raw(),
+                std::ptr::null_mut(),
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+            )
+        })
+    }
+    fn set_progress(&self, value: u32) {
+        unsafe { foxtk_sys::fx_progressbar_set_progress(self.as_raw(), value) }
+    }
+    fn progress(&self) -> u32 {
+        unsafe { foxtk_sys::fx_progressbar_get_progress(self.as_raw()) }
+    }
+    fn set_total(&self, value: u32) {
+        unsafe { foxtk_sys::fx_progressbar_set_total(self.as_raw(), value) }
+    }
+    fn total(&self) -> u32 {
+        unsafe { foxtk_sys::fx_progressbar_get_total(self.as_raw()) }
+    }
+    fn increment(&self, value: u32) {
+        unsafe { foxtk_sys::fx_progressbar_increment(self.as_raw(), value) }
+    }
+    fn show_number(&self) {
+        unsafe { foxtk_sys::fx_progressbar_show_number(self.as_raw()) }
+    }
+    fn hide_number(&self) {
+        unsafe { foxtk_sys::fx_progressbar_hide_number(self.as_raw()) }
+    }
+    fn set_bar_size(&self, size: i32) {
+        unsafe { foxtk_sys::fx_progressbar_set_bar_size(self.as_raw(), size) }
+    }
+    fn bar_size(&self) -> i32 {
+        unsafe { foxtk_sys::fx_progressbar_get_bar_size(self.as_raw()) }
     }
 }
 pub trait LabelExt: WindowExt {

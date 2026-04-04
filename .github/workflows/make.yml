@@ -4,12 +4,8 @@ name: Make
 on:
   schedule:
     - cron: '0 0 1 * *'
-  push:
-    branches:
-      - "**"
   pull_request:
     branches:
-      - master
       - main
 
 concurrency:
@@ -24,7 +20,7 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - windows-latest
+          # - windows-latest
         arch:
           - x86_64
 

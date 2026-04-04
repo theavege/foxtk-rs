@@ -48,6 +48,18 @@ typedef long (*CTimerCb)(ObjectPtr application, void* context);
     int fx_slider_get_increment(ObjectPtr wgt);
     void fx_slider_set_increment(ObjectPtr wgt, int inc);
 
+// FXProgressBarExt
+    ObjectPtr fx_progressbar_new(ObjectPtr parent_, ObjectPtr tgt, int sel, unsigned int opts, int x, int y, int w, int h, int pl, int pr, int pt, int pb);
+    void fx_progressbar_set_progress(ObjectPtr wgt, unsigned int value);
+    unsigned int fx_progressbar_get_progress(ObjectPtr wgt);
+    void fx_progressbar_set_total(ObjectPtr wgt, unsigned int value);
+    unsigned int fx_progressbar_get_total(ObjectPtr wgt);
+    void fx_progressbar_increment(ObjectPtr wgt, unsigned int value);
+    void fx_progressbar_show_number(ObjectPtr wgt);
+    void fx_progressbar_hide_number(ObjectPtr wgt);
+    void fx_progressbar_set_bar_size(ObjectPtr wgt, int size);
+    int fx_progressbar_get_bar_size(ObjectPtr wgt);
+
 // FXButtonExt
     ObjectPtr fx_button_new(ObjectPtr parent_, const char* title);
 
