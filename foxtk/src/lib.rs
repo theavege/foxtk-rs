@@ -30,7 +30,6 @@ pub use {
     spinner::Spinner, std::sync::mpsc::Sender, table::Table, tabbook::{TabBook, TabItem}, text::Text, textfield::TextField, treelist::TreeList, window::MainWindow,
 };
 pub use choicebox::ComboBoxExt;
-pub use label::LabelExt;
 pub use listbox::ListBoxExt;
 pub use scrollbar::ScrollBarExt;
 pub use table::TableExt;

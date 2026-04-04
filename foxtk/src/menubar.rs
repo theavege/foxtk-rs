@@ -20,6 +20,13 @@ impl MenuBar {
                 0,
                 0,
                 0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
             ))
         }
     }
@@ -136,6 +143,7 @@ impl MenuCommand {
                 0,
                 0,
                 0,
+                0,
             ))
         }
     }
@@ -148,8 +156,8 @@ impl MenuCommand {
             fx_window_set_target(
                 self.0,
                 Some(crate::ccallback::<Self>),
-                Box::into_raw(Box::new(Box::new(move |ptr| {
-                    callback(Self::from_raw(ptr))
+                Box::into_raw(Box::new(Box::new(move |obj: Self| {
+                    callback(obj)
                 }) as Box<dyn FnMut(Self) -> bool>))
                     as *mut _,
             );

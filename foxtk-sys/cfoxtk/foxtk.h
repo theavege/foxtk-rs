@@ -108,7 +108,7 @@ typedef long (*CTimerCb)(ObjectPtr application, void* context);
 
 // FXTreeListExt
     ObjectPtr fx_tree_list_new(ObjectPtr parent_, ObjectPtr tgt, int sel, unsigned int opts, int x, int y, int w, int h, int pl, int pr, int pt, int pb);
-    ObjectPtr fx_tree_list_add_item_first(ObjectPtr wgt, ObjectPtr parent_item, const char* text, void* openicon, void* closedicon, void* ptr);
+    ObjectPtr fx_tree_list_append_item(ObjectPtr wgt, ObjectPtr parent_item, const char* text, void* openicon, void* closedicon, void* ptr);
     void fx_tree_list_clear_items(ObjectPtr wgt);
 
 // FXLabelExt
@@ -134,10 +134,10 @@ typedef long (*CTimerCb)(ObjectPtr application, void* context);
     void fx_scroll_bar_set_range(ObjectPtr wgt, int lo, int hi);
 
 // FXMenuBarExt
-    ObjectPtr fx_menu_bar_new(ObjectPtr parent_, ObjectPtr tgt, unsigned int opts, int x, int y, int w, int h, int pl, int pr, int pt, int pb);
-    ObjectPtr fx_menu_pane_new(ObjectPtr parent_, unsigned int opts, int x, int y, int w, int h, int pl, int pr, int pt, int pb);
-    ObjectPtr fx_menu_title_new(ObjectPtr parent_, const char* text, ObjectPtr icon, ObjectPtr pup, unsigned int opts, int x, int y, int w, int h, int pl, int pr, int pt, int pb);
-    ObjectPtr fx_menu_command_new(ObjectPtr parent_, const char* text, ObjectPtr icon, ObjectPtr tgt, int sel, unsigned int opts, int x, int y, int w, int h, int pl, int pr, int pt, int pb);
+    ObjectPtr fx_menu_bar_new(ObjectPtr parent_, ObjectPtr tgt, unsigned int opts, int x, int y, int w, int h, int pl, int pr, int pt, int pb, int hs, int vs, int d1, int d2, int d3, int d4, int d5, int d6);
+    ObjectPtr fx_menu_pane_new(ObjectPtr parent_, unsigned int opts, int x, int y, int w, int h, int pl, int pr, int pt, int pb, int dummy);
+    ObjectPtr fx_menu_title_new(ObjectPtr parent_, const char* text, ObjectPtr icon, ObjectPtr pup, unsigned int opts, int x, int y, int w, int h, int pl, int pr, int pt, int pb, int dummy);
+    ObjectPtr fx_menu_command_new(ObjectPtr parent_, const char* text, ObjectPtr icon, ObjectPtr tgt, int sel, unsigned int opts, int x, int y, int w, int h, int pl, int pr, int pt, int pb, int dummy);
 
 #ifdef __cplusplus
 }

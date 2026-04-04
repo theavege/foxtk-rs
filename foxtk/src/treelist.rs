@@ -6,7 +6,7 @@ pub trait TreeListExt: ObjectExt {
     fn add_item_first(&self, parent_item: Option<&TreeItem>, text: &str) -> TreeItem {
         let c_text = CString::new(text).unwrap();
         unsafe {
-            TreeItem(fx_tree_list_add_item_first(
+            TreeItem(fx_tree_list_append_item(
                 self.as_raw(),
                 parent_item.map(|i| i.0).unwrap_or(std::ptr::null_mut()),
                 c_text.as_ptr(),
