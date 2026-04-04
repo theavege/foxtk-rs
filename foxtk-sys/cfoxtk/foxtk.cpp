@@ -106,6 +106,18 @@ extern "C" {
         return new FXButton(parent, title);
     }
 
+// FXRadioButtonExt
+    ObjectPtr fx_radio_button_new(ObjectPtr parent_, const char* title) {
+        auto parent = static_cast<FXComposite*>(parent_);
+        return new FXRadioButton(parent, title);
+    }
+    int fx_radio_button_get_check(ObjectPtr wgt) {
+        return static_cast<FXRadioButton*>(wgt)->getCheck();
+    }
+    void fx_radio_button_set_check(ObjectPtr wgt, int check) {
+        static_cast<FXRadioButton*>(wgt)->setCheck(check);
+    }
+
 // FXTextFieldExt
     ObjectPtr fx_textfield_new(ObjectPtr parent_, int ncols) {
         auto parent = static_cast<FXComposite*>(parent_);

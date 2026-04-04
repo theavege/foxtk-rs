@@ -2,6 +2,7 @@ pub mod app;
 pub mod button;
 pub mod frame;
 pub mod prelude;
+pub mod radiobutton;
 pub mod textfield;
 pub mod window;
 use std::{
@@ -11,7 +12,7 @@ use std::{
 };
 pub use {
     app::App, button::Button, frame::HorizontalFrame, frame::VerticalFrame,
-    std::sync::mpsc::Sender, textfield::TextField, window::MainWindow,
+    radiobutton::RadioButton, std::sync::mpsc::Sender, textfield::TextField, window::MainWindow,
 };
 
 unsafe extern "C" fn ccallback<T: ObjectExt>(
@@ -130,6 +131,18 @@ pub trait ButtonExt: LabelExt {
     fn new(parent: &impl ObjectExt, title_: &str) -> Self {
         let title = std::ffi::CString::new(format!("&{title_}").as_str()).unwrap();
         ObjectExt::from_raw(unsafe { foxtk_sys::fx_button_new(parent.as_raw(), title.as_ptr()) })
+    }
+}
+pub trait RadioButtonExt: LabelExt {
+    fn new(parent: &impl ObjectExt, title_: &str) -> Self {
+        let title = std::ffi::CString::new(title_).unwrap();
+        Self::from_raw(unsafe { foxtk_sys::fx_radio_button_new(parent.as_raw(), title.as_ptr()) })
+    }
+    fn check(&self) -> bool {
+        unsafe { foxtk_sys::fx_radio_button_get_check(self.as_raw()) != 0 }
+    }
+    fn set_check(&self, check: bool) {
+        unsafe { foxtk_sys::fx_radio_button_set_check(self.as_raw(), if check { 1 } else { 0 }) }
     }
 }
 pub trait VerticalFrameExt: WindowExt {
