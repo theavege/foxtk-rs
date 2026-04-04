@@ -23,7 +23,21 @@ use foxtk::prelude::*;
 mod components;
 
 #[derive(Default)]
-struct Simple(foxtk::TextField, foxtk::Spinner, foxtk::RangeSlider, Option<foxtk::ComboBox>, Option<foxtk::ListBox>, Option<foxtk::Text>, Option<foxtk::TreeList>, Option<foxtk::Label>, Option<foxtk::Table>, Option<foxtk::Canvas>, Option<foxtk::TabBook>, Option<foxtk::ScrollBar>, Option<foxtk::MenuBar>);
+struct Simple(
+    foxtk::TextField,
+    foxtk::Spinner,
+    foxtk::RangeSlider,
+    Option<foxtk::ComboBox>,
+    Option<foxtk::ListBox>,
+    Option<foxtk::Text>,
+    Option<foxtk::TreeList>,
+    Option<foxtk::Label>,
+    Option<foxtk::Table>,
+    Option<foxtk::Canvas>,
+    Option<foxtk::TabBook>,
+    Option<foxtk::ScrollBar>,
+    Option<foxtk::MenuBar>,
+);
 
 impl Component for Simple {
     type Event = Msg;

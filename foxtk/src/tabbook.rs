@@ -1,82 +1,35 @@
-use crate::{ObjectExt, WindowExt};
-use foxtk_sys::*;
-use std::ffi::CString;
+pub struct TabBook(foxtk_sys::ObjectPtr);
 
-pub trait TabBookExt: ObjectExt {}
+impl super::TabBookExt for TabBook {}
 
-impl TabBookExt for TabBook {}
-
-pub struct TabBook(ObjectPtr);
-
-impl TabBook {
-    pub fn new(parent: &impl WindowExt) -> Self {
-        unsafe {
-            Self(fx_tab_book_new(
-                parent.as_raw(),
-                std::ptr::null_mut(),
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-            ))
-        }
-    }
-}
-
-impl ObjectExt for TabBook {
-    fn as_raw(&self) -> ObjectPtr {
+impl super::ObjectExt for TabBook {
+    fn as_raw(&self) -> foxtk_sys::ObjectPtr {
         self.0
     }
 
-    fn from_raw(ptr: ObjectPtr) -> Self {
+    fn from_raw(ptr: foxtk_sys::ObjectPtr) -> Self {
         Self(ptr)
     }
 }
 
-impl WindowExt for TabBook {}
+impl super::WindowExt for TabBook {}
 
-impl crate::IdExt for TabBook {}
+impl super::IdExt for TabBook {}
 
-pub struct TabItem(ObjectPtr);
+pub struct TabItem(foxtk_sys::ObjectPtr);
 
-impl TabItem {
-    pub fn new(parent: &impl WindowExt, text: &str) -> Self {
-        let c_text = CString::new(text).unwrap();
-        unsafe {
-            Self(fx_tab_item_new(
-                parent.as_raw(),
-                c_text.as_ptr(),
-                std::ptr::null_mut(),
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-            ))
-        }
-    }
-}
+impl super::TabItemExt for TabItem {}
 
-impl ObjectExt for TabItem {
-    fn as_raw(&self) -> ObjectPtr {
+impl super::ObjectExt for TabItem {
+    fn as_raw(&self) -> foxtk_sys::ObjectPtr {
         self.0
     }
 
-    fn from_raw(ptr: ObjectPtr) -> Self {
+    fn from_raw(ptr: foxtk_sys::ObjectPtr) -> Self {
         Self(ptr)
     }
 }
 
-impl WindowExt for TabItem {}
+impl super::WindowExt for TabItem {}
 
-impl crate::IdExt for TabItem {}
+impl super::IdExt for TabItem {}

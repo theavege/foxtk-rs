@@ -156,10 +156,9 @@ impl MenuCommand {
             fx_window_set_target(
                 self.0,
                 Some(crate::ccallback::<Self>),
-                Box::into_raw(Box::new(Box::new(move |obj: Self| {
-                    callback(obj)
-                }) as Box<dyn FnMut(Self) -> bool>))
-                    as *mut _,
+                Box::into_raw(Box::new(
+                    Box::new(move |obj: Self| callback(obj)) as Box<dyn FnMut(Self) -> bool>
+                )) as *mut _,
             );
         }
     }

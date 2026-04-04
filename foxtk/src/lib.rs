@@ -13,8 +13,8 @@ pub mod radiobutton;
 pub mod scrollbar;
 pub mod slider;
 pub mod spinner;
-pub mod table;
 pub mod tabbook;
+pub mod table;
 pub mod text;
 pub mod textfield;
 pub mod treelist;
@@ -25,17 +25,29 @@ use std::{
     sync::mpsc::channel,
 };
 pub use {
-    app::App, button::Button, canvas::Canvas, checkbutton::CheckButton, choicebox::ComboBox, frame::HorizontalFrame,
-    frame::VerticalFrame, label::Label, listbox::ListBox, menubar::{MenuBar, MenuCommand, MenuPane, MenuTitle}, progressbar::ProgressBar, radiobutton::RadioButton, scrollbar::ScrollBar, slider::RangeSlider,
-    spinner::Spinner, std::sync::mpsc::Sender, table::Table, tabbook::{TabBook, TabItem}, text::Text, textfield::TextField, treelist::TreeList, window::MainWindow,
+    app::App,
+    button::Button,
+    canvas::Canvas,
+    checkbutton::CheckButton,
+    choicebox::ComboBox,
+    frame::HorizontalFrame,
+    frame::VerticalFrame,
+    label::Label,
+    listbox::ListBox,
+    menubar::{MenuBar, MenuCommand, MenuPane, MenuTitle},
+    progressbar::ProgressBar,
+    radiobutton::RadioButton,
+    scrollbar::ScrollBar,
+    slider::RangeSlider,
+    spinner::Spinner,
+    std::sync::mpsc::Sender,
+    tabbook::{TabBook, TabItem},
+    table::Table,
+    text::Text,
+    textfield::TextField,
+    treelist::TreeList,
+    window::MainWindow,
 };
-pub use choicebox::ComboBoxExt;
-pub use listbox::ListBoxExt;
-pub use scrollbar::ScrollBarExt;
-pub use table::TableExt;
-pub use tabbook::TabBookExt;
-pub use text::TextExt;
-pub use treelist::TreeListExt;
 
 unsafe extern "C" fn ccallback<T: ObjectExt>(
     ptr: foxtk_sys::ObjectPtr,
@@ -62,6 +74,321 @@ unsafe extern "C" fn ctimer<T: AppExt>(
 pub trait ObjectExt: Sized {
     fn as_raw(&self) -> foxtk_sys::ObjectPtr;
     fn from_raw(ptr: foxtk_sys::ObjectPtr) -> Self;
+}
+
+pub trait TreeListExt: ObjectExt {
+    fn new(parent: &impl WindowExt) -> Self {
+        unsafe {
+            Self::from_raw(foxtk_sys::fx_tree_list_new(
+                parent.as_raw(),
+                std::ptr::null_mut(),
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+            ))
+        }
+    }
+    fn add_item_first(
+        &self,
+        parent_item: Option<&treelist::TreeItem>,
+        text: &str,
+    ) -> treelist::TreeItem {
+        let c_text = CString::new(text).unwrap();
+        unsafe {
+            treelist::TreeItem::from_raw(foxtk_sys::fx_tree_list_append_item(
+                self.as_raw(),
+                parent_item
+                    .map(|i| i.as_raw())
+                    .unwrap_or(std::ptr::null_mut()),
+                c_text.as_ptr(),
+                std::ptr::null_mut(),
+                std::ptr::null_mut(),
+                std::ptr::null_mut(),
+            ))
+        }
+    }
+
+    fn clear_items(&self) {
+        unsafe {
+            foxtk_sys::fx_tree_list_clear_items(self.as_raw());
+        }
+    }
+}
+
+pub trait TextExt: ObjectExt {
+    fn new(parent: &impl WindowExt) -> Self {
+        unsafe {
+            Self::from_raw(foxtk_sys::fx_text_new(
+                parent.as_raw(),
+                std::ptr::null_mut(),
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+            ))
+        }
+    }
+    fn set_text(&self, text: &str) {
+        let c_text = CString::new(text).unwrap();
+        unsafe {
+            foxtk_sys::fx_text_set_text(self.as_raw(), c_text.as_ptr());
+        }
+    }
+
+    fn get_text(&self) -> String {
+        unsafe {
+            let ptr = foxtk_sys::fx_text_get_text(self.as_raw());
+            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+        }
+    }
+}
+
+pub trait TabItemExt: ObjectExt {
+    fn new(parent: &impl WindowExt, text: &str) -> Self {
+        let c_text = CString::new(text).unwrap();
+        unsafe {
+            Self::from_raw(foxtk_sys::fx_tab_item_new(
+                parent.as_raw(),
+                c_text.as_ptr(),
+                std::ptr::null_mut(),
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+            ))
+        }
+    }
+}
+
+pub trait TabBookExt: ObjectExt {
+    fn new(parent: &impl WindowExt) -> Self {
+        unsafe {
+            Self::from_raw(foxtk_sys::fx_tab_book_new(
+                parent.as_raw(),
+                std::ptr::null_mut(),
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+            ))
+        }
+    }
+}
+pub trait TableExt: ObjectExt {
+    fn new(parent: &impl WindowExt) -> Self {
+        unsafe {
+            Self::from_raw(foxtk_sys::fx_table_new(
+                parent.as_raw(),
+                std::ptr::null_mut(),
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+            ))
+        }
+    }
+    fn set_table_size(&self, rows: i32, cols: i32) {
+        unsafe {
+            foxtk_sys::fx_table_set_table_size(self.as_raw(), rows, cols);
+        }
+    }
+
+    fn set_item_text(&self, row: i32, col: i32, text: &str) {
+        let c_text = CString::new(text).unwrap();
+        unsafe {
+            foxtk_sys::fx_table_set_item_text(self.as_raw(), row, col, c_text.as_ptr());
+        }
+    }
+
+    fn get_item_text(&self, row: i32, col: i32) -> String {
+        unsafe {
+            let ptr = foxtk_sys::fx_table_get_item_text(self.as_raw(), row, col);
+            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+        }
+    }
+}
+
+pub trait ScrollBarExt: ObjectExt {
+    fn new(parent: &impl WindowExt) -> Self {
+        unsafe {
+            Self::from_raw(foxtk_sys::fx_scroll_bar_new(
+                parent.as_raw(),
+                std::ptr::null_mut(),
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+            ))
+        }
+    }
+    fn get_position(&self) -> i32 {
+        unsafe { foxtk_sys::fx_scroll_bar_get_position(self.as_raw()) }
+    }
+
+    fn set_position(&self, pos: i32) {
+        unsafe {
+            foxtk_sys::fx_scroll_bar_set_position(self.as_raw(), pos);
+        }
+    }
+
+    fn set_range(&self, lo: i32, hi: i32) {
+        unsafe {
+            foxtk_sys::fx_scroll_bar_set_range(self.as_raw(), lo, hi);
+        }
+    }
+}
+
+pub trait ListBoxExt: ObjectExt {
+    fn new(parent: &impl WindowExt) -> Self {
+        unsafe {
+            Self::from_raw(foxtk_sys::fx_list_box_new(
+                parent.as_raw(),
+                std::ptr::null_mut(),
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+            ))
+        }
+    }
+    fn append_item(&self, text: &str) {
+        let c_text = CString::new(text).unwrap();
+        unsafe {
+            foxtk_sys::fx_list_box_append_item(
+                self.as_raw(),
+                c_text.as_ptr(),
+                std::ptr::null_mut(),
+            );
+        }
+    }
+
+    fn clear_items(&self) {
+        unsafe {
+            foxtk_sys::fx_list_box_clear_items(self.as_raw());
+        }
+    }
+
+    fn get_current_item(&self) -> i32 {
+        unsafe { foxtk_sys::fx_list_box_get_current_item(self.as_raw()) }
+    }
+
+    fn set_current_item(&self, index: i32) {
+        unsafe {
+            foxtk_sys::fx_list_box_set_current_item(self.as_raw(), index);
+        }
+    }
+
+    fn get_item_text(&self, index: i32) -> String {
+        unsafe {
+            let ptr = foxtk_sys::fx_list_box_get_item_text(self.as_raw(), index);
+            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+        }
+    }
+
+    fn get_num_items(&self) -> i32 {
+        unsafe { foxtk_sys::fx_list_box_get_num_items(self.as_raw()) }
+    }
+}
+
+pub trait ComboBoxExt: ObjectExt {
+    fn new(parent: &impl WindowExt, cols: i32) -> Self {
+        unsafe {
+            Self::from_raw(foxtk_sys::fx_combo_box_new(
+                parent.as_raw(),
+                cols,
+                std::ptr::null_mut(),
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+            ))
+        }
+    }
+    fn append_item(&self, text: &str) {
+        let c_text = CString::new(text).unwrap();
+        unsafe {
+            foxtk_sys::fx_combo_box_append_item(
+                self.as_raw(),
+                c_text.as_ptr(),
+                std::ptr::null_mut(),
+            );
+        }
+    }
+
+    fn clear_items(&self) {
+        unsafe {
+            foxtk_sys::fx_combo_box_clear_items(self.as_raw());
+        }
+    }
+
+    fn get_current_item(&self) -> i32 {
+        unsafe { foxtk_sys::fx_combo_box_get_current_item(self.as_raw()) }
+    }
+
+    fn set_current_item(&self, index: i32) {
+        unsafe {
+            foxtk_sys::fx_combo_box_set_current_item(self.as_raw(), index);
+        }
+    }
+
+    fn get_item_text(&self, index: i32) -> String {
+        unsafe {
+            let ptr = foxtk_sys::fx_combo_box_get_item_text(self.as_raw(), index);
+            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+        }
+    }
+
+    fn get_num_items(&self) -> i32 {
+        unsafe { foxtk_sys::fx_combo_box_get_num_items(self.as_raw()) }
+    }
 }
 
 pub trait AppExt: ObjectExt {
