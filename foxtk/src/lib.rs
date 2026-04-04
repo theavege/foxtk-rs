@@ -4,6 +4,7 @@ pub mod checkbutton;
 pub mod frame;
 pub mod prelude;
 pub mod radiobutton;
+pub mod spinner;
 pub mod textfield;
 pub mod window;
 use std::{
@@ -12,8 +13,9 @@ use std::{
     sync::mpsc::channel,
 };
 pub use {
-    app::App, button::Button, checkbutton::CheckButton, frame::HorizontalFrame, frame::VerticalFrame,
-    radiobutton::RadioButton, std::sync::mpsc::Sender, textfield::TextField, window::MainWindow,
+    app::App, button::Button, checkbutton::CheckButton, frame::HorizontalFrame,
+    frame::VerticalFrame, radiobutton::RadioButton, spinner::Spinner, std::sync::mpsc::Sender,
+    textfield::TextField, window::MainWindow,
 };
 
 unsafe extern "C" fn ccallback<T: ObjectExt>(
@@ -110,6 +112,51 @@ pub trait TextFieldExt: WindowExt {
     fn set_text(&self, text_: &str) {
         let text = std::ffi::CString::new(text_).unwrap();
         unsafe { foxtk_sys::fx_textfield_set_text(self.as_raw(), text.as_ptr()) };
+    }
+}
+pub trait SpinnerExt: WindowExt {
+    fn new(parent: &impl ObjectExt, cols: i32) -> Self {
+        Self::from_raw(unsafe {
+            foxtk_sys::fx_spinner_new(
+                parent.as_raw(),
+                cols,
+                std::ptr::null_mut(),
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+            )
+        })
+    }
+    fn get_value(&self) -> i32 {
+        unsafe { foxtk_sys::fx_spinner_get_value(self.as_raw()) }
+    }
+    fn set_value(&self, value: i32) {
+        unsafe { foxtk_sys::fx_spinner_set_value(self.as_raw(), value) }
+    }
+    fn get_range(&self) -> (i32, i32) {
+        let mut lo = 0;
+        let mut hi = 0;
+        unsafe { foxtk_sys::fx_spinner_get_range(self.as_raw(), &mut lo, &mut hi) };
+        (lo, hi)
+    }
+    fn set_range(&self, lo: i32, hi: i32) {
+        unsafe { foxtk_sys::fx_spinner_set_range(self.as_raw(), lo, hi) }
+    }
+    fn set_increment(&self, inc: i32) {
+        unsafe { foxtk_sys::fx_spinner_set_increment(self.as_raw(), inc) }
+    }
+    fn increment(&self) {
+        unsafe { foxtk_sys::fx_spinner_increment(self.as_raw()) }
+    }
+    fn decrement(&self) {
+        unsafe { foxtk_sys::fx_spinner_decrement(self.as_raw()) }
     }
 }
 pub trait LabelExt: WindowExt {
