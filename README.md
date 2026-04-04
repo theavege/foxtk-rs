@@ -6,7 +6,7 @@ Work in progress Rust bindings for the [fox-toolkit](http://www.fox-toolkit.org)
 
 ## Dependencies
 
-fox-devel >= 1.6.59
+libfox-1.6-dev (FOX toolkit development headers, version 1.6.x or newer)
 
 ## Other bindings for [fox-toolkit](http://www.fox-toolkit.org)
 
@@ -40,6 +40,7 @@ fox-devel >= 1.6.59
             - [x] [FXVerticalFrame](http://fox-toolkit.org/ref/classFX_1_1FXVerticalFrame.html#details)
         - [x] [FXFrame](http://fox-toolkit.org/ref/classFX_1_1FXFrame.html#details)
           - [x] [FXTextField](http://fox-toolkit.org/ref/classFX_1_1FXTextField.html#details)
+          - [x] [FXProgressBar](http://fox-toolkit.org/ref/classFX_1_1FXProgressBar.html#details)
           - [x] [FXLabel](http://fox-toolkit.org/ref/classFX_1_1FXLabel.html#details)
             - [x] [FXButton](http://fox-toolkit.org/ref/classFX_1_1FXButton.html#details)
             - [x] [FXRadioButton](http://fox-toolkit.org/ref/classFX_1_1FXRadioButton.html#details)

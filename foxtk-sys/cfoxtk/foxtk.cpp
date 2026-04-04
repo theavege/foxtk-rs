@@ -88,7 +88,9 @@ extern "C" {
 
 // FXLabelExt
     const char* fx_label_get_text(ObjectPtr wgt) {
-        return static_cast<FXLabel*>(wgt)->getText().text();
+        static thread_local FXString buffer;
+        buffer = static_cast<FXLabel*>(wgt)->getText();
+        return buffer.text();
     }
     void fx_label_set_text(ObjectPtr wgt, const char* text) {
         static_cast<FXLabel*>(wgt) -> setText(text);
@@ -136,7 +138,9 @@ extern "C" {
         return new FXTextField(parent, ncols);
     }
     const char* fx_textfield_get_text(ObjectPtr wgt) {
-        return static_cast<FXTextField*>(wgt)->getText().text();
+        static thread_local FXString buffer;
+        buffer = static_cast<FXTextField*>(wgt)->getText();
+        return buffer.text();
     }
     void fx_textfield_set_text(ObjectPtr wgt, const char* text) {
         static_cast<FXTextField*>(wgt) -> setText(text);
@@ -197,6 +201,39 @@ extern "C" {
     }
     void fx_slider_set_increment(ObjectPtr wgt, int inc) {
         static_cast<FXSlider*>(wgt)->setIncrement(inc);
+    }
+
+// FXProgressBarExt
+    ObjectPtr fx_progressbar_new(ObjectPtr parent_, ObjectPtr tgt, int sel, unsigned int opts, int x, int y, int w, int h, int pl, int pr, int pt, int pb) {
+        auto parent = static_cast<FXComposite*>(parent_);
+        return new FXProgressBar(parent, static_cast<FXObject*>(tgt), sel, opts, x, y, w, h, pl, pr, pt, pb);
+    }
+    void fx_progressbar_set_progress(ObjectPtr wgt, unsigned int value) {
+        static_cast<FXProgressBar*>(wgt)->setProgress(value);
+    }
+    unsigned int fx_progressbar_get_progress(ObjectPtr wgt) {
+        return static_cast<FXProgressBar*>(wgt)->getProgress();
+    }
+    void fx_progressbar_set_total(ObjectPtr wgt, unsigned int value) {
+        static_cast<FXProgressBar*>(wgt)->setTotal(value);
+    }
+    unsigned int fx_progressbar_get_total(ObjectPtr wgt) {
+        return static_cast<FXProgressBar*>(wgt)->getTotal();
+    }
+    void fx_progressbar_increment(ObjectPtr wgt, unsigned int value) {
+        static_cast<FXProgressBar*>(wgt)->increment(value);
+    }
+    void fx_progressbar_show_number(ObjectPtr wgt) {
+        static_cast<FXProgressBar*>(wgt)->showNumber();
+    }
+    void fx_progressbar_hide_number(ObjectPtr wgt) {
+        static_cast<FXProgressBar*>(wgt)->hideNumber();
+    }
+    void fx_progressbar_set_bar_size(ObjectPtr wgt, int size) {
+        static_cast<FXProgressBar*>(wgt)->setBarSize(size);
+    }
+    int fx_progressbar_get_bar_size(ObjectPtr wgt) {
+        return static_cast<FXProgressBar*>(wgt)->getBarSize();
     }
 
 // FXVerticalFrameExt
