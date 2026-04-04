@@ -1,3 +1,4 @@
+#[cfg(target_os = "linux")]
 fn main() {
     let mut include_paths = Vec::from(["-Icfoxtk".to_string()]);
     for library in ["fox"] {

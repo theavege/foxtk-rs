@@ -32,6 +32,11 @@ typedef long (*CTimerCb)(ObjectPtr application, void* context);
 // FXButtonExt
     ObjectPtr fx_button_new(ObjectPtr parent_, const char* title);
 
+// FXRadioButtonExt
+    ObjectPtr fx_radio_button_new(ObjectPtr parent_, const char* title);
+    unsigned char fx_radio_button_get_check(ObjectPtr wgt);
+    void fx_radio_button_set_check(ObjectPtr wgt);
+
 // FXMainWindowExt
     ObjectPtr fx_main_window_new(ObjectPtr app, const char* title, int width, int height);
     void fx_main_window_show(ObjectPtr wgt_);

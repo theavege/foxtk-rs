@@ -1,0 +1,55 @@
+---
+name: Make
+
+on:
+  schedule:
+    - cron: '0 0 1 * *'
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - master
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  make:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          #- windows-latest
+        arch:
+          - x86_64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: true
+
+      - name: Build on Unix
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          set -euo pipefail
+          source '/etc/os-release'
+          case ${ID:?} in
+            debian | ubuntu) sudo apt-get install -y libfox-1.6-dev ;;
+            fedora | alma) sudo apt-get install -y fox-devel ;;
+          esac &> /dev/null
+          cargo clippy --quiet --example simple
+          cargo build --release --example simple
+          cargo fmt --check --all
+
+      - name: Build on Windows
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          pwsh -File '.github/workflows/setup.ps1'
