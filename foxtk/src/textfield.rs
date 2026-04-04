@@ -1,4 +1,4 @@
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct TextField(foxtk_sys::ObjectPtr);
 
 impl super::ObjectExt for TextField {

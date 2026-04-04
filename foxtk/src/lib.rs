@@ -10,8 +10,8 @@ use std::{
     sync::mpsc::channel,
 };
 pub use {
-    app::App, button::Button, frame::VerticalFrame, std::sync::mpsc::Sender, textfield::TextField,
-    window::MainWindow,
+    app::App, button::Button, frame::HorizontalFrame, frame::VerticalFrame,
+    std::sync::mpsc::Sender, textfield::TextField, window::MainWindow,
 };
 
 unsafe extern "C" fn ccallback<T: ObjectExt>(
@@ -99,7 +99,7 @@ pub trait TextFieldExt: WindowExt {
         unsafe {
             let ptr = foxtk_sys::fx_textfield_get_text(self.as_raw());
             if !ptr.is_null() {
-                std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+                std::ffi::CStr::from_ptr(ptr).to_string_lossy().to_string()
             } else {
                 String::new()
             }
@@ -137,6 +137,11 @@ pub trait VerticalFrameExt: WindowExt {
         Self::from_raw(unsafe { foxtk_sys::fx_vertical_frame_new(ObjectExt::as_raw(parent)) })
     }
 }
+pub trait HorizontalFrameExt: WindowExt {
+    fn new(parent: &impl ObjectExt) -> Self {
+        Self::from_raw(unsafe { foxtk_sys::fx_horizontal_frame_new(ObjectExt::as_raw(parent)) })
+    }
+}
 pub trait MainWindowExt: WindowExt {
     fn new(app: &impl AppExt, title_: &str, w: i32, h: i32) -> Self {
         let title = std::ffi::CString::new(title_).unwrap();
@@ -155,17 +160,15 @@ pub trait Component: Default + 'static {
     type State: Default + 'static;
     fn handle(msg: Self::Event, model: &mut Self::State, sender: Sender<Self::Event>) -> bool;
     fn update(&self, model: &Self::State);
-    fn view(&mut self, parent: &MainWindow, sender: Sender<Self::Event>);
-    fn run() {
+    fn view(&mut self, parent: &impl WindowExt, sender: Sender<Self::Event>);
+    fn mount(parent: &impl WindowExt) {
         let (sender, receiver) = channel::<Self::Event>();
         let mut page = Self::default();
         let mut model = Self::State::default();
-        let app = App::new("Name", "Vendor");
-        let parent = MainWindow::new(&app, "Title", 480, 270);
-        page.view(&parent, sender.clone());
+        page.view(parent, sender.clone());
         page.update(&model);
         const TICK: u32 = 200;
-        app.add_timeout(TICK, move |_| {
+        parent.get_app().add_timeout(TICK, move |_| {
             if let Ok(msg) = receiver.try_recv()
                 && Self::handle(msg, &mut model, sender.clone())
             {
@@ -173,6 +176,10 @@ pub trait Component: Default + 'static {
             }
             true
         });
+    }
+    fn run(name: &str, vendor: &str, title: &str) {
+        let app = App::new(name, vendor);
+        Self::mount(&MainWindow::new(&app, title, 480, 270));
         app.run();
     }
 }
