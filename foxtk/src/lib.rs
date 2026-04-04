@@ -1,5 +1,6 @@
 pub mod app;
 pub mod button;
+pub mod checkbutton;
 pub mod frame;
 pub mod prelude;
 pub mod radiobutton;
@@ -11,7 +12,7 @@ use std::{
     sync::mpsc::channel,
 };
 pub use {
-    app::App, button::Button, frame::HorizontalFrame, frame::VerticalFrame,
+    app::App, button::Button, checkbutton::CheckButton, frame::HorizontalFrame, frame::VerticalFrame,
     radiobutton::RadioButton, std::sync::mpsc::Sender, textfield::TextField, window::MainWindow,
 };
 
@@ -143,6 +144,18 @@ pub trait RadioButtonExt: LabelExt {
     }
     fn set_check(&self) {
         unsafe { foxtk_sys::fx_radio_button_set_check(self.as_raw()) }
+    }
+}
+pub trait CheckButtonExt: LabelExt {
+    fn new(parent: &impl ObjectExt, title_: &str) -> Self {
+        let title = std::ffi::CString::new(title_).unwrap();
+        Self::from_raw(unsafe { foxtk_sys::fx_check_button_new(parent.as_raw(), title.as_ptr()) })
+    }
+    fn check(&self) -> bool {
+        unsafe { foxtk_sys::fx_check_button_get_check(self.as_raw()) != 0 }
+    }
+    fn set_check(&self, check: bool) {
+        unsafe { foxtk_sys::fx_check_button_set_check(self.as_raw(), check as u8) }
     }
 }
 pub trait VerticalFrameExt: WindowExt {
