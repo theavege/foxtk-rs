@@ -23,7 +23,7 @@ use foxtk::prelude::*;
 mod components;
 
 #[derive(Default)]
-struct Simple(foxtk::TextField, foxtk::Spinner);
+struct Simple(foxtk::TextField, foxtk::Spinner, foxtk::RangeSlider);
 
 impl Component for Simple {
     type Event = Msg;
@@ -38,6 +38,7 @@ impl Component for Simple {
     fn update(&self, model: &Self::State) {
         self.0.set_text(&model.value().to_string());
         self.1.set_value(model.value());
+        self.2.set_value(model.value());
     }
     fn view(&mut self, parent: &impl WindowExt, sender: foxtk::Sender<Self::Event>) {
         let vbox = foxtk::VerticalFrame::new(parent);
@@ -57,6 +58,16 @@ impl Component for Simple {
             let sender = sender.clone();
             move |spinner: foxtk::Spinner| {
                 sender.send(Msg::SetValue(spinner.get_value())).unwrap();
+                false
+            }
+        });
+        self.2 = foxtk::RangeSlider::new(&hbox);
+        self.2.set_range(0, 100);
+        self.2.set_increment(1);
+        self.2.set_callback({
+            let sender = sender.clone();
+            move |slider: foxtk::RangeSlider| {
+                sender.send(Msg::SetValue(slider.get_value())).unwrap();
                 false
             }
         });

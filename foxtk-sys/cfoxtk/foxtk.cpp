@@ -172,6 +172,33 @@ extern "C" {
         static_cast<FXSpinner*>(wgt)->decrement();
     }
 
+// FXSliderExt
+    ObjectPtr fx_slider_new(ObjectPtr parent_, ObjectPtr tgt, int sel, unsigned int opts, int x, int y, int w, int h, int pl, int pr, int pt, int pb) {
+        auto parent = static_cast<FXComposite*>(parent_);
+        return new FXSlider(parent, static_cast<FXObject*>(tgt), sel, opts, x, y, w, h, pl, pr, pt, pb);
+    }
+    int fx_slider_get_value(ObjectPtr wgt) {
+        return static_cast<FXSlider*>(wgt)->getValue();
+    }
+    void fx_slider_set_value(ObjectPtr wgt, int value) {
+        static_cast<FXSlider*>(wgt)->setValue(value);
+    }
+    void fx_slider_get_range(ObjectPtr wgt, int* lo, int* hi) {
+        FXint lower, upper;
+        static_cast<FXSlider*>(wgt)->getRange(lower, upper);
+        if (lo) *lo = lower;
+        if (hi) *hi = upper;
+    }
+    void fx_slider_set_range(ObjectPtr wgt, int lo, int hi) {
+        static_cast<FXSlider*>(wgt)->setRange(lo, hi);
+    }
+    int fx_slider_get_increment(ObjectPtr wgt) {
+        return static_cast<FXSlider*>(wgt)->getIncrement();
+    }
+    void fx_slider_set_increment(ObjectPtr wgt, int inc) {
+        static_cast<FXSlider*>(wgt)->setIncrement(inc);
+    }
+
 // FXVerticalFrameExt
     ObjectPtr fx_vertical_frame_new(ObjectPtr parent_) {
         auto parent = static_cast<FXComposite*>(parent_);
