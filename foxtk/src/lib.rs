@@ -1,13 +1,23 @@
 pub mod app;
 pub mod button;
+pub mod canvas;
 pub mod checkbutton;
+pub mod choicebox;
 pub mod frame;
+pub mod label;
+pub mod listbox;
+pub mod menubar;
 pub mod prelude;
 pub mod progressbar;
 pub mod radiobutton;
+pub mod scrollbar;
 pub mod slider;
 pub mod spinner;
+pub mod table;
+pub mod tabbook;
+pub mod text;
 pub mod textfield;
+pub mod treelist;
 pub mod window;
 use std::{
     ffi::CString,
@@ -15,10 +25,18 @@ use std::{
     sync::mpsc::channel,
 };
 pub use {
-    app::App, button::Button, checkbutton::CheckButton, frame::HorizontalFrame,
-    frame::VerticalFrame, progressbar::ProgressBar, radiobutton::RadioButton, slider::RangeSlider,
-    spinner::Spinner, std::sync::mpsc::Sender, textfield::TextField, window::MainWindow,
+    app::App, button::Button, canvas::Canvas, checkbutton::CheckButton, choicebox::ComboBox, frame::HorizontalFrame,
+    frame::VerticalFrame, label::Label, listbox::ListBox, menubar::{MenuBar, MenuCommand, MenuPane, MenuTitle}, progressbar::ProgressBar, radiobutton::RadioButton, scrollbar::ScrollBar, slider::RangeSlider,
+    spinner::Spinner, std::sync::mpsc::Sender, table::Table, tabbook::{TabBook, TabItem}, text::Text, textfield::TextField, treelist::TreeList, window::MainWindow,
 };
+pub use choicebox::ComboBoxExt;
+pub use label::LabelExt;
+pub use listbox::ListBoxExt;
+pub use scrollbar::ScrollBarExt;
+pub use table::TableExt;
+pub use tabbook::TabBookExt;
+pub use text::TextExt;
+pub use treelist::TreeListExt;
 
 unsafe extern "C" fn ccallback<T: ObjectExt>(
     ptr: foxtk_sys::ObjectPtr,
