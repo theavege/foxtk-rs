@@ -3,7 +3,7 @@ name = "foxtk-sys"
 version = "0.1.0"
 edition = "2024"
 
-[build-dependencies]
+[target.'cfg(target_os = "linux")'.build-dependencies]
 cc = { version = "1.2" }
 bindgen = { version = "0.72" }
 pkg-config = "0.3"
