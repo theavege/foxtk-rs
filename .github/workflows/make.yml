@@ -52,7 +52,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: powershell
         run: |
-          $installerUrl = 'https://aka.ms/vs/18/release/vs_community.exe'
+          $installerUrl = 'https://aka.ms/vs/17/release/vs_community.exe'
           $installerPath = Join-Path -Path $env:TEMP -ChildPath 'vs_community_18.exe'
           Write-Host "Downloading Visual Studio 18 Community installer to $installerPath..."
           Invoke-WebRequest -Uri $installerUrl -OutFile $installerPath
