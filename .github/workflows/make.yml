@@ -45,7 +45,7 @@ jobs:
             fedora | alma) sudo apt-get install -y fox-devel ;;
           esac &> /dev/null
           cargo clippy --quiet --example simple
-          cargo build --quiet --release --example simple
+          cargo build --release --example simple
           cargo fmt --check --all
 
       - name: Build on Windows

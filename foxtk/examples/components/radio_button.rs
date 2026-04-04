@@ -1,11 +1,11 @@
 use foxtk::prelude::*;
 
-enum Msg {
+pub enum Msg {
     RadioChanged(bool),
 }
 
 #[derive(Default)]
-struct RadioExample {
+pub struct RadioExample {
     radio1: foxtk::RadioButton,
     radio2: foxtk::RadioButton,
     status: foxtk::TextField,
@@ -21,7 +21,8 @@ impl Component for RadioExample {
         true
     }
     fn update(&self, model: &Self::State) {
-        self.status.set_text(&format!("Radio 1 selected: {}", *model));
+        self.status
+            .set_text(&format!("Radio 1 selected: {}", *model));
     }
     fn view(&mut self, parent: &impl WindowExt, sender: foxtk::Sender<Self::Event>) {
         let vbox = foxtk::VerticalFrame::new(parent);
@@ -43,8 +44,4 @@ impl Component for RadioExample {
         });
         self.status = foxtk::TextField::new(&vbox, 20);
     }
-}
-
-fn main() {
-    RadioExample::run("RadioButton Example", "foxtk", "Radio Buttons");
 }

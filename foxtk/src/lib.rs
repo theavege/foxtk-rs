@@ -141,8 +141,8 @@ pub trait RadioButtonExt: LabelExt {
     fn check(&self) -> bool {
         unsafe { foxtk_sys::fx_radio_button_get_check(self.as_raw()) != 0 }
     }
-    fn set_check(&self, check: bool) {
-        unsafe { foxtk_sys::fx_radio_button_set_check(self.as_raw(), if check { 1 } else { 0 }) }
+    fn set_check(&self) {
+        unsafe { foxtk_sys::fx_radio_button_set_check(self.as_raw()) }
     }
 }
 pub trait VerticalFrameExt: WindowExt {

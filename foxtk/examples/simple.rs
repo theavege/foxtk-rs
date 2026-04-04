@@ -52,6 +52,7 @@ impl Component for Simple {
             }
         });
         components::Converter::mount(&hbox);
+        components::RadioExample::mount(&hbox);
     }
 }
 

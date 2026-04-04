@@ -111,11 +111,11 @@ extern "C" {
         auto parent = static_cast<FXComposite*>(parent_);
         return new FXRadioButton(parent, title);
     }
-    int fx_radio_button_get_check(ObjectPtr wgt) {
+    unsigned char fx_radio_button_get_check(ObjectPtr wgt) {
         return static_cast<FXRadioButton*>(wgt)->getCheck();
     }
-    void fx_radio_button_set_check(ObjectPtr wgt, int check) {
-        static_cast<FXRadioButton*>(wgt)->setCheck(check);
+    void fx_radio_button_set_check(ObjectPtr wgt) {
+        static_cast<FXRadioButton*>(wgt)->setCheck();
     }
 
 // FXTextFieldExt
