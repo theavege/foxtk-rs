@@ -39,6 +39,15 @@ typedef long (*CTimerCb)(ObjectPtr application, void* context);
     void fx_spinner_increment(ObjectPtr wgt);
     void fx_spinner_decrement(ObjectPtr wgt);
 
+// FXSliderExt
+    ObjectPtr fx_slider_new(ObjectPtr parent_, ObjectPtr tgt, int sel, unsigned int opts, int x, int y, int w, int h, int pl, int pr, int pt, int pb);
+    int fx_slider_get_value(ObjectPtr wgt);
+    void fx_slider_set_value(ObjectPtr wgt, int value);
+    void fx_slider_get_range(ObjectPtr wgt, int* lo, int* hi);
+    void fx_slider_set_range(ObjectPtr wgt, int lo, int hi);
+    int fx_slider_get_increment(ObjectPtr wgt);
+    void fx_slider_set_increment(ObjectPtr wgt, int inc);
+
 // FXButtonExt
     ObjectPtr fx_button_new(ObjectPtr parent_, const char* title);
 

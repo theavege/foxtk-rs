@@ -1,5 +1,5 @@
 pub use crate::{
     AppExt, ButtonExt, CheckButtonExt, Component, HorizontalFrameExt, IdExt, LabelExt,
-    MainWindowExt, ObjectExt, RadioButtonExt, SpinnerExt, TextFieldExt, VerticalFrameExt,
-    WindowExt,
+    MainWindowExt, ObjectExt, RadioButtonExt, RangeSliderExt, SpinnerExt, TextFieldExt,
+    VerticalFrameExt, WindowExt,
 };
