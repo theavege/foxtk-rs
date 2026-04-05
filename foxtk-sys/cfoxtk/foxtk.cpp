@@ -9,14 +9,13 @@ protected:
     CTarget() {}
 private:
   CWidgetCb callback = nullptr;
-  ObjectPtr widget = nullptr;
   void*      context = nullptr;
 public:
   enum { SEL_COMMAND, ID_LAST };
-  CTarget(CWidgetCb cb, ObjectPtr wgt, void* ctx) : callback(cb), widget(wgt) , context(ctx) {}
-  long onCommand(FXObject*, FXSelector, void*) {
+  CTarget(CWidgetCb cb, void* ctx) : callback(cb) , context(ctx) {}
+  long onCommand(FXObject* wgt, FXSelector, void*) {
     long result = 1;
-    if (this -> callback) result = this -> callback(this -> widget, this -> context);
+    if (this -> callback) result = this -> callback(wgt, this -> context);
     return result;
   }
 };
@@ -67,7 +66,7 @@ extern "C" {
 // FXWindow
     void fx_window_set_target(ObjectPtr wgt_, CWidgetCb cb, void* ctx) {
         auto wgt = static_cast<FXWindow*>(wgt_);
-        wgt->setTarget(static_cast<FXObject*>(new CTarget(cb, wgt_, ctx)));
+        wgt->setTarget(static_cast<FXObject*>(new CTarget(cb, ctx)));
         wgt->setSelector(CTarget::SEL_COMMAND);
     }
 
@@ -237,15 +236,28 @@ extern "C" {
     }
 
 // FXVerticalFrame
-    ObjectPtr fx_vertical_frame_new(ObjectPtr parent_) {
-        auto parent = static_cast<FXComposite*>(parent_);
-        return new FXVerticalFrame(parent, LAYOUT_FILL_X | LAYOUT_FILL_Y);
+    ObjectPtr fx_vertical_frame_new(ObjectPtr parent) {
+        return new FXVerticalFrame(static_cast<FXComposite*>(parent));
     }
 
 // FXHorizontalFrame
-    ObjectPtr fx_horizontal_frame_new(ObjectPtr parent_) {
-        auto parent = static_cast<FXComposite*>(parent_);
-        return new FXHorizontalFrame(parent, LAYOUT_FILL_X | LAYOUT_FILL_Y);
+    ObjectPtr fx_horizontal_frame_new(ObjectPtr parent) {
+        return new FXHorizontalFrame(static_cast<FXComposite*>(parent));
+    }
+
+// FXPacker
+    ObjectPtr fx_packer_new(ObjectPtr parent) {
+        return new FXPacker(static_cast<FXComposite*>(parent));
+    }
+
+// FXGroupBox
+    ObjectPtr fx_groupbox_new(ObjectPtr parent, const char* title) {
+        return new FXGroupBox(static_cast<FXComposite*>(parent), title);
+    }
+
+// FXSwitcher
+    ObjectPtr fx_switcher_new(ObjectPtr parent) {
+        return new FXSwitcher(static_cast<FXComposite*>(parent));
     }
 
 // FXMainWindow

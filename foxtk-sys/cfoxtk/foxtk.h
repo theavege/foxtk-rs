@@ -77,11 +77,20 @@ typedef long (*CTimerCb)(ObjectPtr application, void* context);
     ObjectPtr fx_main_window_new(ObjectPtr app, const char* title, int width, int height);
     void fx_main_window_show(ObjectPtr wgt_);
 
+// FXPacker
+    ObjectPtr fx_packer_new(ObjectPtr parent);
+
+// FXGroupBox
+    ObjectPtr fx_groupbox_new(ObjectPtr parent, const char* title);
+
 // FXVerticalFrame
-    ObjectPtr fx_vertical_frame_new(ObjectPtr parent_);
+    ObjectPtr fx_vertical_frame_new(ObjectPtr parent);
 
 // FXHorizontalFrame
-    ObjectPtr fx_horizontal_frame_new(ObjectPtr parent_);
+    ObjectPtr fx_horizontal_frame_new(ObjectPtr parent);
+
+// FXSwitcher
+    ObjectPtr fx_switcher_new(ObjectPtr parent);
 
 // FXComboBox
     ObjectPtr fx_combo_box_new(ObjectPtr parent_, int cols);

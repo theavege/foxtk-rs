@@ -25,7 +25,7 @@ pub enum Msg {
     Far(f64),
 }
 
-#[derive(Clone, Default)]
+#[derive(Default)]
 pub struct Converter {
     cel: foxtk::TextField,
     far: foxtk::TextField,
@@ -50,24 +50,23 @@ impl Component for Converter {
         }
     }
     fn view(&mut self, parent: &impl WindowExt, sender: Sender<Self::Event>) {
-        let hbox = foxtk::HorizontalFrame::new(parent);
-        self.cel = foxtk::TextField::new(&hbox, 16);
-        self.cel.set_callback({
-            let sender = sender.clone();
-            move |wgt| {
-                let value = wgt.text().parse::<f64>().unwrap_or_default();
-                sender.send(Msg::Cel(value)).unwrap();
-                false
-            }
-        });
-        self.far = foxtk::TextField::new(&hbox, 16);
-        self.far.set_callback({
-            let sender = sender.clone();
-            move |wgt| {
-                let value = wgt.text().parse::<f64>().unwrap_or_default();
-                sender.send(Msg::Far(value)).unwrap();
-                false
-            }
+        foxtk::HorizontalFrame::new(parent).inside(|hbox| {
+            self.cel = foxtk::TextField::new(hbox, 16).with_callback({
+                let sender = sender.clone();
+                move |wgt| {
+                    let value = wgt.text().parse::<f64>().unwrap_or_default();
+                    sender.send(Msg::Cel(value)).unwrap();
+                    false
+                }
+            });
+            self.far = foxtk::TextField::new(hbox, 16).with_callback({
+                let sender = sender.clone();
+                move |wgt| {
+                    let value = wgt.text().parse::<f64>().unwrap_or_default();
+                    sender.send(Msg::Far(value)).unwrap();
+                    false
+                }
+            });
         });
     }
 }
