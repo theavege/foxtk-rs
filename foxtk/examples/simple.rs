@@ -61,7 +61,7 @@ impl Component for Simple {
         }
     }
     fn view(&mut self, parent: &impl WindowExt, sender: Sender<Self::Event>) {
-        foxtk::VerticalFrame::new(parent).inside(|vbox| {
+        foxtk::Switcher::new(parent).inside(|vbox| {
             self.12 = Some(foxtk::MenuBar::new(vbox));
             if let Some(ref menubar) = self.12 {
                 let pane = foxtk::MenuPane::new(menubar);
