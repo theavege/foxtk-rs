@@ -24,12 +24,12 @@ mod components;
 
 #[derive(Default)]
 struct Simple(
-    foxtk::TextField,
-    foxtk::Spinner,
-    foxtk::RangeSlider,
+    Option<foxtk::TextField>,
+    Option<foxtk::Spinner>,
+    Option<foxtk::RangeSlider>,
     Option<foxtk::ComboBox>,
     Option<foxtk::ListBox>,
-    Option<foxtk::Text>,
+    Option<foxtk::TextField>,
     Option<foxtk::TreeList>,
     (),
     Option<foxtk::Table>,
@@ -50,9 +50,15 @@ impl Component for Simple {
         true
     }
     fn update(&self, model: &Self::State) {
-        self.0.set_text(&model.value().to_string());
-        self.1.set_value(model.value());
-        self.2.set_value(model.value());
+        if let Some(ref text) = self.0 {
+            text.set_text(&model.value().to_string());
+        }
+        if let Some(ref spinner) = self.1 {
+            spinner.set_value(model.value());
+        }
+        if let Some(ref slider) = self.2 {
+            slider.set_value(model.value());
+        }
     }
     fn view(&mut self, parent: &impl WindowExt, sender: Sender<Self::Event>) {
         foxtk::VerticalFrame::new(parent).inside(|vbox| {
@@ -71,7 +77,7 @@ impl Component for Simple {
                         false
                     }
                 });
-                self.0 = foxtk::TextField::new(hbox, 6);
+                self.0 = Some(foxtk::TextField::new(hbox, 6));
                 foxtk::Button::new(hbox, "minus").set_callback({
                     let sender = sender.clone();
                     move |wgt| {
@@ -80,7 +86,7 @@ impl Component for Simple {
                         false
                     }
                 });
-                self.1 = foxtk::Spinner::new(hbox, 6)
+                self.1 = Some(foxtk::Spinner::new(hbox, 6)
                     .with_range(0, 8)
                     .with_increment(1)
                     .with_callback({
@@ -89,13 +95,13 @@ impl Component for Simple {
                             sender.send(Msg::SetValue(spinner.value())).unwrap();
                             false
                         }
-                    });
+                    }));
             });
             components::Converter::mount(vbox);
             foxtk::HorizontalFrame::new(vbox).inside(|hbox| {
                 components::RadioExample::mount(hbox);
                 components::CheckExample::mount(hbox);
-                self.5 = Some(foxtk::Text::new(hbox));
+                self.5 = Some(foxtk::TextField::new(hbox, 20));
                 if let Some(ref text) = self.5 {
                     text.set_text("This is a multi-line text editor.\nYou can edit this text.");
                 }
@@ -120,16 +126,18 @@ impl Component for Simple {
                     let _tab2 = foxtk::TabItem::new(tabbook, "Tab 2");
                 }
             });
-            self.2 = foxtk::RangeSlider::new(vbox);
-            self.2.set_range(0, 100);
-            self.2.set_increment(1);
-            self.2.set_callback({
-                let sender = sender.clone();
-                move |slider: foxtk::RangeSlider| {
-                    sender.send(Msg::SetValue(slider.value())).unwrap();
-                    false
-                }
-            });
+            self.2 = Some(foxtk::RangeSlider::new(vbox));
+            if let Some(ref slider) = self.2 {
+                slider.set_range(0, 100);
+                slider.set_increment(1);
+                slider.set_callback({
+                    let sender = sender.clone();
+                    move |slider: foxtk::RangeSlider| {
+                        sender.send(Msg::SetValue(slider.value())).unwrap();
+                        false
+                    }
+                });
+            }
             let hbox = foxtk::HorizontalFrame::new(vbox);
             self.3 = Some(foxtk::ComboBox::new(&hbox, 10));
             if let Some(ref combo) = self.3 {
