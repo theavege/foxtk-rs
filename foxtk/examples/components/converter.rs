@@ -34,7 +34,7 @@ pub struct Converter {
 impl Component for Converter {
     type Event = Msg;
     type State = models::Model;
-    fn handle(msg: Self::Event, model: &mut Self::State, _: foxtk::Sender<Self::Event>) -> bool {
+    fn handle(msg: Self::Event, model: &mut Self::State, _: Sender<Self::Event>) -> bool {
         match msg {
             Msg::Cel(value) => model.set_cel(value),
             Msg::Far(value) => model.set_far(value),
@@ -49,7 +49,7 @@ impl Component for Converter {
             self.far.set_text(&value.to_string());
         }
     }
-    fn view(&mut self, parent: &impl WindowExt, sender: foxtk::Sender<Self::Event>) {
+    fn view(&mut self, parent: &impl WindowExt, sender: Sender<Self::Event>) {
         let hbox = foxtk::HorizontalFrame::new(parent);
         self.cel = foxtk::TextField::new(&hbox, 16);
         self.cel.set_callback({

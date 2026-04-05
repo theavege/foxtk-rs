@@ -14,7 +14,7 @@ pub struct RadioExample {
 impl Component for RadioExample {
     type Event = Msg;
     type State = bool;
-    fn handle(msg: Self::Event, model: &mut Self::State, _: foxtk::Sender<Self::Event>) -> bool {
+    fn handle(msg: Self::Event, model: &mut Self::State, _: Sender<Self::Event>) -> bool {
         match msg {
             Msg::RadioChanged(selected) => *model = selected,
         };
@@ -24,7 +24,7 @@ impl Component for RadioExample {
         self.status
             .set_text(&format!("Radio 1 selected: {}", *model));
     }
-    fn view(&mut self, parent: &impl WindowExt, sender: foxtk::Sender<Self::Event>) {
+    fn view(&mut self, parent: &impl WindowExt, sender: Sender<Self::Event>) {
         let vbox = foxtk::VerticalFrame::new(parent);
         self.radio1 = foxtk::RadioButton::new(&vbox, "Option 1");
         self.radio1.set_callback({

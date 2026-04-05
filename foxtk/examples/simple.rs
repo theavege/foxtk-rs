@@ -31,7 +31,7 @@ struct Simple(
     Option<foxtk::ListBox>,
     Option<foxtk::Text>,
     Option<foxtk::TreeList>,
-    Option<foxtk::Label>,
+    (),
     Option<foxtk::Table>,
     Option<foxtk::Canvas>,
     Option<foxtk::TabBook>,
@@ -42,7 +42,7 @@ struct Simple(
 impl Component for Simple {
     type Event = Msg;
     type State = models::Model;
-    fn handle(msg: Self::Event, model: &mut Self::State, _: foxtk::Sender<Self::Event>) -> bool {
+    fn handle(msg: Self::Event, model: &mut Self::State, _: Sender<Self::Event>) -> bool {
         match msg {
             Msg::SetVal(val) => model.shift(val),
             Msg::SetValue(val) => model.set(val),
@@ -54,7 +54,7 @@ impl Component for Simple {
         self.1.set_value(model.value());
         self.2.set_value(model.value());
     }
-    fn view(&mut self, parent: &impl WindowExt, sender: foxtk::Sender<Self::Event>) {
+    fn view(&mut self, parent: &impl WindowExt, sender: Sender<Self::Event>) {
         let vbox = foxtk::VerticalFrame::new(parent);
         let hbox = foxtk::HorizontalFrame::new(&vbox);
         foxtk::Button::new(&hbox, "+").set_callback({
@@ -121,7 +121,6 @@ impl Component for Simple {
             tree.add_item_first(Some(&root), "Child 1");
             tree.add_item_first(Some(&root), "Child 2");
         }
-        self.7 = Some(foxtk::Label::new(&vbox, "This is a label"));
         self.8 = Some(foxtk::Table::new(&vbox));
         if let Some(ref table) = self.8 {
             table.set_table_size(3, 3);

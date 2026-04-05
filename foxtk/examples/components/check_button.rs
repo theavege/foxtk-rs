@@ -15,7 +15,7 @@ pub struct CheckExample {
 impl Component for CheckExample {
     type Event = Msg;
     type State = (bool, bool);
-    fn handle(msg: Self::Event, model: &mut Self::State, _: foxtk::Sender<Self::Event>) -> bool {
+    fn handle(msg: Self::Event, model: &mut Self::State, _: Sender<Self::Event>) -> bool {
         match msg {
             Msg::Check1Changed(checked) => model.0 = checked,
             Msg::Check2Changed(checked) => model.1 = checked,
@@ -26,7 +26,7 @@ impl Component for CheckExample {
         self.status
             .set_text(&format!("Check1: {}, Check2: {}", model.0, model.1));
     }
-    fn view(&mut self, parent: &impl WindowExt, sender: foxtk::Sender<Self::Event>) {
+    fn view(&mut self, parent: &impl WindowExt, sender: Sender<Self::Event>) {
         let vbox = foxtk::VerticalFrame::new(parent);
         self.check1 = foxtk::CheckButton::new(&vbox, "Option 1");
         self.check1.set_callback({
