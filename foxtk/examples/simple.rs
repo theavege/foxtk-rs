@@ -136,7 +136,7 @@ impl Component for Simple {
         }
         self.11 = Some(foxtk::ScrollBar::new(&vbox));
         if let Some(ref scrollbar) = self.11 {
-            scrollbar.set_range(0, 100);
+            scrollbar.set_range(100);
             scrollbar.set_position(50);
         }
         self.12 = Some(foxtk::MenuBar::new(&vbox));

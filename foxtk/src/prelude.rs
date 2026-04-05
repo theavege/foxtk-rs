@@ -41,23 +41,6 @@ pub trait MenuBarExt: ObjectExt {
             Self::from_raw(fx_menu_bar_new(
                 parent.as_raw(),
                 std::ptr::null_mut(),
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
             ))
         }
     }
@@ -68,15 +51,6 @@ pub trait MenuPaneExt: ObjectExt {
         unsafe {
             Self::from_raw(foxtk_sys::fx_menu_pane_new(
                 parent.as_raw(),
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
                 0,
             ))
         }
@@ -93,15 +67,6 @@ pub trait MenuTitleExt: ObjectExt {
                 std::ptr::null_mut(),
                 pane.as_raw(),
                 0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
             ))
         }
     }
@@ -115,15 +80,6 @@ pub trait MenuCommandExt: ObjectExt {
                 c_text.as_ptr(),
                 std::ptr::null_mut(),
                 std::ptr::null_mut(),
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
                 0,
                 0,
             ))
@@ -175,17 +131,6 @@ pub trait TreeListExt: ObjectExt {
         unsafe {
             Self::from_raw(fx_tree_list_new(
                 parent.as_raw(),
-                std::ptr::null_mut(),
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
             ))
         }
     }
@@ -221,17 +166,6 @@ pub trait TextExt: ObjectExt {
         unsafe {
             Self::from_raw(fx_text_new(
                 parent.as_raw(),
-                std::ptr::null_mut(),
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
             ))
         }
     }
@@ -277,17 +211,6 @@ pub trait TabBookExt: ObjectExt {
         unsafe {
             Self::from_raw(fx_tab_book_new(
                 parent.as_raw(),
-                std::ptr::null_mut(),
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
             ))
         }
     }
@@ -297,17 +220,6 @@ pub trait TableExt: ObjectExt {
         unsafe {
             Self::from_raw(fx_table_new(
                 parent.as_raw(),
-                std::ptr::null_mut(),
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
             ))
         }
     }
@@ -337,17 +249,6 @@ pub trait ScrollBarExt: ObjectExt {
         unsafe {
             Self::from_raw(fx_scroll_bar_new(
                 parent.as_raw(),
-                std::ptr::null_mut(),
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
             ))
         }
     }
@@ -361,9 +262,9 @@ pub trait ScrollBarExt: ObjectExt {
         }
     }
 
-    fn set_range(&self, lo: i32, hi: i32) {
+    fn set_range(&self, hi: i32) {
         unsafe {
-            fx_scroll_bar_set_range(self.as_raw(), lo, hi);
+            fx_scroll_bar_set_range(self.as_raw(), hi);
         }
     }
 }
@@ -373,17 +274,6 @@ pub trait ListBoxExt: ObjectExt {
         unsafe {
             Self::from_raw(fx_list_box_new(
                 parent.as_raw(),
-                std::ptr::null_mut(),
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
             ))
         }
     }
@@ -432,17 +322,6 @@ pub trait ComboBoxExt: ObjectExt {
             Self::from_raw(fx_combo_box_new(
                 parent.as_raw(),
                 cols,
-                std::ptr::null_mut(),
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
             ))
         }
     }
@@ -560,17 +439,6 @@ pub trait SpinnerExt: WindowExt {
             fx_spinner_new(
                 parent.as_raw(),
                 cols,
-                std::ptr::null_mut(),
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
             )
         })
     }
@@ -604,17 +472,6 @@ pub trait RangeSliderExt: WindowExt {
         Self::from_raw(unsafe {
             fx_slider_new(
                 parent.as_raw(),
-                std::ptr::null_mut(),
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
             )
         })
     }
@@ -645,17 +502,6 @@ pub trait ProgressBarExt: WindowExt {
         Self::from_raw(unsafe {
             fx_progressbar_new(
                 parent.as_raw(),
-                std::ptr::null_mut(),
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
             )
         })
     }
@@ -745,17 +591,6 @@ pub trait CanvasExt: WindowExt {
         unsafe {
             Self::from_raw(fx_canvas_new(
                 parent.as_raw(),
-                std::ptr::null_mut(),
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
             ))
         }
     }
