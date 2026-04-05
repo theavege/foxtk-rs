@@ -74,4 +74,8 @@ jobs:
           Start-Process -FilePath $installerPath -ArgumentList $arguments -Wait -NoNewWindow
           Write-Host 'Visual Studio 18 Community installation completed.'
           Write-Host 'If installation fails, rerun the script with administrative privileges.'
-
+          @{
+            Uri = 'http://fox-toolkit.org/ftp/fox-1.6.59.zip'
+            Path = 'foxtk-sys\fox-1.6.59.zip'
+            OutFile = (New-TemporaryFile).FullName
+          }
