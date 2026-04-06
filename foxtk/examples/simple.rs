@@ -1,176 +1,58 @@
-mod models {
-    #[derive(Default)]
-    pub struct Model(i32);
-    impl Model {
-        pub fn value(&self) -> i32 {
-            self.0
-        }
-        pub fn set(&mut self, value: i32) {
-            self.0 = value;
-        }
-        pub fn shift(&mut self, value: i32) {
-            self.0 += value;
-        }
-    }
-}
-
 enum Msg {
     SetVal(i32),
-    SetValue(i32),
 }
 
 use foxtk::prelude::*;
 mod components;
 
 #[derive(Default)]
-struct Simple(
-    Option<foxtk::TextField>,
-    Option<foxtk::Spinner>,
-    Option<foxtk::RangeSlider>,
-    Option<foxtk::ComboBox>,
-    Option<foxtk::ListBox>,
-    Option<foxtk::TextField>,
-    Option<foxtk::TreeList>,
-    (),
-    Option<foxtk::Table>,
-    (),
-    Option<foxtk::TabBook>,
-    (),
-    Option<foxtk::MenuBar>,
-);
+struct Simple(foxtk::Switcher);
 
 impl Component for Simple {
     type Event = Msg;
-    type State = models::Model;
+    type State = i32;
     fn handle(msg: Self::Event, model: &mut Self::State, _: Sender<Self::Event>) -> bool {
         match msg {
-            Msg::SetVal(val) => model.shift(val),
-            Msg::SetValue(val) => model.set(val),
+            Msg::SetVal(val) => *model = val,
         };
         true
     }
     fn update(&self, model: &Self::State) {
-        if let Some(ref text) = self.0 {
-            text.set_text(&model.value().to_string());
-        }
-        if let Some(ref spinner) = self.1 {
-            spinner.set_value(model.value());
-        }
-        if let Some(ref slider) = self.2 {
-            slider.set_value(model.value());
-        }
+        self.0.set_curent(*model);
     }
-    fn view(&mut self, parent: &impl WindowExt, sender: Sender<Self::Event>) {
-        foxtk::Switcher::new(parent).inside(|vbox| {
-            self.12 = Some(foxtk::MenuBar::new(vbox));
-            if let Some(ref menubar) = self.12 {
-                let pane = foxtk::MenuPane::new(menubar);
-                let _title = foxtk::MenuTitle::new(menubar, "File", &pane);
-                let _cmd = foxtk::MenuCommand::new(&pane, "Open");
-            }
-            foxtk::HorizontalFrame::new(vbox).inside(|hbox| {
-                foxtk::Button::new(hbox, "plus").set_callback({
-                    let sender = sender.clone();
-                    move |wgt| {
-                        sender.send(Msg::SetVal(1)).unwrap();
-                        println!("{}", wgt.text());
-                        false
-                    }
-                });
-                self.0 = Some(foxtk::TextField::new(hbox, 6));
-                foxtk::Button::new(hbox, "minus").set_callback({
-                    let sender = sender.clone();
-                    move |wgt| {
-                        println!("{}", wgt.text());
-                        sender.send(Msg::SetVal(-1)).unwrap();
-                        false
-                    }
-                });
-                self.1 = Some(foxtk::Spinner::new(hbox, 6)
-                    .with_range(0, 8)
-                    .with_increment(1)
-                    .with_callback({
+    fn view(&mut self, parent: &impl CompositeExt, sender: Sender<Self::Event>) {
+        foxtk::VerticalFrame::new(parent).inside(|vbox| {
+            foxtk::MenuBar::new(vbox).inside(|mbar|{
+                foxtk::MenuPane::new(mbar).inside(|mpaine| {
+                    foxtk::MenuTitle::new(mbar, "Nav", mpaine);
+                    foxtk::MenuCommand::new(mpaine, "Converter").set_callback({
                         let sender = sender.clone();
-                        move |spinner: foxtk::Spinner| {
-                            sender.send(Msg::SetValue(spinner.value())).unwrap();
+                        move|_| {
+                            sender.send(Msg::SetVal(0)).unwrap();
                             false
                         }
-                    }));
-            });
-            components::Converter::mount(vbox);
-            foxtk::HorizontalFrame::new(vbox).inside(|hbox| {
-                components::RadioExample::mount(hbox);
-                components::CheckExample::mount(hbox);
-                self.5 = Some(foxtk::TextField::new(hbox, 20));
-                if let Some(ref text) = self.5 {
-                    text.set_text("This is a multi-line text editor.\nYou can edit this text.");
-                }
-                self.6 = Some(foxtk::TreeList::new(hbox));
-                if let Some(ref tree) = self.6 {
-                    let root = tree.add_item_first(None, "Root");
-                    tree.add_item_first(Some(&root), "Child 1");
-                    tree.add_item_first(Some(&root), "Child 2");
-                }
-                self.8 = Some(foxtk::Table::new(hbox));
-                if let Some(ref table) = self.8 {
-                    table.set_table_size(3, 3);
-                    table.set_item_text(0, 0, "A1");
-                    table.set_item_text(0, 1, "B1");
-                    table.set_item_text(1, 0, "A2");
-                }
-            });
-            foxtk::HorizontalFrame::new(vbox).inside(|hbox| {
-                self.10 = Some(foxtk::TabBook::new(hbox));
-                if let Some(ref tabbook) = self.10 {
-                    let _tab1 = foxtk::TabItem::new(tabbook, "Tab 1");
-                    let _tab2 = foxtk::TabItem::new(tabbook, "Tab 2");
-                }
-            });
-            self.2 = Some(foxtk::RangeSlider::new(vbox));
-            if let Some(ref slider) = self.2 {
-                slider.set_range(0, 100);
-                slider.set_increment(1);
-                slider.set_callback({
-                    let sender = sender.clone();
-                    move |slider: foxtk::RangeSlider| {
-                        sender.send(Msg::SetValue(slider.value())).unwrap();
-                        false
-                    }
+                    });
+                    foxtk::MenuCommand::new(mpaine, "Rangers").set_callback({
+                        let sender = sender.clone();
+                        move|_| {
+                            sender.send(Msg::SetVal(1)).unwrap();
+                            false
+                        }
+                    });
+                    foxtk::MenuCommand::new(mpaine, "Selectors").set_callback({
+                        let sender = sender.clone();
+                        move|_| {
+                            sender.send(Msg::SetVal(2)).unwrap();
+                            false
+                        }
+                    });
                 });
-            }
-            let hbox = foxtk::HorizontalFrame::new(vbox);
-            self.3 = Some(foxtk::ComboBox::new(&hbox, 10));
-            if let Some(ref combo) = self.3 {
-                combo.append_item("Option 1");
-                combo.append_item("Option 2");
-                combo.append_item("Option 3");
-                combo.set_callback({
-                    move |wgt| {
-                        println!(
-                            "{}:{}",
-                            wgt.current_item(),
-                            wgt.item_text(wgt.current_item())
-                        );
-                        false
-                    }
-                });
-            }
-            self.4 = Some(foxtk::ListBox::new(&hbox));
-            if let Some(ref list) = self.4 {
-                list.append_item("Item 1");
-                list.append_item("Item 2");
-                list.append_item("Item 3");
-                list.set_callback({
-                    move |wgt| {
-                        println!(
-                            "{}:{}",
-                            wgt.current_item(),
-                            wgt.item_text(wgt.current_item())
-                        );
-                        false
-                    }
-                });
-            }
+            });
+        });
+        self.0 = foxtk::Switcher::new(parent).inside(|swt| {
+            components::Converter::mount(swt);
+            components::Rangers::mount(swt);
+            components::Selectors::mount(swt);
         });
     }
 }

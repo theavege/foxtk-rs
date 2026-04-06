@@ -11,9 +11,9 @@ private:
   CWidgetCb callback = nullptr;
   void*      context = nullptr;
 public:
-  enum { SEL_COMMAND, ID_LAST };
+  enum { SEL_COMMAND, SEL_CHANGED };
   CTarget(CWidgetCb cb, void* ctx) : callback(cb) , context(ctx) {}
-  long onCommand(FXObject* wgt, FXSelector, void*) {
+  long selCommand(FXObject* wgt, FXSelector, void*) {
     long result = 1;
     if (this -> callback) result = this -> callback(wgt, this -> context);
     return result;
@@ -21,7 +21,7 @@ public:
 };
 
 FXDEFMAP(CTarget) CTargetMap[] = {
-    FXMAPFUNC(SEL_COMMAND, CTarget::SEL_COMMAND, CTarget::onCommand),
+    FXMAPFUNC(SEL_COMMAND, CTarget::SEL_COMMAND, CTarget::selCommand),
 };
 FXIMPLEMENT(CTarget, FXObject, CTargetMap, ARRAYNUMBER(CTargetMap))
 
@@ -58,6 +58,11 @@ FXDEFMAP(CTimeout) CTimeoutMap[] = {
 FXIMPLEMENT(CTimeout, FXObject, CTimeoutMap, ARRAYNUMBER(CTimeoutMap))
 
 extern "C" {
+// FXObject
+    void fx_object_delete(ObjectPtr wgt) {
+        delete static_cast<FXObject*>(wgt);
+    }
+
 // FXId
     ObjectPtr fx_id_get_app(ObjectPtr wgt) {
         return static_cast<FXId*>(wgt) -> getApp();
@@ -86,6 +91,9 @@ extern "C" {
     }
 
 // FXLabel
+    ObjectPtr fx_label_new(ObjectPtr parent, const char* title) {
+        return new FXLabel(static_cast<FXComposite*>(parent), title);
+    }
     const char* fx_label_get_text(ObjectPtr wgt) {
         static thread_local FXString buffer;
         buffer = static_cast<FXLabel*>(wgt)->getText();
@@ -102,15 +110,13 @@ extern "C" {
     }
 
 // FXButton
-    ObjectPtr fx_button_new(ObjectPtr parent_, const char* title) {
-        auto parent = static_cast<FXComposite*>(parent_);
-        return new FXButton(parent, title);
+    ObjectPtr fx_button_new(ObjectPtr parent, const char* title) {
+        return new FXButton(static_cast<FXComposite*>(parent), title);
     }
 
 // FXRadioButton
-    ObjectPtr fx_radio_button_new(ObjectPtr parent_, const char* title) {
-        auto parent = static_cast<FXComposite*>(parent_);
-        return new FXRadioButton(parent, title);
+    ObjectPtr fx_radio_button_new(ObjectPtr parent, const char* title) {
+        return new FXRadioButton(static_cast<FXComposite*>(parent), title);
     }
     unsigned char fx_radio_button_get_check(ObjectPtr wgt) {
         return static_cast<FXRadioButton*>(wgt)->getCheck();
@@ -120,9 +126,8 @@ extern "C" {
     }
 
 // FXCheckButton
-    ObjectPtr fx_check_button_new(ObjectPtr parent_, const char* title) {
-        auto parent = static_cast<FXComposite*>(parent_);
-        return new FXCheckButton(parent, title);
+    ObjectPtr fx_check_button_new(ObjectPtr parent, const char* title) {
+        return new FXCheckButton(static_cast<FXComposite*>(parent), title);
     }
     unsigned char fx_check_button_get_check(ObjectPtr wgt) {
         return static_cast<FXCheckButton*>(wgt)->getCheck();
@@ -132,9 +137,8 @@ extern "C" {
     }
 
 // FXTextField
-    ObjectPtr fx_textfield_new(ObjectPtr parent_, int ncols) {
-        auto parent = static_cast<FXComposite*>(parent_);
-        return new FXTextField(parent, ncols);
+    ObjectPtr fx_textfield_new(ObjectPtr parent, int ncols) {
+        return new FXTextField(static_cast<FXComposite*>(parent), ncols);
     }
     const char* fx_textfield_get_text(ObjectPtr wgt) {
         static thread_local FXString buffer;
@@ -146,9 +150,8 @@ extern "C" {
     }
 
 // FXSpinner
-    ObjectPtr fx_spinner_new(ObjectPtr parent_, int cols) {
-        auto parent = static_cast<FXComposite*>(parent_);
-        return new FXSpinner(parent, cols);
+    ObjectPtr fx_spinner_new(ObjectPtr parent, int cols) {
+        return new FXSpinner(static_cast<FXComposite*>(parent), cols);
     }
     int fx_spinner_get_value(ObjectPtr wgt) {
         return static_cast<FXSpinner*>(wgt)->getValue();
@@ -176,9 +179,8 @@ extern "C" {
     }
 
 // FXSlider
-    ObjectPtr fx_slider_new(ObjectPtr parent_) {
-        auto parent = static_cast<FXComposite*>(parent_);
-        return new FXSlider(parent);
+    ObjectPtr fx_slider_new(ObjectPtr parent) {
+        return new FXSlider(static_cast<FXComposite*>(parent));
     }
     int fx_slider_get_value(ObjectPtr wgt) {
         return static_cast<FXSlider*>(wgt)->getValue();
@@ -203,9 +205,8 @@ extern "C" {
     }
 
 // FXProgressBar
-    ObjectPtr fx_progressbar_new(ObjectPtr parent_) {
-        auto parent = static_cast<FXComposite*>(parent_);
-        return new FXProgressBar(parent);
+    ObjectPtr fx_progressbar_new(ObjectPtr parent) {
+        return new FXProgressBar(static_cast<FXComposite*>(parent));
     }
     void fx_progressbar_set_progress(ObjectPtr wgt, unsigned int value) {
         static_cast<FXProgressBar*>(wgt)->setProgress(value);
@@ -260,6 +261,10 @@ extern "C" {
         return new FXSwitcher(static_cast<FXComposite*>(parent));
     }
 
+    void fx_switcher_set_current(ObjectPtr wgt, int index) {
+        static_cast<FXSwitcher*>(wgt)->setCurrent(index);
+    }
+
 // FXMainWindow
     ObjectPtr fx_main_window_new(ObjectPtr app_, const char* title, int width, int height) {
         auto obj = static_cast<FXApp*>(app_);
@@ -270,9 +275,8 @@ extern "C" {
     }
 
 // FXComboBox
-    ObjectPtr fx_combo_box_new(ObjectPtr parent_, int cols) {
-        auto parent = static_cast<FXComposite*>(parent_);
-        return new FXComboBox(parent, cols);
+    ObjectPtr fx_combo_box_new(ObjectPtr parent, int cols) {
+        return new FXComboBox(static_cast<FXComposite*>(parent), cols);
     }
     void fx_combo_box_append_item(ObjectPtr wgt, const char* text, void* ptr) {
         static_cast<FXComboBox*>(wgt)->appendItem(text, ptr);
@@ -296,9 +300,8 @@ extern "C" {
     }
 
 // FXListBox
-    ObjectPtr fx_list_box_new(ObjectPtr parent_) {
-        auto parent = static_cast<FXComposite*>(parent_);
-        return new FXListBox(parent);
+    ObjectPtr fx_list_box_new(ObjectPtr parent) {
+        return new FXListBox(static_cast<FXComposite*>(parent));
     }
     void fx_list_box_append_item(ObjectPtr wgt, const char* text, void* ptr) {
         static_cast<FXListBox*>(wgt)->appendItem(text, nullptr, ptr);
@@ -322,9 +325,8 @@ extern "C" {
     }
 
 // FXText
-    ObjectPtr fx_text_new(ObjectPtr parent_) {
-        auto parent = static_cast<FXComposite*>(parent_);
-        return new FXText(parent);
+    ObjectPtr fx_text_new(ObjectPtr parent) {
+        return new FXText(static_cast<FXComposite*>(parent));
     }
     void fx_text_set_text(ObjectPtr wgt, const char* text) {
         static_cast<FXText*>(wgt)->setText(text);
@@ -336,9 +338,8 @@ extern "C" {
     }
 
 // FXTreeList
-    ObjectPtr fx_tree_list_new(ObjectPtr parent_) {
-        auto parent = static_cast<FXComposite*>(parent_);
-        return new FXTreeList(parent);
+    ObjectPtr fx_tree_list_new(ObjectPtr parent) {
+        return new FXTreeList(static_cast<FXComposite*>(parent));
     }
     ObjectPtr fx_tree_list_append_item(ObjectPtr wgt, ObjectPtr parent_item, const char* text, void* openicon, void* closedicon, void* ptr) {
         return static_cast<FXTreeList*>(wgt)->appendItem(static_cast<FXTreeItem*>(parent_item), text, static_cast<FXIcon*>(openicon), static_cast<FXIcon*>(closedicon), ptr);
@@ -347,16 +348,9 @@ extern "C" {
         static_cast<FXTreeList*>(wgt)->clearItems();
     }
 
-// FXLabel
-    ObjectPtr fx_label_new(ObjectPtr parent_, const char* text, ObjectPtr icon, unsigned int opts, int x, int y, int w, int h, int pl, int pr, int pt, int pb) {
-        auto parent = static_cast<FXComposite*>(parent_);
-        return new FXLabel(parent, text, static_cast<FXIcon*>(icon), opts, x, y, w, h, pl, pr, pt, pb);
-    }
-
 // FXTable
-    ObjectPtr fx_table_new(ObjectPtr parent_) {
-        auto parent = static_cast<FXComposite*>(parent_);
-        return new FXTable(parent);
+    ObjectPtr fx_table_new(ObjectPtr parent) {
+        return new FXTable(static_cast<FXComposite*>(parent));
     }
     void fx_table_set_table_size(ObjectPtr wgt, int nr, int nc) {
         static_cast<FXTable*>(wgt)->setTableSize(nr, nc);
@@ -371,15 +365,13 @@ extern "C" {
     }
 
 // FXCanvas
-    ObjectPtr fx_canvas_new(ObjectPtr parent_) {
-        auto parent = static_cast<FXComposite*>(parent_);
-        return new FXCanvas(parent);
+    ObjectPtr fx_canvas_new(ObjectPtr parent) {
+        return new FXCanvas(static_cast<FXComposite*>(parent));
     }
 
 // FXTabBook
-    ObjectPtr fx_tab_book_new(ObjectPtr parent_) {
-        auto parent = static_cast<FXComposite*>(parent_);
-        return new FXTabBook(parent);
+    ObjectPtr fx_tab_book_new(ObjectPtr parent) {
+        return new FXTabBook(static_cast<FXComposite*>(parent));
     }
     ObjectPtr fx_tab_item_new(ObjectPtr parent_, const char* text, ObjectPtr icon, unsigned int opts, int x, int y, int w, int h, int pl, int pr, int pt, int pb) {
         auto tabbar = static_cast<FXTabBar*>(parent_);
@@ -387,9 +379,8 @@ extern "C" {
     }
 
 // FXScrollBar
-    ObjectPtr fx_scroll_bar_new(ObjectPtr parent_) {
-        auto parent = static_cast<FXComposite*>(parent_);
-        return new FXScrollBar(parent);
+    ObjectPtr fx_scroll_bar_new(ObjectPtr parent) {
+        return new FXScrollBar(static_cast<FXComposite*>(parent));
     }
     int fx_scroll_bar_get_position(ObjectPtr wgt) {
         return static_cast<FXScrollBar*>(wgt)->getPosition();
@@ -407,9 +398,8 @@ extern "C" {
         auto g = static_cast<FXComposite*>(g_);
         return new FXMenuBar(parent, g);
     }
-    ObjectPtr fx_menu_pane_new(ObjectPtr parent_, unsigned int opts) {
-        auto parent = static_cast<FXWindow*>(parent_);
-        return new FXMenuPane(parent, opts);
+    ObjectPtr fx_menu_pane_new(ObjectPtr parent, unsigned int opts) {
+        return new FXMenuPane(static_cast<FXWindow*>(parent), opts);
     }
     ObjectPtr fx_menu_title_new(ObjectPtr parent_, const char* text, ObjectPtr icon, ObjectPtr pup, unsigned int opts) {
         auto parent = static_cast<FXComposite*>(parent_);

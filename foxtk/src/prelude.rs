@@ -2,7 +2,7 @@ pub use std::sync::mpsc::Sender;
 use {
     foxtk_sys::*,
     std::{
-        ffi::{CString, c_long, c_void},
+        ffi::{CString, c_int, c_long, c_void},
         sync::mpsc::channel,
     },
 };
@@ -20,6 +20,12 @@ unsafe extern "C" fn ctimer<T: AppExt>(ptr: ObjectPtr, context: *mut c_void) -> 
         let func: &mut Box<dyn FnMut(T) -> bool> =
             &mut *(context as *mut Box<dyn FnMut(T) -> bool>);
         func(T::from_raw(ptr)) as c_long
+    }
+}
+
+pub trait SwitcherExt: CompositeExt {
+    fn set_curent(&self, idx: i32) {
+        unsafe { fx_switcher_set_current(self.as_raw(), idx as c_int) }
     }
 }
 
@@ -130,7 +136,7 @@ pub trait ScrollBarExt: ObjectExt {
         }
     }
 }
-pub trait CompositeExt: ObjectExt {
+pub trait CompositeExt: IdExt {
     fn inside(self, mut func: impl FnMut(&Self)) -> Self {
         func(&self);
         self
@@ -143,7 +149,19 @@ pub trait ListBoxExt: ObjectExt {
             fx_list_box_append_item(self.as_raw(), c_text.as_ptr(), std::ptr::null_mut());
         }
     }
-
+    fn append_items(&self, items: &[&str]) {
+        for text in items {
+            self.append_item(text);
+        }
+    }
+    fn with_item(self, text: &str) -> Self {
+        self.append_item(text);
+        self
+    }
+    fn with_items(self, items: &[&str]) -> Self {
+        self.append_items(items);
+        self
+    }
     fn clear_items(&self) {
         unsafe {
             fx_list_box_clear_items(self.as_raw());
@@ -179,7 +197,19 @@ pub trait ComboBoxExt: ObjectExt {
             fx_combo_box_append_item(self.as_raw(), c_text.as_ptr(), std::ptr::null_mut());
         }
     }
-
+    fn append_items(&self, items: &[&str]) {
+        for text in items {
+            self.append_item(text);
+        }
+    }
+    fn with_item(self, text: &str) -> Self {
+        self.append_item(text);
+        self
+    }
+    fn with_items(self, items: &[&str]) -> Self {
+        self.append_items(items);
+        self
+    }
     fn clear_items(&self) {
         unsafe {
             fx_combo_box_clear_items(self.as_raw());
@@ -300,7 +330,7 @@ pub trait SpinnerExt: WindowExt {
         self
     }
 }
-pub trait RangeSliderExt: WindowExt {
+pub trait SliderExt: WindowExt {
     fn value(&self) -> i32 {
         unsafe { fx_slider_get_value(self.as_raw()) }
     }
@@ -313,8 +343,12 @@ pub trait RangeSliderExt: WindowExt {
         unsafe { fx_slider_get_range(self.as_raw(), &mut lo, &mut hi) };
         (lo, hi)
     }
-    fn set_range(&self, lo: i32, hi: i32) {
-        unsafe { fx_slider_set_range(self.as_raw(), lo, hi) }
+    fn set_range(&self, low: i32, high: i32) {
+        unsafe { fx_slider_set_range(self.as_raw(), low, high) }
+    }
+    fn with_range(self, low: i32, high: i32) -> Self {
+        self.set_range(low, high);
+        self
     }
     fn increment(&self) -> i32 {
         unsafe { fx_slider_get_increment(self.as_raw()) }
@@ -322,16 +356,14 @@ pub trait RangeSliderExt: WindowExt {
     fn set_increment(&self, inc: i32) {
         unsafe { fx_slider_set_increment(self.as_raw(), inc) }
     }
+    fn with_increment(self, inc: i32) -> Self {
+        self.set_increment(inc);
+        self
+    }
 }
 pub trait ProgressBarExt: WindowExt {
-    fn set_progress(&self, value: u32) {
-        unsafe { fx_progressbar_set_progress(self.as_raw(), value) }
-    }
     fn progress(&self) -> u32 {
         unsafe { fx_progressbar_get_progress(self.as_raw()) }
-    }
-    fn set_total(&self, value: u32) {
-        unsafe { fx_progressbar_set_total(self.as_raw(), value) }
     }
     fn total(&self) -> u32 {
         unsafe { fx_progressbar_get_total(self.as_raw()) }
@@ -345,11 +377,21 @@ pub trait ProgressBarExt: WindowExt {
     fn hide_number(&self) {
         unsafe { fx_progressbar_hide_number(self.as_raw()) }
     }
+    fn bar_size(&self) -> i32 {
+        unsafe { fx_progressbar_get_bar_size(self.as_raw()) }
+    }
+    fn set_progress(&self, value: u32) {
+        unsafe { fx_progressbar_set_progress(self.as_raw(), value) }
+    }
+    fn set_total(&self, value: u32) {
+        unsafe { fx_progressbar_set_total(self.as_raw(), value) }
+    }
     fn set_bar_size(&self, size: i32) {
         unsafe { fx_progressbar_set_bar_size(self.as_raw(), size) }
     }
-    fn bar_size(&self) -> i32 {
-        unsafe { fx_progressbar_get_bar_size(self.as_raw()) }
+    fn with_total(self, value: u32) -> Self {
+        self.set_total(value);
+        self
     }
 }
 pub trait ButtonExt: LabelExt {
@@ -385,8 +427,8 @@ pub trait Component: Default + 'static {
     type State: Default + 'static;
     fn handle(msg: Self::Event, model: &mut Self::State, sender: Sender<Self::Event>) -> bool;
     fn update(&self, model: &Self::State);
-    fn view(&mut self, parent: &impl WindowExt, sender: Sender<Self::Event>);
-    fn mount(parent: &impl WindowExt) {
+    fn view(&mut self, parent: &impl CompositeExt, sender: Sender<Self::Event>);
+    fn mount(parent: &impl CompositeExt) {
         let (sender, receiver) = channel::<Self::Event>();
         let mut page = Self::default();
         let mut model = Self::State::default();

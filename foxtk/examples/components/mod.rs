@@ -1,9 +1,5 @@
-mod booker;
-mod cells;
-mod check_button;
-mod circle_drawer;
 mod converter;
-mod radio_button;
-mod timer;
+mod rangers;
+mod selectors;
 
-pub use {check_button::CheckExample, converter::Converter, radio_button::RadioExample};
+pub use {converter::Converter, rangers::Rangers,  selectors::Selectors, };

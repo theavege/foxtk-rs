@@ -32,6 +32,11 @@ impl AppExt for App {}
 
 #[derive(Default)]
 pub struct Button(ObjectPtr);
+//~ impl Drop for Button {
+    //~ fn drop(&mut self) {
+        //~ unsafe { fx_object_delete(self.0) }
+    //~ }
+//~ }
 impl ObjectExt for Button {
     fn as_raw(&self) -> ObjectPtr {
         self.0
@@ -136,6 +141,7 @@ impl ObjectExt for GroupBox {
         Self(ptr)
     }
 }
+impl CompositeExt for GroupBox {}
 impl IdExt for GroupBox {}
 impl WindowExt for GroupBox {}
 
@@ -175,6 +181,7 @@ impl CompositeExt for HorizontalFrame {}
 impl IdExt for HorizontalFrame {}
 impl WindowExt for HorizontalFrame {}
 
+#[derive(Default)]
 pub struct Switcher(ObjectPtr);
 impl Switcher {
     pub fn new(parent: &impl ObjectExt) -> Self {
@@ -190,10 +197,18 @@ impl ObjectExt for Switcher {
     }
 }
 impl CompositeExt for Switcher {}
+impl SwitcherExt for Switcher {}
 impl IdExt for Switcher {}
 impl WindowExt for Switcher {}
 
+#[derive(Default)]
 pub struct Label(ObjectPtr);
+impl Label {
+    pub fn new(parent: &impl ObjectExt, title_: &str) -> Self {
+        let title = std::ffi::CString::new(format!("&{title_}").as_str()).unwrap();
+        Self::from_raw(unsafe { fx_label_new(parent.as_raw(), title.as_ptr()) })
+    }
+}
 impl ObjectExt for Label {
     fn as_raw(&self) -> ObjectPtr {
         self.0
@@ -210,7 +225,7 @@ impl LabelExt for Label {}
 #[derive(Default)]
 pub struct ListBox(ObjectPtr);
 impl ListBox {
-    pub fn new(parent: &impl WindowExt) -> Self {
+    pub fn new(parent: &impl CompositeExt) -> Self {
         unsafe { Self::from_raw(fx_list_box_new(parent.as_raw())) }
     }
 }
@@ -289,13 +304,13 @@ impl IdExt for ScrollBar {}
 impl ScrollBarExt for ScrollBar {}
 
 #[derive(Default)]
-pub struct RangeSlider(ObjectPtr);
-impl RangeSlider {
+pub struct Slider(ObjectPtr);
+impl Slider {
     pub fn new(parent: &impl ObjectExt) -> Self {
         Self::from_raw(unsafe { fx_slider_new(parent.as_raw()) })
     }
 }
-impl ObjectExt for RangeSlider {
+impl ObjectExt for Slider {
     fn as_raw(&self) -> ObjectPtr {
         self.0
     }
@@ -303,9 +318,9 @@ impl ObjectExt for RangeSlider {
         Self(ptr)
     }
 }
-impl IdExt for RangeSlider {}
-impl WindowExt for RangeSlider {}
-impl RangeSliderExt for RangeSlider {}
+impl IdExt for Slider {}
+impl WindowExt for Slider {}
+impl SliderExt for Slider {}
 
 #[derive(Default)]
 pub struct Spinner(ObjectPtr);
@@ -493,6 +508,7 @@ impl ObjectExt for MainWindow {
 
 impl IdExt for MainWindow {}
 impl WindowExt for MainWindow {}
+impl CompositeExt for MainWindow {}
 impl MainWindowExt for MainWindow {}
 
 pub struct MenuBar(ObjectPtr);
@@ -531,6 +547,7 @@ impl ObjectExt for MenuBar {
         Self(ptr)
     }
 }
+impl CompositeExt for MenuBar {}
 impl WindowExt for MenuBar {}
 impl IdExt for MenuBar {}
 
@@ -544,7 +561,7 @@ impl ObjectExt for MenuPane {
         Self(ptr)
     }
 }
-
+impl CompositeExt for MenuPane {}
 impl WindowExt for MenuPane {}
 impl IdExt for MenuPane {}
 
