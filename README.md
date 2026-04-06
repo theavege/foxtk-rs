@@ -4,9 +4,7 @@
 
 Work in progress Rust bindings for the [fox-toolkit](http://www.fox-toolkit.org).
 
-## Dependencies
-
-libfox-1.6-dev (FOX toolkit development headers, version 1.6.x or newer)
+## [Dependencies](.github/workflows/make.yml)
 
 ## Other bindings for [fox-toolkit](http://www.fox-toolkit.org)
 
@@ -23,8 +21,8 @@ libfox-1.6-dev (FOX toolkit development headers, version 1.6.x or newer)
 ## Alternatives
 
 - [FLTK-rs](https://github.com/fltk-rs)
-- [RSTK](https://codeberg.org/peterlane/rstk)
 - [GTK-rs](https://github.com/gtk-rs)
+- [RSTK](https://codeberg.org/peterlane/rstk)
 - [EFL-rs](https://codeberg.org/JustSoup321/efl-rs)
 
 ## Work in process
@@ -36,12 +34,12 @@ libfox-1.6-dev (FOX toolkit development headers, version 1.6.x or newer)
       - [ ] [FXFont](http://fox-toolkit.org/ref/classFX_1_1FXFont.html#details)
       - [ ] [FXWindow](http://fox-toolkit.org/ref/classFX_1_1FXWindow.html#details)
         - [ ] [FXComposite](http://fox-toolkit.org/ref/classFX_1_1FXComposite.html#details)
-          - [ ] [FXPacker](http://fox-toolkit.org/ref/classFX_1_1FXPacker.html#details)
+          - [x] [FXPacker](http://fox-toolkit.org/ref/classFX_1_1FXPacker.html#details)
             - [x] [FXVerticalFrame](http://fox-toolkit.org/ref/classFX_1_1FXVerticalFrame.html#details)
         - [x] [FXFrame](http://fox-toolkit.org/ref/classFX_1_1FXFrame.html#details)
           - [x] [FXTextField](http://fox-toolkit.org/ref/classFX_1_1FXTextField.html#details)
           - [x] [FXProgressBar](http://fox-toolkit.org/ref/classFX_1_1FXProgressBar.html#details)
           - [x] [FXLabel](http://fox-toolkit.org/ref/classFX_1_1FXLabel.html#details)
-            - [x] [FXButton](http://fox-toolkit.org/ref/classFX_1_1FXButton.html#details)
+            - [x] [FXButton](docs/FXButton.md)
             - [x] [FXRadioButton](http://fox-toolkit.org/ref/classFX_1_1FXRadioButton.html#details)
             - [x] [FXCheckButton](http://fox-toolkit.org/ref/classFX_1_1FXCheckButton.html#details)

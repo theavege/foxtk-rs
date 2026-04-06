@@ -1,5 +1,5 @@
-mod check_button;
 mod converter;
-mod radio_button;
+mod rangers;
+mod selectors;
 
-pub use {check_button::CheckExample, converter::Converter, radio_button::RadioExample};
+pub use {converter::Converter, rangers::Rangers,  selectors::Selectors, };

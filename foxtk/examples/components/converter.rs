@@ -25,7 +25,7 @@ pub enum Msg {
     Far(f64),
 }
 
-#[derive(Clone, Default)]
+#[derive(Default)]
 pub struct Converter {
     cel: foxtk::TextField,
     far: foxtk::TextField,
@@ -34,7 +34,7 @@ pub struct Converter {
 impl Component for Converter {
     type Event = Msg;
     type State = models::Model;
-    fn handle(msg: Self::Event, model: &mut Self::State, _: foxtk::Sender<Self::Event>) -> bool {
+    fn handle(msg: Self::Event, model: &mut Self::State, _: Sender<Self::Event>) -> bool {
         match msg {
             Msg::Cel(value) => model.set_cel(value),
             Msg::Far(value) => model.set_far(value),
@@ -49,25 +49,24 @@ impl Component for Converter {
             self.far.set_text(&value.to_string());
         }
     }
-    fn view(&mut self, parent: &impl WindowExt, sender: foxtk::Sender<Self::Event>) {
-        let hbox = foxtk::HorizontalFrame::new(parent);
-        self.cel = foxtk::TextField::new(&hbox, 16);
-        self.cel.set_callback({
-            let sender = sender.clone();
-            move |wgt| {
-                let value = wgt.text().parse::<f64>().unwrap_or_default();
-                sender.send(Msg::Cel(value)).unwrap();
-                false
-            }
-        });
-        self.far = foxtk::TextField::new(&hbox, 16);
-        self.far.set_callback({
-            let sender = sender.clone();
-            move |wgt| {
-                let value = wgt.text().parse::<f64>().unwrap_or_default();
-                sender.send(Msg::Far(value)).unwrap();
-                false
-            }
+    fn view(&mut self, parent: &impl CompositeExt, sender: Sender<Self::Event>) {
+        foxtk::GroupBox::new(parent, "Converter").inside(|hbox| {
+            self.cel = foxtk::TextField::new(hbox, 16).with_callback({
+                let sender = sender.clone();
+                move |wgt| {
+                    let value = wgt.text().parse::<f64>().unwrap_or_default();
+                    sender.send(Msg::Cel(value)).unwrap();
+                    false
+                }
+            });
+            self.far = foxtk::TextField::new(hbox, 16).with_callback({
+                let sender = sender.clone();
+                move |wgt| {
+                    let value = wgt.text().parse::<f64>().unwrap_or_default();
+                    sender.send(Msg::Far(value)).unwrap();
+                    false
+                }
+            });
         });
     }
 }
