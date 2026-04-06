@@ -47,11 +47,8 @@ impl Component for Rangers {
             self.spinner = foxtk::Spinner::new(vbox, 6)
                 .with_range(0, 8)
                 .with_increment(1);
-            self.progress = foxtk::ProgressBar::new(vbox)
-                .with_total(8);
-            self.slider = foxtk::Slider::new(vbox)
-                .with_range(0, 8)
-                .with_increment(1);
+            self.progress = foxtk::ProgressBar::new(vbox).with_total(8);
+            self.slider = foxtk::Slider::new(vbox).with_range(0, 8).with_increment(1);
         });
     }
 }

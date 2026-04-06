@@ -6,14 +6,12 @@ Work in progress Rust bindings for the [fox-toolkit](http://www.fox-toolkit.org)
 
 ## [Dependencies](.github/workflows/make.yml)
 
-## Other bindings for [fox-toolkit](http://www.fox-toolkit.org)
-
-- [Ruby](https://rubydoc.info/gems/fxruby/frames)
+## [Other](https://rubydoc.info/gems/fxruby/frames) bindings for [fox-toolkit](http://www.fox-toolkit.org)
 
 ## Software using [fox-toolkit](http://www.fox-toolkit.org)
 
 - [Simulation of Urban MObility](https://github.com/eclipse-sumo/sumo)
-- [X File Explorer](https://sourceforge.net/projects/xfe)
+- [X File Explorer](https://github.com/roland65/xfe)
 - [ReZound](https://sourceforge.net/projects/rezound)
 - [FOX Calculator](http://fox-toolkit.org/calc.html)
 - [Adie](http://fox-toolkit.org/adie.html)
@@ -32,8 +30,8 @@ Work in progress Rust bindings for the [fox-toolkit](http://www.fox-toolkit.org)
    - [x] [FXId](http://fox-toolkit.org/ref/classFX_1_1FXId.html#details)
     - [ ] [FXDrawable](http://fox-toolkit.org/ref/classFX_1_1FXDrawable.html#details)
       - [ ] [FXFont](http://fox-toolkit.org/ref/classFX_1_1FXFont.html#details)
-      - [ ] [FXWindow](http://fox-toolkit.org/ref/classFX_1_1FXWindow.html#details)
-        - [ ] [FXComposite](http://fox-toolkit.org/ref/classFX_1_1FXComposite.html#details)
+      - [x] [FXWindow](http://fox-toolkit.org/ref/classFX_1_1FXWindow.html#details)
+        - [x] [FXComposite](http://fox-toolkit.org/ref/classFX_1_1FXComposite.html#details)
           - [x] [FXPacker](http://fox-toolkit.org/ref/classFX_1_1FXPacker.html#details)
             - [x] [FXVerticalFrame](http://fox-toolkit.org/ref/classFX_1_1FXVerticalFrame.html#details)
         - [x] [FXFrame](http://fox-toolkit.org/ref/classFX_1_1FXFrame.html#details)

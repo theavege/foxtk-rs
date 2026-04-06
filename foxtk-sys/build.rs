@@ -58,10 +58,7 @@ fn main() {
         .define("UNICODE", None)
         .compile("fox");
     const CAPI: &str = "cfoxtk/foxtk.cpp";
-    cc::Build::new()
-        .cpp(true)
-        .file(CAPI)
-        .compile("cfoxtk");
+    cc::Build::new().cpp(true).file(CAPI).compile("cfoxtk");
     println!("cargo:rerun-if-changed={CAPI}");
     bindgen::Builder::default()
         .header("cfoxtk/foxtk.h")

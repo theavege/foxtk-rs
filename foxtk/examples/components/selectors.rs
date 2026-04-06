@@ -26,15 +26,13 @@ impl Component for Selectors {
     fn view(&mut self, parent: &impl CompositeExt, sender: Sender<Self::Event>) {
         foxtk::HorizontalFrame::new(parent).inside(|hbox| {
             let items = ["Item 1", "Item 2", "Item 3", "Item 4", "Item 5"];
-            self.list = foxtk::ListBox::new(hbox)
-                .with_items(&items)
-                .with_callback({
-                    let sender = sender.clone();
-                    move |wgt| {
-                        sender.send(Msg::Set(wgt.current_item())).unwrap();
-                        false
-                    }
-                });
+            self.list = foxtk::ListBox::new(hbox).with_items(&items).with_callback({
+                let sender = sender.clone();
+                move |wgt| {
+                    sender.send(Msg::Set(wgt.current_item())).unwrap();
+                    false
+                }
+            });
             self.combo = foxtk::ComboBox::new(hbox, 6)
                 .with_items(&items)
                 .with_callback({
