@@ -1,13 +1,15 @@
-use std::env;
-use std::fs::File;
-use std::io::Write;
-use std::path::Path;
+use std::{
+    env,
+    fs::File,
+    io::Write,
+    path::Path,
+};
 
 const DIST: &str = "fox-1.6.59";
 const CAPI: &str = "cfoxtk/foxtk.cpp";
 
 #[cfg(target_os = "linux")]
-fn main() {
+fn compile() -> Vec<String> {
     let mut include_paths = Vec::from(["-Icfoxtk".to_string()]);
     for library in ["fox"] {
         match pkg_config::probe_library(library) {
@@ -22,17 +24,19 @@ fn main() {
             }
         }
     }
+
     cc::Build::new()
         .cpp(true)
         .flags(&include_paths)
         .file(CAPI)
         .compile("cfoxtk");
+
     println!("cargo:rerun-if-changed={CAPI}");
-    bind(&include_paths);
+    include_paths
 }
 
 #[cfg(target_os = "windows")]
-fn main() {
+fn compile() -> Vec<String> {
     let zip_url = format!("http://fox-toolkit.org/ftp/{DIST}.zip");
     let out_dir = env::var("OUT_DIR").unwrap();
     let zip_path = Path::new(&out_dir).join(format!("{DIST}.zip"));
@@ -51,30 +55,29 @@ fn main() {
             Err(e) => eprintln!("cargo:warning=Glob error: {:?}", e),
         }
     }
-
+    let include_paths = Vec::from(["-Icfoxtk".to_string(), format!("-I{}", extract_dir.join("include").display())]);
     cc::Build::new()
         .cpp(true)
         .flag_if_supported("-std=c++11")
         .flag_if_supported("/EHsc")
         .define("WIN32", None)
         .define("HAVE_VSSCANF", None)
-        .includes([extract_dir.join("include")])
-        .include("cfoxtk")
+        .flags(&include_paths)
         .files(source_paths)
         .file(CAPI)
         .compile("cfoxtk");
     println!("cargo:rerun-if-changed={CAPI}");
-    bind(["-Icfoxtk".to_string(), format!("-I{}", extract_dir.join("include").display())]);
+    include_paths
 }
 
-fn bind(include_paths: &[String]) {
+fn main() {
     bindgen::Builder::default()
     .header("cfoxtk/foxtk.h")
-    .clang_args(include_paths)
+    .clang_args(&compile())
     .generate()
     .expect("Unable to generate bindings")
     .write_to_file(
-        std::path::PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("bindings.rs"),
+        Path::new(&env::var("OUT_DIR").unwrap()).join("bindings.rs"),
     )
     .unwrap();
 }
