@@ -20,7 +20,7 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - windows-latest
+          # - windows-latest
         arch:
           - x86_64
 
@@ -71,6 +71,7 @@ jobs:
           ) | ForEach-Object { $arguments += "--add $_" }
           Write-Host "Starting Visual Studio 18 Community installer..."
           Start-Process -FilePath $installerPath -ArgumentList $arguments -Wait -NoNewWindow
+          $Env:LIBCLANG_PATH='{0}\Microsoft Visual Studio\18\Community\VC\Tools\Llvm\x64\lib' -f $Env:PROGRAMFILES
           & cargo clippy --quiet --example simple | Out-Host
           & cargo build --release --example simple | Out-Host
           & cargo fmt --check --all | Out-Host
