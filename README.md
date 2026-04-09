@@ -4,7 +4,7 @@
 
 Work in progress Rust bindings for the [fox-toolkit](http://www.fox-toolkit.org).
 
-## [Dependencies](.github/workflows/make.yml)
+## [Dependencies](.github/workflows/make.sh)
 
 ## [Other](https://rubydoc.info/gems/fxruby/frames) bindings for [fox-toolkit](http://www.fox-toolkit.org)
 
