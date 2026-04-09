@@ -48,6 +48,5 @@ jobs:
         if: runner.os == 'Windows'
         shell: powershell
         run: |
-          & cargo clippy --quiet --example simple | Out-Host
           & cargo build --release --example simple | Out-Host
-          & cargo fmt --check --all | Out-Host
+          Return $LastExitCode

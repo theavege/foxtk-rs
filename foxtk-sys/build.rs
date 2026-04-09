@@ -1,4 +1,4 @@
-use std::{env, fs::File, path::Path};
+use std::{env, path::Path};
 
 const CAPI: &str = "cfoxtk/foxtk.cpp";
 
