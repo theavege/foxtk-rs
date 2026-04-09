@@ -1,6 +1,5 @@
-use std::{env, fs::File, io::Write, path::Path};
+use std::{env, fs::File, path::Path};
 
-const DIST: &str = "fox-1.6.59";
 const CAPI: &str = "cfoxtk/foxtk.cpp";
 
 #[cfg(target_os = "linux")]
@@ -32,6 +31,8 @@ fn compile() -> Vec<String> {
 
 #[cfg(target_os = "windows")]
 fn compile() -> Vec<String> {
+    use std::{fs::File, io::Write};
+    const DIST: &str = "fox-1.6.59";
     let zip_url = format!("http://fox-toolkit.org/ftp/{DIST}.zip");
     let out_dir = env::var("OUT_DIR").unwrap();
     let zip_path = Path::new(&out_dir).join(format!("{DIST}.zip"));
@@ -79,7 +80,7 @@ fn compile() -> Vec<String> {
 fn main() {
     bindgen::Builder::default()
         .header("cfoxtk/foxtk.h")
-        .clang_args(&compile())
+        .clang_args(compile())
         .generate()
         .expect("Unable to generate bindings")
         .write_to_file(Path::new(&env::var("OUT_DIR").unwrap()).join("bindings.rs"))
