@@ -1,9 +1,4 @@
-use std::{
-    env,
-    fs::File,
-    io::Write,
-    path::Path,
-};
+use std::{env, fs::File, io::Write, path::Path};
 
 const DIST: &str = "fox-1.6.59";
 const CAPI: &str = "cfoxtk/foxtk.cpp";
@@ -44,18 +39,29 @@ fn compile() -> Vec<String> {
     if !extract_dir.exists() {
         let mut file = File::create(&zip_path).expect("Failed to create zip file");
         let response = reqwest::blocking::get(zip_url).expect("Failed to download fox zip");
-        file.write_all(&response.bytes().expect("Failed to read response")).expect("Failed to write zip");
-        zip_extract::extract(File::open(&zip_path).expect("Failed to open zip"), &extract_dir, true).expect("Failed to extract zip");
+        file.write_all(&response.bytes().expect("Failed to read response"))
+            .expect("Failed to write zip");
+        zip_extract::extract(
+            File::open(&zip_path).expect("Failed to open zip"),
+            &extract_dir,
+            true,
+        )
+        .expect("Failed to extract zip");
     }
 
     let mut source_paths = Vec::new();
-    for entry in glob::glob(&format!("{}/src/*.cpp", extract_dir.display())).expect("Failed to read glob pattern") {
+    for entry in glob::glob(&format!("{}/src/*.cpp", extract_dir.display()))
+        .expect("Failed to read glob pattern")
+    {
         match entry {
             Ok(path) => source_paths.push(path),
             Err(e) => eprintln!("cargo:warning=Glob error: {:?}", e),
         }
     }
-    let include_paths = Vec::from(["-Icfoxtk".to_string(), format!("-I{}", extract_dir.join("include").display())]);
+    let include_paths = Vec::from([
+        "-Icfoxtk".to_string(),
+        format!("-I{}", extract_dir.join("include").display()),
+    ]);
     cc::Build::new()
         .cpp(true)
         .flag_if_supported("-std=c++11")
@@ -72,12 +78,10 @@ fn compile() -> Vec<String> {
 
 fn main() {
     bindgen::Builder::default()
-    .header("cfoxtk/foxtk.h")
-    .clang_args(&compile())
-    .generate()
-    .expect("Unable to generate bindings")
-    .write_to_file(
-        Path::new(&env::var("OUT_DIR").unwrap()).join("bindings.rs"),
-    )
-    .unwrap();
+        .header("cfoxtk/foxtk.h")
+        .clang_args(&compile())
+        .generate()
+        .expect("Unable to generate bindings")
+        .write_to_file(Path::new(&env::var("OUT_DIR").unwrap()).join("bindings.rs"))
+        .unwrap();
 }
