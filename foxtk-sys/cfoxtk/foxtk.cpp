@@ -1,5 +1,8 @@
 #include <fx.h>
-#include <foxtk.h>
+
+typedef void* ObjectPtr;
+typedef long (*CWidgetCb)(ObjectPtr widget, void* context);
+typedef long (*CTimerCb)(ObjectPtr application, void* context);
 
 // CALLBACK BRIDGE
 

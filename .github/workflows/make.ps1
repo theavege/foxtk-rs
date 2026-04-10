@@ -24,3 +24,4 @@ $arguments = @(
 Write-Host "Starting Visual Studio 18 Community installer..."
 Start-Process -FilePath $installerPath -ArgumentList $arguments -Wait -NoNewWindow
 $env:LIBCLANG_PATH='{0}\Microsoft Visual Studio\18\Community\VC\Tools\Llvm\x64\lib' -f $Env:PROGRAMFILES
+Exit($LastExitCode)
