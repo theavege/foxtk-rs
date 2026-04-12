@@ -1,3 +1,6 @@
+#ifndef FOXTK_H
+#define FOXTK_H
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -154,4 +157,5 @@ typedef long (*CTimerCb)(ObjectPtr application, void* context);
 
 #ifdef __cplusplus
 }
+#endif
 #endif

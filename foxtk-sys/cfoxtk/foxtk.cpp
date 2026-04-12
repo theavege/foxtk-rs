@@ -36,7 +36,6 @@ private:
   ObjectPtr application = nullptr;
   CTimerCb    callback = nullptr;
   unsigned int nanosec = 0;
-  void*        context = nullptr;
 public:
   enum { SEL_TIMEOUT, ID_LAST };
   CTimeout(ObjectPtr app, CTimerCb cb, unsigned int ns, void* ctx) {
@@ -63,7 +62,7 @@ FXIMPLEMENT(CTimeout, FXObject, CTimeoutMap, ARRAYNUMBER(CTimeoutMap))
 extern "C" {
 // FXObject
     void fx_object_delete(ObjectPtr wgt) {
-        delete static_cast<FXObject*>(wgt);
+        if (wgt) delete static_cast<FXObject*>(wgt);
     }
 
 // FXId
