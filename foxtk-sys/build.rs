@@ -1,25 +1,30 @@
 use std::{env, path::Path};
 
+const COMPILE: &str = "cfoxtk";
+const LIBRARY: &str = "fox";
+const CAPI: &str = "cfoxtk/foxtk.cpp";
+
 #[cfg(target_os = "linux")]
 fn compile() -> Vec<String> {
+    println!("cargo:rust-link-lib=dylib={LIBRARY}");
     let mut includes = Vec::new();
-    match pkg_config::probe_library("fox") {
+    match pkg_config::probe_library(LIBRARY) {
         Ok(lib) => {
             for dir in lib.include_paths {
                 includes.push(format!("-I{}", dir.display()));
             }
         }
         Err(e) => {
-            eprintln!("Failed to find {library}: {e}");
+            eprintln!("Failed to find {LIBRARY}: {e}");
             std::process::exit(1);
         }
     }
 
     cc::Build::new()
         .cpp(true)
-        .file("cfoxtk/foxtk")
+        .file(CAPI)
         .flags(&includes)
-        .compile("cfoxtk/foxtk.cpp");
+        .compile(COMPILE);
 
     includes
 }
@@ -61,14 +66,14 @@ fn compile() -> Vec<String> {
         .define("WIN32", None)
         .files(&sources)
         .include(&include)
-        .compile("fx");
+        .compile(LIBRARY);
 
     cc::Build::new()
         .cpp(true)
         .define("WIN32", None)
-        .file("cfoxtk//foxtk.cpp")
+        .file(CAPI)
         .include(&include)
-        .compile("cfoxtk");
+        .compile(COMPILE);
 
     Vec::new()
 }
