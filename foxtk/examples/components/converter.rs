@@ -51,22 +51,26 @@ impl Component for Converter {
     }
     fn view(&mut self, parent: &impl CompositeExt, sender: Sender<Self::Event>) {
         foxtk::GroupBox::new(parent, "Converter").inside(|hbox| {
-            self.cel = foxtk::TextField::new(hbox, 16).with_callback({
-                let sender = sender.clone();
-                move |wgt| {
-                    let value = wgt.text().parse::<f64>().unwrap_or_default();
-                    sender.send(Msg::Cel(value)).unwrap();
-                    false
-                }
-            });
-            self.far = foxtk::TextField::new(hbox, 16).with_callback({
-                let sender = sender.clone();
-                move |wgt| {
-                    let value = wgt.text().parse::<f64>().unwrap_or_default();
-                    sender.send(Msg::Far(value)).unwrap();
-                    false
-                }
-            });
+            self.cel = foxtk::TextField::new(hbox, 16)
+                .with_trigger(Trigger::CHANGED)
+                .with_callback({
+                    let sender = sender.clone();
+                    move |wgt| {
+                        let value = wgt.text().parse::<f64>().unwrap_or_default();
+                        sender.send(Msg::Cel(value)).unwrap();
+                        false
+                    }
+                });
+            self.far = foxtk::TextField::new(hbox, 16)
+                .with_trigger(Trigger::CHANGED)
+                .with_callback({
+                    let sender = sender.clone();
+                    move |wgt| {
+                        let value = wgt.text().parse::<f64>().unwrap_or_default();
+                        sender.send(Msg::Far(value)).unwrap();
+                        false
+                    }
+                });
         });
     }
 }

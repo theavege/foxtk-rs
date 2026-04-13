@@ -20,6 +20,11 @@ impl App {
         })
     }
 }
+//~ impl Drop for App {
+//~ fn drop(&mut self) {
+//~ unsafe { fx_object_delete(self.0) }
+//~ }
+//~ }
 impl ObjectExt for App {
     fn as_raw(&self) -> ObjectPtr {
         self.0
@@ -32,11 +37,6 @@ impl AppExt for App {}
 
 #[derive(Default)]
 pub struct Button(ObjectPtr);
-//~ impl Drop for Button {
-//~ fn drop(&mut self) {
-//~ unsafe { fx_object_delete(self.0) }
-//~ }
-//~ }
 impl ObjectExt for Button {
     fn as_raw(&self) -> ObjectPtr {
         self.0

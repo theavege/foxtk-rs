@@ -16,15 +16,16 @@ private:
 public:
   enum { SEL_COMMAND, SEL_CHANGED };
   CTarget(CWidgetCb cb, void* ctx) : callback(cb) , context(ctx) {}
-  long selCommand(FXObject* wgt, FXSelector, void*) {
-    long result = 1;
+  long callBack(FXObject* wgt, FXSelector, void*) {
+    long result = 0;
     if (this -> callback) result = this -> callback(wgt, this -> context);
     return result;
   }
 };
 
 FXDEFMAP(CTarget) CTargetMap[] = {
-    FXMAPFUNC(SEL_COMMAND, CTarget::SEL_COMMAND, CTarget::selCommand),
+    FXMAPFUNC(SEL_COMMAND, CTarget::SEL_COMMAND, CTarget::callBack),
+    FXMAPFUNC(SEL_CHANGED, CTarget::SEL_CHANGED, CTarget::callBack),
 };
 FXIMPLEMENT(CTarget, FXObject, CTargetMap, ARRAYNUMBER(CTargetMap))
 
@@ -33,22 +34,26 @@ class CTimeout : public FXObject {
 protected:
     CTimeout() {}
 private:
-  ObjectPtr application = nullptr;
   CTimerCb    callback = nullptr;
   unsigned int nanosec = 0;
 public:
-  enum { SEL_TIMEOUT, ID_LAST };
-  CTimeout(ObjectPtr app, CTimerCb cb, unsigned int ns, void* ctx) {
-    this -> application = app;
-    this -> callback = cb;
-    this -> nanosec = ns;
-    static_cast<FXApp*>(app)->addTimeout(this, CTimeout::SEL_TIMEOUT, ns, ctx);
-  }
-  long onTimeout(FXObject*, FXSelector, void* ctx) {
-        long result = 1;
+    enum { SEL_TIMEOUT, SEL_CHORE };
+    CTimeout(CTimerCb cb, unsigned int ns) {
+        this -> callback = cb;
+        this -> nanosec = ns;
+    }
+    long onTimeout(FXObject* app, FXSelector, void* ctx) {
+        long result = 0;
         if (this -> callback) {
-            result = this -> callback(this -> application, ctx);
-            static_cast<FXApp*>(application)->addTimeout(this, CTimeout::SEL_TIMEOUT, nanosec, ctx);
+            result = this -> callback(app, ctx);
+            static_cast<FXApp*>(app)->addTimeout(this, CTimeout::SEL_TIMEOUT, nanosec, ctx);
+        };
+        return result;
+    }
+    long onChore(FXObject* app, FXSelector, void* ctx) {
+        long result = 0;
+        if (this -> callback) {
+            result = this -> callback(app, ctx);
         };
         return result;
     }
@@ -56,6 +61,7 @@ public:
 
 FXDEFMAP(CTimeout) CTimeoutMap[] = {
     FXMAPFUNC(SEL_TIMEOUT, CTimeout::SEL_TIMEOUT, CTimeout::onTimeout),
+    FXMAPFUNC(SEL_CHORE, CTimeout::SEL_CHORE, CTimeout::onChore),
 };
 FXIMPLEMENT(CTimeout, FXObject, CTimeoutMap, ARRAYNUMBER(CTimeoutMap))
 
@@ -71,10 +77,13 @@ extern "C" {
     }
 
 // FXWindow
-    void fx_window_set_target(ObjectPtr wgt_, CWidgetCb cb, void* ctx) {
+    void fx_window_set_target(ObjectPtr wgt, CWidgetCb cb, void* ctx) {
+        static_cast<FXWindow*>(wgt)->setTarget(static_cast<FXObject*>(new CTarget(cb, ctx)));
+    }
+    void fx_window_set_selector(ObjectPtr wgt_, int val) {
         auto wgt = static_cast<FXWindow*>(wgt_);
-        wgt->setTarget(static_cast<FXObject*>(new CTarget(cb, ctx)));
-        wgt->setSelector(CTarget::SEL_COMMAND);
+        if (val == 0) wgt->setSelector(CTarget::SEL_COMMAND);
+        if (val == 1) wgt->setSelector(CTarget::SEL_CHANGED);
     }
 
 // FXApp
@@ -88,8 +97,11 @@ extern "C" {
         app->create();
         return app->run();
     }
-    ObjectPtr fx_app_add_timeout(ObjectPtr app, CTimerCb cb, unsigned int ns, void* ctx) {
-        return new CTimeout(app, cb, ns, ctx);
+    void fx_app_add_timeout(ObjectPtr app, CTimerCb cb, unsigned int ns, void* ctx) {
+        static_cast<FXApp*>(app)->addTimeout(new CTimeout(cb, ns), CTimeout::SEL_TIMEOUT, ns, ctx);
+    }
+    void fx_app_add_chore(ObjectPtr app, CTimerCb cb, void* ctx) {
+        static_cast<FXApp*>(app)->addChore(new CTimeout(cb, 0), CTimeout::SEL_CHORE, ctx);
     }
 
 // FXLabel

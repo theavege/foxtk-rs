@@ -250,6 +250,12 @@ pub trait AppExt: ObjectExt {
             );
         }
     }
+    fn add_chore<F: FnMut(Self) -> bool + 'static>(&self, func: F) {
+        let raw_ptr: *mut Box<dyn FnMut(Self) -> bool> = Box::into_raw(Box::new(Box::new(func)));
+        unsafe {
+            fx_app_add_chore(self.as_raw(), Some(ctimer::<Self>), raw_ptr as *mut c_void);
+        }
+    }
     fn run(&self) -> i32 {
         unsafe { fx_app_run(self.as_raw()) }
     }
@@ -260,6 +266,12 @@ pub trait IdExt: ObjectExt {
         super::App::from_raw(unsafe { fx_id_get_app(self.as_raw()) })
     }
 }
+
+pub enum Trigger {
+    COMMAND = 0,
+    CHANGED,
+}
+
 pub trait WindowExt: IdExt {
     fn set_callback<F: FnMut(Self) -> bool + 'static>(&self, func: F) {
         let raw_ptr: *mut Box<dyn FnMut(Self) -> bool> = Box::into_raw(Box::new(Box::new(func)));
@@ -270,6 +282,15 @@ pub trait WindowExt: IdExt {
                 raw_ptr as *mut c_void,
             );
         }
+    }
+    fn set_trigger(&self, val: Trigger) {
+        unsafe {
+            fx_window_set_selector(self.as_raw(), val as c_int);
+        }
+    }
+    fn with_trigger(self, val: Trigger) -> Self {
+        self.set_trigger(val);
+        self
     }
     fn with_callback<F: FnMut(Self) -> bool + 'static>(self, func: F) -> Self {
         self.set_callback(func);
@@ -444,9 +465,9 @@ pub trait Component: Default + 'static {
             true
         });
     }
-    fn run(name: &str, vendor: &str, title: &str) {
+    fn run(name: &str, vendor: &str, title: &str) -> i32 {
         let app = super::App::new(name, vendor);
         Self::mount(&super::MainWindow::new(&app, title, 480, 270));
-        app.run();
+        app.run()
     }
 }

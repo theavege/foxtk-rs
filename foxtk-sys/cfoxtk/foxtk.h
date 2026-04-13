@@ -19,7 +19,8 @@ typedef long (*CTimerCb)(ObjectPtr application, void* context);
 // FXApp
     ObjectPtr fx_app_new(const char* name, const char* vendor, int argc, char** argv);
     int fx_app_run(ObjectPtr app);
-    ObjectPtr fx_app_add_timeout(ObjectPtr app, CTimerCb cb, unsigned int ns, void* ctx);
+    void fx_app_add_timeout(ObjectPtr app, CTimerCb cb, unsigned int ns, void* ctx);
+    void fx_app_add_chore(ObjectPtr app, CTimerCb cb, void* ctx);
 
 // FXLabel
     ObjectPtr fx_label_new(ObjectPtr parent, const char* title);
@@ -30,6 +31,7 @@ typedef long (*CTimerCb)(ObjectPtr application, void* context);
 
 // FXWindow
     void fx_window_set_target(ObjectPtr wgt, CWidgetCb callback, void* context);
+    void fx_window_set_selector(ObjectPtr wgt, int val);
 
 // FXTextField
     ObjectPtr fx_textfield_new(ObjectPtr frm, int ncols);
