@@ -1,21 +1,21 @@
 pub mod prelude;
-use {foxtk_sys::*, prelude::*};
+use {foxtk_sys::*, std::ffi::{CString, c_int, c_void,c_char}, prelude::*};
 
 pub struct App(ObjectPtr);
 impl App {
     pub fn new(name_: &str, vendor_: &str) -> Self {
-        let name = std::ffi::CString::new(name_).unwrap();
-        let vendor = std::ffi::CString::new(vendor_).unwrap();
+        let name = CString::new(name_).unwrap();
+        let vendor = CString::new(vendor_).unwrap();
         let args = std::env::args()
-            .map(|arg| std::ffi::CString::new(arg).unwrap())
+            .map(|arg| CString::new(arg).unwrap())
             .map(|arg| arg.as_ptr())
-            .collect::<Vec<*const std::ffi::c_char>>();
+            .collect::<Vec<*const c_char>>();
         Self::from_raw(unsafe {
             fx_app_new(
                 name.as_ptr(),
                 vendor.as_ptr(),
-                args.len() as std::ffi::c_int,
-                args.as_ptr() as *mut *mut std::ffi::c_char,
+                args.len() as c_int,
+                args.as_ptr() as *mut *mut c_char,
             )
         })
     }
@@ -72,7 +72,7 @@ impl IdExt for Canvas {}
 pub struct CheckButton(ObjectPtr);
 impl CheckButton {
     pub fn new(parent: &impl ObjectExt, title_: &str) -> Self {
-        let title = std::ffi::CString::new(title_).unwrap();
+        let title = CString::new(title_).unwrap();
         Self::from_raw(unsafe { fx_check_button_new(parent.as_raw(), title.as_ptr()) })
     }
 }
@@ -129,7 +129,7 @@ impl WindowExt for Packer {}
 pub struct GroupBox(ObjectPtr);
 impl GroupBox {
     pub fn new(parent: &impl ObjectExt, title_: &str) -> Self {
-        let title = std::ffi::CString::new(title_).unwrap();
+        let title = CString::new(title_).unwrap();
         Self(unsafe { fx_groupbox_new(parent.as_raw(), title.as_ptr()) })
     }
 }
@@ -205,7 +205,7 @@ impl WindowExt for Switcher {}
 pub struct Label(ObjectPtr);
 impl Label {
     pub fn new(parent: &impl ObjectExt, title_: &str) -> Self {
-        let title = std::ffi::CString::new(format!("&{title_}").as_str()).unwrap();
+        let title = CString::new(format!("&{title_}").as_str()).unwrap();
         Self::from_raw(unsafe { fx_label_new(parent.as_raw(), title.as_ptr()) })
     }
 }
@@ -267,7 +267,7 @@ impl ProgressBarExt for ProgressBar {}
 pub struct RadioButton(ObjectPtr);
 impl RadioButton {
     pub fn new(parent: &impl ObjectExt, title_: &str) -> Self {
-        let title = std::ffi::CString::new(title_).unwrap();
+        let title = CString::new(title_).unwrap();
         Self::from_raw(unsafe { fx_radio_button_new(parent.as_raw(), title.as_ptr()) })
     }
 }
@@ -364,7 +364,7 @@ impl IdExt for TabBook {}
 pub struct TabItem(ObjectPtr);
 impl TabItem {
     pub fn new(parent: &impl WindowExt, text: &str) -> Self {
-        let c_text = std::ffi::CString::new(text).unwrap();
+        let c_text = CString::new(text).unwrap();
         unsafe {
             Self::from_raw(fx_tab_item_new(
                 parent.as_raw(),
@@ -491,7 +491,7 @@ impl ObjectExt for TreeItem {
 pub struct MainWindow(ObjectPtr);
 impl MainWindow {
     pub fn new(app: &impl AppExt, title_: &str, w: i32, h: i32) -> Self {
-        let title = std::ffi::CString::new(title_).unwrap();
+        let title = CString::new(title_).unwrap();
         let wgt = Self::from_raw(unsafe { fx_main_window_new(app.as_raw(), title.as_ptr(), w, h) });
         wgt.show();
         wgt
@@ -526,7 +526,7 @@ impl MenuPane {
 
 impl MenuTitle {
     pub fn new(parent: &impl WindowExt, text: &str, pane: &MenuPane) -> Self {
-        let c_text = std::ffi::CString::new(text).unwrap();
+        let c_text = CString::new(text).unwrap();
         unsafe {
             Self::from_raw(foxtk_sys::fx_menu_title_new(
                 parent.as_raw(),
@@ -584,7 +584,7 @@ pub struct MenuCommand(ObjectPtr);
 
 impl MenuCommand {
     pub fn new(parent: &impl WindowExt, text: &str) -> Self {
-        let c_text = std::ffi::CString::new(text).unwrap();
+        let c_text = CString::new(text).unwrap();
         unsafe {
             Self::from_raw(fx_menu_command_new(
                 parent.as_raw(),
