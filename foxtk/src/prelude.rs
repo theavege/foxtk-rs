@@ -350,6 +350,9 @@ pub trait WindowExt: IdExt {
             fx_window_set_height(self.as_raw(), val as c_int);
         }
     }
+    fn has_focus(&self) -> bool {
+        unsafe { fx_window_has_focus(self.as_raw()) != 0 }
+    }
     fn set_width(&self, val: i32) {
         unsafe {
             fx_window_set_width(self.as_raw(), val as c_int);
@@ -382,6 +385,15 @@ pub trait TextFieldExt: WindowExt {
                 String::new()
             }
         }
+    }
+    fn set_editable(&self, val: bool) {
+        unsafe {
+            fx_textfield_set_editable(self.as_raw(), val as c_long);
+        }
+    }
+    fn with_editable(self, val: bool) -> Self {
+        self.set_editable(val);
+        self
     }
     fn set_text(&self, text_: &str) {
         let text = std::ffi::CString::new(text_).unwrap();

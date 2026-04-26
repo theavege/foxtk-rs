@@ -31,14 +31,18 @@ impl Component for Selectors {
             self.listbox = foxtk::ListBox::new(prt).with_items(&items).with_callback({
                 let sender = sender.clone();
                 move |wgt| {
-                    sender.send(Msg::Set(wgt.current_item())).unwrap();
+                    if wgt.has_focus() {
+                        sender.send(Msg::Set(wgt.current_item())).unwrap();
+                    }
                     false
                 }
             });
             self.list = foxtk::List::new(prt).with_items(&items).with_callback({
                 let sender = sender.clone();
                 move |wgt| {
-                    sender.send(Msg::Set(wgt.current_item())).unwrap();
+                    if wgt.has_focus() {
+                        sender.send(Msg::Set(wgt.current_item())).unwrap();
+                    }
                     false
                 }
             });
@@ -47,7 +51,9 @@ impl Component for Selectors {
                 .with_callback({
                     let sender = sender.clone();
                     move |wgt| {
-                        sender.send(Msg::Set(wgt.current_item())).unwrap();
+                        if wgt.has_focus() {
+                            sender.send(Msg::Set(wgt.current_item())).unwrap();
+                        }
                         false
                     }
                 });

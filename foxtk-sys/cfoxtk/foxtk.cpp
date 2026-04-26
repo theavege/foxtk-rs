@@ -97,6 +97,9 @@ extern "C" {
     FXWindow* fx_window_get_parent(ObjectPtr wgt) {
         return static_cast<FXWindow*>(wgt)->getParent();
     }
+    long fx_window_has_focus(ObjectPtr wgt) {
+        return static_cast<FXWindow*>(wgt)->hasFocus();
+    }
 
 // FXApp
     ObjectPtr fx_app_new(const char* name, const char* vendor, int argc, char** argv) {
@@ -180,6 +183,9 @@ extern "C" {
     }
     void fx_textfield_set_text(ObjectPtr wgt, const char* text) {
         static_cast<FXTextField*>(wgt) -> setText(text);
+    }
+    void fx_textfield_set_editable(ObjectPtr wgt, long val) {
+        static_cast<FXTextField*>(wgt) -> setEditable(val != 0);
     }
 
 // FXSpinner

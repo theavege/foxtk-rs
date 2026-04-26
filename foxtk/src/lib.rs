@@ -488,7 +488,6 @@ impl ObjectExt for TreeList {
 }
 
 impl IdExt for TreeList {}
-
 impl WindowExt for TreeList {}
 
 pub struct TreeItem(ObjectPtr);

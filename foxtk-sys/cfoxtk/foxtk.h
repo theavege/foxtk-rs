@@ -36,11 +36,13 @@ typedef long (*CTimerCb)(ObjectPtr application, void* context);
     void fx_window_set_height(ObjectPtr wgt, int val);
     void fx_window_set_layout_hints(ObjectPtr wgt, unsigned int val);
     ObjectPtr fx_window_get_parent(ObjectPtr wgt);
+    long fx_window_has_focus(ObjectPtr wgt);
 
 // FXTextField
     ObjectPtr fx_textfield_new(ObjectPtr frm);
     void fx_textfield_set_text(ObjectPtr wgt, const char* text);
     const char* fx_textfield_get_text(ObjectPtr wgt);
+    void fx_textfield_set_editable(ObjectPtr wgt, long val);
 
 // FXSpinner
     ObjectPtr fx_spinner_new(ObjectPtr parent);

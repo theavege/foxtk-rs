@@ -25,6 +25,7 @@ fn compile() -> Vec<String> {
         .file(CAPI)
         .flags(&includes)
         .compile(COMPILE);
+    println!("cargo:rerun-if-env-changed={CAPI}");
 
     includes
 }
@@ -74,6 +75,7 @@ fn compile() -> Vec<String> {
         .file(CAPI)
         .include(&include)
         .compile(COMPILE);
+    println!("cargo:rerun-if-env-changed={CAPI}");
 
     Vec::new()
 }

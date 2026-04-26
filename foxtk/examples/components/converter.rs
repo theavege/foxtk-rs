@@ -56,8 +56,10 @@ impl Component for Converter {
                 .with_callback({
                     let sender = sender.clone();
                     move |wgt| {
-                        let value = wgt.text().parse::<f64>().unwrap_or_default();
-                        sender.send(Msg::Cel(value)).unwrap();
+                        if wgt.has_focus() {
+                            let value = wgt.text().parse::<f64>().unwrap_or_default();
+                            sender.send(Msg::Cel(value)).unwrap();
+                        }
                         false
                     }
                 });
@@ -66,8 +68,10 @@ impl Component for Converter {
                 .with_callback({
                     let sender = sender.clone();
                     move |wgt| {
-                        let value = wgt.text().parse::<f64>().unwrap_or_default();
-                        sender.send(Msg::Far(value)).unwrap();
+                        if wgt.has_focus() {
+                            let value = wgt.text().parse::<f64>().unwrap_or_default();
+                            sender.send(Msg::Far(value)).unwrap();
+                        }
                         false
                     }
                 });

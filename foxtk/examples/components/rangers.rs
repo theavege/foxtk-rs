@@ -35,16 +35,20 @@ impl Component for Rangers {
                 foxtk::HorizontalFrame::new(prt).inside(|prt| {
                     foxtk::Button::new(prt, "Prev").set_callback({
                         let sender = sender.clone();
-                        move |_| {
-                            sender.send(Msg::Add(-1)).unwrap();
+                        move |wgt| {
+                            if wgt.has_focus() {
+                                sender.send(Msg::Add(-1)).unwrap();
+                            }
                             false
                         }
                     });
                     self.label = foxtk::Label::new(prt, "").with_width(8);
                     foxtk::Button::new(prt, "Next").set_callback({
                         let sender = sender.clone();
-                        move |_| {
-                            sender.send(Msg::Add(1)).unwrap();
+                        move |wgt| {
+                            if wgt.has_focus() {
+                                sender.send(Msg::Add(1)).unwrap();
+                            }
                             false
                         }
                     });
@@ -56,19 +60,24 @@ impl Component for Rangers {
                 .with_callback({
                     let sender = sender.clone();
                     move |wgt| {
-                        sender.send(Msg::Set(wgt.value())).unwrap();
+                        if wgt.has_focus() {
+                            sender.send(Msg::Set(wgt.value())).unwrap();
+                        }
                         false
                     }
                 });
             self.progress = foxtk::ProgressBar::new(prt).with_total(8).with_width(6);
             self.slider = foxtk::Slider::new(prt)
+                .with_trigger(Trigger::CHANGED)
                 .with_width(6)
                 .with_range(0, 8)
                 .with_increment(1)
                 .with_callback({
                     let sender = sender.clone();
                     move |wgt| {
-                        sender.send(Msg::Set(wgt.value())).unwrap();
+                        if wgt.has_focus() {
+                            sender.send(Msg::Set(wgt.value())).unwrap();
+                        }
                         false
                     }
                 });
