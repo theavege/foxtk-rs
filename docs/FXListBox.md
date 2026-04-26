@@ -1,3 +1,0 @@
-The List Box is a control to select one of a list of options.
-
-It looks similar to a Combo Box except that List Box yields integer numbers only. When an option is selected, List Box will send an SEL_COMMAND with the index of the opton. While manipulating the list, it may send SEL_CHANGED messages to indicate which option the cursor is hovering over. The List Box is able to receive ID_GETINTVALUE and ID_SETINTVALUE which will retrieve the current option or change the selected option. When items are added, replaced, or removed, the list sends messages of the type SEL_INSERTED, SEL_REPLACED, or SEL_DELETED, with the index of the affected item as argument.

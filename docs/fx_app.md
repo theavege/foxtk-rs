@@ -13,7 +13,9 @@ fn main() {
     let app = foxtk::App::new("ApplicationName","VendorName");
 
     // Make MainWindow
-    foxtk::MainWindow::new(&app, title, 480, 270);
+    let width = 480;
+    let height = 270;
+    foxtk::MainWindow::new(&app, title, width, height);
 
    // Run
     app.run();

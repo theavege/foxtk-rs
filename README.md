@@ -4,10 +4,7 @@
 
 Work in progress Rust bindings for the [fox-toolkit](http://www.fox-toolkit.org).
 
-cfoxtk.cpp -> cfoxtk.h -[foxtk-sys]-> foxtk.prelude -> foxtk.lib -> example
-
-
-## What is FOX?
+## What is [FOX](http://www.fox-toolkit.org)?
 
 FOX is a C++ based Toolkit for developing Graphical User Interfaces easily and effectively. It offers a wide, and growing, collection of Controls, and provides state of the art facilities such as drag and drop, selection, as well as OpenGL widgets for 3D graphical manipulation. FOX also implements icons, images, and user-convenience features such as status line help, and tooltips. Tooltips may even be used for 3D objects!
 
@@ -42,23 +39,23 @@ Finally, FOX makes it easy to maintain the state of the GUI in an application by
 
 ## Work in process
 
-- [ ] [FXObject](http://fox-toolkit.org/ref/classFX_1_1FXObject.html#details)
-   - [x] [FXApp](docs/FXApp.md)
-   - [ ] [FXId](http://fox-toolkit.org/ref/classFX_1_1FXId.html#details)
-    - [ ] [FXDrawable](http://fox-toolkit.org/ref/classFX_1_1FXDrawable.html#details)
-      - [ ] [FXFont](http://fox-toolkit.org/ref/classFX_1_1FXFont.html#details)
-      - [x] [FXWindow](docs/FXWindow.md)
-        - [ ] [FXComposite](http://fox-toolkit.org/ref/classFX_1_1FXComposite.html#details)
-          - [x] [FXPacker](docs/FXPacker.md)
-            - [x] [FXHorizontalFrame](docs/FXHorizontalFrame.md)
-            - [x] [FXVerticalFrame](docs/FXVerticalFrame.md)
-            - [x] [FXComboBox](docs/FXComboBox.md)
-            - [x] [FXListBox](docs/FXListBox.md)
-            - [x] [FXSwitcher](docs/FXSwitcher.md)
-        - [ ] [FXFrame](http://fox-toolkit.org/ref/classFX_1_1FXFrame.html#details)
-          - [ ] [FXTextField](http://fox-toolkit.org/ref/classFX_1_1FXTextField.html#details)
-          - [ ] [FXProgressBar](http://fox-toolkit.org/ref/classFX_1_1FXProgressBar.html#details)
-          - [ ] [FXLabel](http://fox-toolkit.org/ref/classFX_1_1FXLabel.html#details)
-            - [x] [FXButton](docs/FXButton.md)
-            - [ ] [FXRadioButton](http://fox-toolkit.org/ref/classFX_1_1FXRadioButton.html#details)
-            - [ ] [FXCheckButton](http://fox-toolkit.org/ref/classFX_1_1FXCheckButton.html#details)
+- [x] [FXApp](docs/fx_app.md)
+- [x] [Containers](docs/fx_composite.md
+  - [x] [FXGroupBox](docs/fx_composite.md#FXGroupBox)
+  - [x] [FXHorizontalFrame](docs/fx_composite.md#FXHorizontalFrame)
+  - [x] [FXVerticalFrame](docs/fx_composite.md#FXVerticalFrame)
+  - [x] [FXSwitcher](docs/fx_composite.md#FXSwitcher)
+- [x] Widgets
+  - [x] [Selectors](docs/fx_selectors.md)
+    - [x] [FXComboBox](docs/fx_selectors.md#FXComboBox)
+    - [x] [FXListBox](docs/fx_selectors.md#FXListBox)
+    - [x] [FXList](docs/fx_selectors.md#FXList)
+  - [x] [Inputs](docs/fx_inputs.md)
+    - [x] [FXTextField](docs/fx_inputs.md#FXTextField)
+    - [x] [FXRadioButton](docs/fx_inputs.md#FXRadioButton)
+    - [x] [FXCheckButton](docs/fx_inputs.md#FXCheckButton)
+  - [x] [Outputs](docs/fx_outputs.md)
+    - [x] [FXProgressBar](docs/fx_outputs.md#FXProgressBar)
+    - [x] [FXLabel](docs/fx_outputs.md#FXLabel)
+  - [x] [Triggers](docs/fx_triggers.md)
+    - [x] [FXButton](docs/fx_triggers.md#FXButton)

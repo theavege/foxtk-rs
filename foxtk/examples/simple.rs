@@ -32,27 +32,15 @@ impl Component for Simple {
                             false
                         }
                     });
-                    foxtk::MenuCommand::new(mpaine, "Rangers").set_callback({
-                        let sender = sender.clone();
-                        move |_| {
-                            sender.send(Msg::SetVal(1)).unwrap();
-                            false
-                        }
-                    });
-                    foxtk::MenuCommand::new(mpaine, "Selectors").set_callback({
-                        let sender = sender.clone();
-                        move |_| {
-                            sender.send(Msg::SetVal(2)).unwrap();
-                            false
-                        }
-                    });
                 });
             });
         });
-        self.0 = foxtk::Switcher::new(parent).inside(|swt| {
-            components::Converter::mount(swt);
-            components::Rangers::mount(swt);
-            components::Selectors::mount(swt);
+        self.0 = foxtk::Switcher::new(parent).inside(|prt| {
+            foxtk::VerticalFrame::new(prt).inside(|prt| {
+                components::Converter::mount(prt);
+                components::Rangers::mount(prt);
+                components::Selectors::mount(prt);
+            });
         });
     }
 }

@@ -49,9 +49,9 @@ impl Component for Converter {
             self.far.set_text(&value.to_string());
         }
     }
-    fn view(&mut self, parent: &impl CompositeExt, sender: Sender<Self::Event>) {
-        foxtk::GroupBox::new(parent, "Converter").inside(|hbox| {
-            self.cel = foxtk::TextField::new(hbox, 16)
+    fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
+        foxtk::GroupBox::new(prt, "Converter").inside(|prt| {
+            self.cel = foxtk::TextField::new(prt)
                 .with_trigger(Trigger::CHANGED)
                 .with_callback({
                     let sender = sender.clone();
@@ -61,7 +61,7 @@ impl Component for Converter {
                         false
                     }
                 });
-            self.far = foxtk::TextField::new(hbox, 16)
+            self.far = foxtk::TextField::new(prt)
                 .with_trigger(Trigger::CHANGED)
                 .with_callback({
                     let sender = sender.clone();
