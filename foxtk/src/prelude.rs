@@ -2,30 +2,30 @@ pub use std::sync::mpsc::Sender;
 use {
     foxtk_sys::*,
     std::{
-        ffi::{CString, c_int, c_long, c_uint, c_void},
+        ffi::{CString, c_void},
         sync::mpsc::channel,
     },
 };
 
-unsafe extern "C" fn ccallback<T: ObjectExt>(ptr: ObjectPtr, context: *mut c_void) -> c_long {
+unsafe extern "C" fn ccallback<T: ObjectExt>(ptr: ObjectPtr, context: *mut c_void) -> i64 {
     unsafe {
         let func: &mut Box<dyn FnMut(T) -> bool> =
             &mut *(context as *mut Box<dyn FnMut(T) -> bool>);
-        func(T::from_raw(ptr)) as c_long
+        func(T::from_raw(ptr)) as i64
     }
 }
 
-unsafe extern "C" fn ctimer<T: AppExt>(ptr: ObjectPtr, context: *mut c_void) -> c_long {
+unsafe extern "C" fn ctimer<T: AppExt>(ptr: ObjectPtr, context: *mut c_void) -> i64 {
     unsafe {
         let func: &mut Box<dyn FnMut(T) -> bool> =
             &mut *(context as *mut Box<dyn FnMut(T) -> bool>);
-        func(T::from_raw(ptr)) as c_long
+        func(T::from_raw(ptr)) as i64
     }
 }
 
 pub trait SwitcherExt: PackerExt {
     fn set_curent(&self, idx: i32) {
-        unsafe { fx_switcher_set_current(self.as_raw(), idx as c_int) }
+        unsafe { fx_switcher_set_current(self.as_raw(), idx) }
     }
 }
 
@@ -145,7 +145,7 @@ pub trait CompositeExt: IdExt {
 pub trait GroupBoxExt: CompositeExt {
     fn set_style(&self, val: usize) {
         unsafe {
-            fx_groupbox_set_style(self.as_raw(), val as c_uint);
+            fx_groupbox_set_style(self.as_raw(), val as u32);
         }
     }
 }
@@ -222,12 +222,12 @@ impl SelectorExt for super::List {
 pub trait PackerExt: CompositeExt {
     fn set_hspacing(&self, val: i32) {
         unsafe {
-            fx_packer_set_hspacing(self.as_raw(), val as c_int);
+            fx_packer_set_hspacing(self.as_raw(), val);
         }
     }
     fn set_vspacing(&self, val: i32) {
         unsafe {
-            fx_packer_set_vspacing(self.as_raw(), val as c_int);
+            fx_packer_set_vspacing(self.as_raw(), val);
         }
     }
 }
@@ -337,17 +337,17 @@ pub trait WindowExt: IdExt {
     }
     fn set_trigger(&self, val: Trigger) {
         unsafe {
-            fx_window_set_selector(self.as_raw(), val as c_int);
+            fx_window_set_selector(self.as_raw(), val as i32);
         }
     }
     fn set_layout_hints(&self, val: u32) {
         unsafe {
-            fx_window_set_layout_hints(self.as_raw(), val as c_uint);
+            fx_window_set_layout_hints(self.as_raw(), val);
         }
     }
     fn set_height(&self, val: i32) {
         unsafe {
-            fx_window_set_height(self.as_raw(), val as c_int);
+            fx_window_set_height(self.as_raw(), val);
         }
     }
     fn has_focus(&self) -> bool {
@@ -355,7 +355,7 @@ pub trait WindowExt: IdExt {
     }
     fn set_width(&self, val: i32) {
         unsafe {
-            fx_window_set_width(self.as_raw(), val as c_int);
+            fx_window_set_width(self.as_raw(), val);
         }
     }
     fn with_height(self, val: i32) -> Self {
@@ -388,7 +388,7 @@ pub trait TextFieldExt: WindowExt {
     }
     fn set_editable(&self, val: bool) {
         unsafe {
-            fx_textfield_set_editable(self.as_raw(), val as c_long);
+            fx_textfield_set_editable(self.as_raw(), val as i64);
         }
     }
     fn with_editable(self, val: bool) -> Self {

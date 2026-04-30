@@ -1,25 +1,19 @@
 pub mod prelude;
-use {
-    foxtk_sys::*,
-    prelude::*,
-    std::ffi::{CString, c_char, c_int},
-};
+use {foxtk_sys::*, prelude::*, std::ffi::CString};
 
 pub struct App(ObjectPtr);
 impl App {
     pub fn new(name_: &str, vendor_: &str) -> Self {
-        let name = CString::new(name_).unwrap();
-        let vendor = CString::new(vendor_).unwrap();
         let args = std::env::args()
             .map(|arg| CString::new(arg).unwrap())
             .map(|arg| arg.as_ptr())
-            .collect::<Vec<*const c_char>>();
+            .collect::<Vec<*const i8>>();
         Self::from_raw(unsafe {
             fx_app_new(
-                name.as_ptr(),
-                vendor.as_ptr(),
-                args.len() as c_int,
-                args.as_ptr() as *mut *mut c_char,
+                CString::new(name_).unwrap().as_ptr(),
+                CString::new(vendor_).unwrap().as_ptr(),
+                args.len() as i32,
+                args.as_ptr() as *mut *mut i8,
             )
         })
     }
@@ -538,11 +532,10 @@ impl MenuPane {
 
 impl MenuTitle {
     pub fn new(prt: &impl WindowExt, text_: &str, pane: &MenuPane) -> Self {
-        let text = CString::new(text_).unwrap();
         unsafe {
             Self::from_raw(foxtk_sys::fx_menu_title_new(
                 prt.as_raw(),
-                text.as_ptr(),
+                CString::new(text_).unwrap().as_ptr(),
                 pane.as_raw(),
             ))
         }

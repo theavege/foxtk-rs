@@ -1,8 +1,8 @@
 # FoxTK-rs
 
-![FOX-toolkit](assets/foxlogo_small.jpg)
+![FOX-toolkit](http://www.fox-toolkit.org/art/foxlogo_small.jpg)
 
-Work in progress Rust bindings for the [fox-toolkit](http://www.fox-toolkit.org).
+Rust bindings for the [fox-toolkit](http://www.fox-toolkit.org).
 
 ## What is [FOX](http://www.fox-toolkit.org)?
 
@@ -18,7 +18,10 @@ Another nice feature of FOX which significantly reduces the number of lines of c
 
 Finally, FOX makes it easy to maintain the state of the GUI in an application by having the GUI elements automatically updating themselves by interrogating the application's state. This feature eliminates the large amount of effort that may go into sensitizing, graying out, checking/unchecking etc. depending on the application state.
 
-## [Dependencies](.github/workflows/make.sh)
+## Dependencies
+
+- [Linux](.github/workflows/make.sh)
+- [Windows](.github/workflows/make.ps1)
 
 ## [Other](https://rubydoc.info/gems/fxruby/frames) bindings for [fox-toolkit](http://www.fox-toolkit.org)
 
