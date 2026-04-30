@@ -50,31 +50,42 @@ fn compile() -> Vec<String> {
         .expect("Failed to extract zip");
     }
 
-    let mut sources = Vec::new();
-    for entry in glob::glob(&format!("{}/lib/*.cpp", extract_dir.display()))
-        .expect("Failed to read glob pattern")
-    {
-        match entry {
-            Ok(path) => sources.push(path),
-            Err(e) => eprintln!("cargo:warning=Glob error: {:?}", e),
-        }
-    }
+    //~ let mut sources = Vec::new();
+    //~ for entry in glob::glob(&format!("{}/lib/*.cpp", extract_dir.display()))
+        //~ .expect("Failed to read glob pattern")
+    //~ {
+        //~ match entry {
+            //~ Ok(path) => sources.push(path),
+            //~ Err(e) => eprintln!("cargo:warning=Glob error: {:?}", e),
+        //~ }
+    //~ }
 
-    let include = extract_dir.join("include").display().to_string();
+    //~ let include = extract_dir.join("include").display().to_string();
 
-    cc::Build::new()
-        .cpp(true)
-        .define("WIN32", None)
-        .files(&sources)
-        .include(&include)
-        .compile(LIBRARY);
+    //~ cc::Build::new()
+        //~ .cpp(true)
+        //~ .define("WIN32", None)
+        //~ .files(&sources)
+        //~ .include(&include)
+        //~ .compile(LIBRARY);
 
-    cc::Build::new()
-        .cpp(true)
-        .define("WIN32", None)
-        .file(CAPI)
-        .include(&include)
-        .compile(COMPILE);
+    //~ cc::Build::new()
+        //~ .cpp(true)
+        //~ .define("WIN32", None)
+        //~ .file(CAPI)
+        //~ .include(&include)
+        //~ .compile(COMPILE);
+    //~ println!("cargo:rerun-if-env-changed={CAPI}");
+
+    cmake::Config::new("cfoxtk")
+        .env("FOX_PATH", extract_dir)
+        .generator("Ninja")
+        .build_target("all")
+        .always_configure(true)
+        .build();
+    println!("cargo:rustc-link-search=native={}/build", out);
+    println!("cargo:rustc-link-lib=static={COMPILE}");
+    println!("cargo:rerun-if-env-changed=cfoxtk/CMakeLists.txt");
     println!("cargo:rerun-if-env-changed={CAPI}");
 
     Vec::new()
