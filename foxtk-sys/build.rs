@@ -75,6 +75,7 @@ fn compile() -> Vec<String> {
         //~ .file(CAPI)
         //~ .include(&include)
         //~ .compile(COMPILE);
+
     //~ println!("cargo:rerun-if-env-changed={CAPI}");
 
     cmake::Config::new("cfoxtk")
@@ -83,6 +84,7 @@ fn compile() -> Vec<String> {
         .build_target("all")
         .always_configure(true)
         .build();
+
     println!("cargo:rustc-link-search=native={}/build", out);
     println!("cargo:rustc-link-lib=static={COMPILE}");
     println!("cargo:rerun-if-env-changed=cfoxtk/CMakeLists.txt");

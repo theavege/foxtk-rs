@@ -32,18 +32,19 @@ Filter Install-Packages {
     @(
         'Microsoft.VisualStudio.Workload.NativeDesktop',
         'Microsoft.VisualStudio.Workload.VCTools',
-        'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
-        'Microsoft.VisualStudio.Component.Windows11SDK.23000',
-        'Microsoft.VisualStudio.Component.VC.CMake.Project',
-        'Microsoft.VisualStudio.Component.VC.Redist.14.Latest',
         'Microsoft.VisualStudio.Component.VC.ATL',
         'Microsoft.VisualStudio.Component.VC.ATLMFC',
+        'Microsoft.VisualStudio.Component.VC.CMake.Project',
         'Microsoft.VisualStudio.Component.VC.CoreBuildTools'
+        'Microsoft.VisualStudio.Component.VC.Redist.14.Latest',
+        'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
+        'Microsoft.VisualStudio.Component.Windows11SDK.23000',
     ) | ForEach-Object { $arguments += "--add $_" }
     "Starting Visual Studio 18 Community installer..."  | Out-Log
     Start-Process -FilePath $_ -ArgumentList $arguments -Wait -NoNewWindow
     Remove-Item $_
     $env:LIBCLANG_PATH='{0}\Microsoft Visual Studio\18\Community\VC\Tools\Llvm\x64\lib' -f $Env:PROGRAMFILES
+    (Get-Command 'cmake').Source | Out-Log
 }
 
 #-------------------------------------------------------------------------------
