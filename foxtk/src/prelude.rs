@@ -2,7 +2,7 @@ pub use std::sync::mpsc::Sender;
 use {
     foxtk_sys::*,
     std::{
-        ffi::{CString, c_void, c_long},
+        ffi::{CString, c_long, c_void},
         sync::mpsc::channel,
     },
 };
