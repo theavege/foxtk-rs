@@ -2,24 +2,24 @@ pub use std::sync::mpsc::Sender;
 use {
     foxtk_sys::*,
     std::{
-        ffi::{CString, c_void},
+        ffi::{CString, c_void, c_long},
         sync::mpsc::channel,
     },
 };
 
-unsafe extern "C" fn ccallback<T: ObjectExt>(ptr: ObjectPtr, context: *mut c_void) -> i64 {
+unsafe extern "C" fn ccallback<T: ObjectExt>(ptr: ObjectPtr, context: *mut c_void) -> c_long {
     unsafe {
         let func: &mut Box<dyn FnMut(T) -> bool> =
             &mut *(context as *mut Box<dyn FnMut(T) -> bool>);
-        func(T::from_raw(ptr)) as i64
+        func(T::from_raw(ptr)) as c_long
     }
 }
 
-unsafe extern "C" fn ctimer<T: AppExt>(ptr: ObjectPtr, context: *mut c_void) -> i64 {
+unsafe extern "C" fn ctimer<T: AppExt>(ptr: ObjectPtr, context: *mut c_void) -> c_long {
     unsafe {
         let func: &mut Box<dyn FnMut(T) -> bool> =
             &mut *(context as *mut Box<dyn FnMut(T) -> bool>);
-        func(T::from_raw(ptr)) as i64
+        func(T::from_raw(ptr)) as c_long
     }
 }
 
@@ -388,7 +388,7 @@ pub trait TextFieldExt: WindowExt {
     }
     fn set_editable(&self, val: bool) {
         unsafe {
-            fx_textfield_set_editable(self.as_raw(), val as i64);
+            fx_textfield_set_editable(self.as_raw(), val as c_long);
         }
     }
     fn with_editable(self, val: bool) -> Self {
