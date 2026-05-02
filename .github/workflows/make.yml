@@ -20,7 +20,7 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          # - windows-latest
+          - windows-latest
         arch:
           - x86_64
 
@@ -40,4 +40,5 @@ jobs:
         if: runner.os == 'Windows'
         shell: powershell
         run: |
-          pwsh -File '.github/workflows/make.ps1'
+          # pwsh -File '.github/workflows/make.ps1'
+          & cargo build --quiet --example simple | Out-Host

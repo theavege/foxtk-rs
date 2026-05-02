@@ -1,11 +1,11 @@
 use std::{env, path::Path};
 
 const COMPILE: &str = "cfoxtk";
-const LIBRARY: &str = "fox";
-const CAPI: &str = "cfoxtk/foxtk.cpp";
+const CAPI: &str = "lib/foxtk.cpp";
 
 #[cfg(target_os = "linux")]
 fn compile() -> Vec<String> {
+    const LIBRARY: &str = "fox";
     println!("cargo:rust-link-lib=dylib={LIBRARY}");
     let mut includes = Vec::new();
     match pkg_config::probe_library(LIBRARY) {
@@ -40,7 +40,7 @@ fn compile() -> Vec<String> {
 
     if !extract_dir.exists() {
         let response = reqwest::blocking::get(url).expect("Failed to download fox zip");
-        std::fs::write(&zip, &response.bytes().expect("Failed to read response"))
+        std::fs::write(&zip, response.bytes().expect("Failed to read response"))
             .expect("Failed to write zip");
         zip_extract::extract(
             std::fs::File::open(zip).expect("Failed to open zip"),
@@ -50,35 +50,7 @@ fn compile() -> Vec<String> {
         .expect("Failed to extract zip");
     }
 
-    //~ let mut sources = Vec::new();
-    //~ for entry in glob::glob(&format!("{}/lib/*.cpp", extract_dir.display()))
-        //~ .expect("Failed to read glob pattern")
-    //~ {
-        //~ match entry {
-            //~ Ok(path) => sources.push(path),
-            //~ Err(e) => eprintln!("cargo:warning=Glob error: {:?}", e),
-        //~ }
-    //~ }
-
-    //~ let include = extract_dir.join("include").display().to_string();
-
-    //~ cc::Build::new()
-        //~ .cpp(true)
-        //~ .define("WIN32", None)
-        //~ .files(&sources)
-        //~ .include(&include)
-        //~ .compile(LIBRARY);
-
-    //~ cc::Build::new()
-        //~ .cpp(true)
-        //~ .define("WIN32", None)
-        //~ .file(CAPI)
-        //~ .include(&include)
-        //~ .compile(COMPILE);
-
-    //~ println!("cargo:rerun-if-env-changed={CAPI}");
-
-    cmake::Config::new("cfoxtk")
+    cmake::Config::new("lib")
         .env("FOX_PATH", extract_dir)
         .generator("Ninja")
         .build_target("all")
@@ -87,7 +59,6 @@ fn compile() -> Vec<String> {
 
     println!("cargo:rustc-link-search=native={}/build", out);
     println!("cargo:rustc-link-lib=static={COMPILE}");
-    println!("cargo:rerun-if-env-changed=cfoxtk/CMakeLists.txt");
     println!("cargo:rerun-if-env-changed={CAPI}");
 
     Vec::new()
@@ -95,7 +66,7 @@ fn compile() -> Vec<String> {
 
 fn main() {
     bindgen::Builder::default()
-        .header("cfoxtk/foxtk.h")
+        .header("lib/foxtk.h")
         .clang_args(compile())
         .generate()
         .expect("Unable to generate bindings")
