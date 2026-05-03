@@ -49,24 +49,32 @@ impl Component for Converter {
             self.far.set_text(&value.to_string());
         }
     }
-    fn view(&mut self, parent: &impl CompositeExt, sender: Sender<Self::Event>) {
-        foxtk::GroupBox::new(parent, "Converter").inside(|hbox| {
-            self.cel = foxtk::TextField::new(hbox, 16).with_callback({
-                let sender = sender.clone();
-                move |wgt| {
-                    let value = wgt.text().parse::<f64>().unwrap_or_default();
-                    sender.send(Msg::Cel(value)).unwrap();
-                    false
-                }
-            });
-            self.far = foxtk::TextField::new(hbox, 16).with_callback({
-                let sender = sender.clone();
-                move |wgt| {
-                    let value = wgt.text().parse::<f64>().unwrap_or_default();
-                    sender.send(Msg::Far(value)).unwrap();
-                    false
-                }
-            });
+    fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
+        foxtk::GroupBox::new(prt, "Converter").inside(|prt| {
+            self.cel = foxtk::TextField::new(prt)
+                .with_trigger(Trigger::CHANGED)
+                .with_callback({
+                    let sender = sender.clone();
+                    move |wgt| {
+                        if wgt.has_focus() {
+                            let value = wgt.text().parse::<f64>().unwrap_or_default();
+                            sender.send(Msg::Cel(value)).unwrap();
+                        }
+                        false
+                    }
+                });
+            self.far = foxtk::TextField::new(prt)
+                .with_trigger(Trigger::CHANGED)
+                .with_callback({
+                    let sender = sender.clone();
+                    move |wgt| {
+                        if wgt.has_focus() {
+                            let value = wgt.text().parse::<f64>().unwrap_or_default();
+                            sender.send(Msg::Far(value)).unwrap();
+                        }
+                        false
+                    }
+                });
         });
     }
 }

@@ -1,74 +1,75 @@
+use std::{env, path::Path};
+
+const COMPILE: &str = "cfoxtk";
+const CAPI: &str = "lib/foxtk.cpp";
+
 #[cfg(target_os = "linux")]
-fn main() {
-    let mut include_paths = Vec::from(["-Icfoxtk".to_string()]);
-    for library in ["fox"] {
-        match pkg_config::probe_library(library) {
-            Ok(lib) => {
-                for dir in lib.include_paths {
-                    include_paths.push(format!("-I{}", dir.display()));
-                }
-            }
-            Err(e) => {
-                eprintln!("Failed to find {library}: {e}");
-                std::process::exit(1);
+fn compile() -> Vec<String> {
+    const LIBRARY: &str = "fox";
+    println!("cargo:rust-link-lib=dylib={LIBRARY}");
+    let mut includes = Vec::new();
+    match pkg_config::probe_library(LIBRARY) {
+        Ok(lib) => {
+            for dir in lib.include_paths {
+                includes.push(format!("-I{}", dir.display()));
             }
         }
+        Err(e) => {
+            eprintln!("Failed to find {LIBRARY}: {e}");
+            std::process::exit(1);
+        }
     }
-    const CAPI: &str = "cfoxtk/foxtk.cpp";
+
     cc::Build::new()
         .cpp(true)
-        .flag_if_supported("-std=c++14")
-        .flags(&include_paths)
         .file(CAPI)
-        .compile("cfoxtk");
-    println!("cargo:rerun-if-changed={CAPI}");
-    bindgen::Builder::default()
-        .header("cfoxtk/foxtk.h")
-        .clang_args(&include_paths)
-        .generate()
-        .expect("Unable to generate bindings")
-        .write_to_file(
-            std::path::PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("bindings.rs"),
-        )
-        .unwrap();
+        .flags(&includes)
+        .compile(COMPILE);
+    println!("cargo:rerun-if-env-changed={CAPI}");
+
+    includes
 }
 
 #[cfg(target_os = "windows")]
-fn main() {
-    let mut source_paths = Vec::new();
-    for entry in glob::glob("fox-1.6.59/src/*.cpp").expect("Failed to read glob pattern") {
-        match entry {
-            Ok(path) => {
-                let filename = path.file_name().unwrap().to_string_lossy();
-                if filename != "vsscanf.cpp" {
-                    source_paths.push(path);
-                };
-            }
-            Err(e) => println!("cargo:warning=Glob error: {:?}", e),
-        }
+fn compile() -> Vec<String> {
+    const DIST: &str = "fox-snapshot";
+    let url = format!("http://fox-toolkit.org/ftp/{DIST}.zip");
+    let out = env::var("OUT_DIR").unwrap();
+    let zip = Path::new(&out).join(format!("{DIST}.zip"));
+    let extract_dir = Path::new(&out).join(DIST);
+
+    if !extract_dir.exists() {
+        let response = reqwest::blocking::get(url).expect("Failed to download fox zip");
+        std::fs::write(&zip, response.bytes().expect("Failed to read response"))
+            .expect("Failed to write zip");
+        zip_extract::extract(
+            std::fs::File::open(zip).expect("Failed to open zip"),
+            &extract_dir,
+            true,
+        )
+        .expect("Failed to extract zip");
     }
-    cc::Build::new()
-        .cpp(true)
-        .flag_if_supported("-std=c++14")
-        .flag_if_supported("/EHsc")
-        .includes(["fox-1.6.59/include"])
-        .files(source_paths)
-        .define("WIN32", None)
-        .define("_WINDOWS", None)
-        .define("UNICODE", None)
-        .compile("fox");
-    const CAPI: &str = "cfoxtk/foxtk.cpp";
-    cc::Build::new()
-        .cpp(true)
-        .file(CAPI)
-        .compile("cfoxtk");
-    println!("cargo:rerun-if-changed={CAPI}");
+
+    cmake::Config::new("lib")
+        .env("FOX_PATH", extract_dir)
+        .generator("Ninja")
+        .build_target("all")
+        .always_configure(true)
+        .build();
+
+    println!("cargo:rustc-link-search=native={}/build", out);
+    println!("cargo:rustc-link-lib=static={COMPILE}");
+    println!("cargo:rerun-if-env-changed={CAPI}");
+
+    Vec::new()
+}
+
+fn main() {
     bindgen::Builder::default()
-        .header("cfoxtk/foxtk.h")
+        .header("lib/foxtk.h")
+        .clang_args(compile())
         .generate()
         .expect("Unable to generate bindings")
-        .write_to_file(
-            std::path::PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("bindings.rs"),
-        )
-        .unwrap();
+        .write_to_file(Path::new(&env::var("OUT_DIR").unwrap()).join("bindings.rs"))
+        .expect("Couldn't write bindings!");
 }

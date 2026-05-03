@@ -1,0 +1,3 @@
+[submodule "foxtk-sys/use/winsdk-7"]
+	path = foxtk-sys/use/winsdk-7
+	url = https://github.com/tpn/winsdk-7.git

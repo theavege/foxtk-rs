@@ -1,14 +1,20 @@
 [package]
 name = "foxtk-sys"
-version = "0.1.0"
+version = "0.0.1"
+authors = ["Artem V. Ageev <artem.v.ageev@gmail.com>"]
+license = "LGPL"
+repository = "https://github.com/theavege/foxtk-rs"
 edition = "2024"
 
 [build-dependencies]
-cc = { version = "1.2" }
+cc = { version = "1.2", features = ["parallel"] }
 bindgen = { version = "0.72" }
+
+[target.'cfg(target_os = "windows")'.build-dependencies]
+reqwest = { version = "0.13", features = ["json", "native-tls", "blocking"] }
+zip-extract = "0.4"
+glob = "0.3"
+cmake = "0.1"
 
 [target.'cfg(target_os = "linux")'.build-dependencies]
 pkg-config = "0.3"
-
-[target.'cfg(target_os = "windows")'.build-dependencies]
-glob = "0.3"

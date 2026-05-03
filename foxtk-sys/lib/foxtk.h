@@ -1,3 +1,6 @@
+#ifndef FOXTK_H
+#define FOXTK_H
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -16,7 +19,8 @@ typedef long (*CTimerCb)(ObjectPtr application, void* context);
 // FXApp
     ObjectPtr fx_app_new(const char* name, const char* vendor, int argc, char** argv);
     int fx_app_run(ObjectPtr app);
-    ObjectPtr fx_app_add_timeout(ObjectPtr app, CTimerCb cb, unsigned int ns, void* ctx);
+    void fx_app_add_timeout(ObjectPtr app, CTimerCb cb, unsigned int ns, void* ctx);
+    void fx_app_add_chore(ObjectPtr app, CTimerCb cb, void* ctx);
 
 // FXLabel
     ObjectPtr fx_label_new(ObjectPtr parent, const char* title);
@@ -27,14 +31,21 @@ typedef long (*CTimerCb)(ObjectPtr application, void* context);
 
 // FXWindow
     void fx_window_set_target(ObjectPtr wgt, CWidgetCb callback, void* context);
+    void fx_window_set_selector(ObjectPtr wgt, int val);
+    void fx_window_set_width(ObjectPtr wgt, int val);
+    void fx_window_set_height(ObjectPtr wgt, int val);
+    void fx_window_set_layout_hints(ObjectPtr wgt, unsigned int val);
+    ObjectPtr fx_window_get_parent(ObjectPtr wgt);
+    long fx_window_has_focus(ObjectPtr wgt);
 
 // FXTextField
-    ObjectPtr fx_textfield_new(ObjectPtr frm, int ncols);
+    ObjectPtr fx_textfield_new(ObjectPtr frm);
     void fx_textfield_set_text(ObjectPtr wgt, const char* text);
     const char* fx_textfield_get_text(ObjectPtr wgt);
+    void fx_textfield_set_editable(ObjectPtr wgt, long val);
 
 // FXSpinner
-    ObjectPtr fx_spinner_new(ObjectPtr parent_, int cols);
+    ObjectPtr fx_spinner_new(ObjectPtr parent);
     int fx_spinner_get_value(ObjectPtr wgt);
     void fx_spinner_set_value(ObjectPtr wgt, int value);
     void fx_spinner_get_range(ObjectPtr wgt, int* lo, int* hi);
@@ -83,9 +94,15 @@ typedef long (*CTimerCb)(ObjectPtr application, void* context);
 
 // FXPacker
     ObjectPtr fx_packer_new(ObjectPtr parent);
+    void fx_packer_set_hspacing(ObjectPtr wgt, int val);
+    void fx_packer_set_vspacing(ObjectPtr wgt, int val);
 
 // FXGroupBox
     ObjectPtr fx_groupbox_new(ObjectPtr parent, const char* title);
+    void fx_groupbox_set_style(ObjectPtr wgt, unsigned int val);
+
+// FXSpring
+    ObjectPtr fx_spring_new(ObjectPtr parent);
 
 // FXVerticalFrame
     ObjectPtr fx_vertical_frame_new(ObjectPtr parent);
@@ -101,16 +118,26 @@ typedef long (*CTimerCb)(ObjectPtr application, void* context);
 
 // FXComboBox
     ObjectPtr fx_combo_box_new(ObjectPtr parent_, int cols);
-    void fx_combo_box_append_item(ObjectPtr wgt, const char* text, void* ptr);
+    void fx_combo_box_append_item(ObjectPtr wgt, const char* text);
     void fx_combo_box_clear_items(ObjectPtr wgt);
     int fx_combo_box_get_current_item(ObjectPtr wgt);
     void fx_combo_box_set_current_item(ObjectPtr wgt, int index);
     const char* fx_combo_box_get_item_text(ObjectPtr wgt, int index);
     int fx_combo_box_get_num_items(ObjectPtr wgt);
 
+// FXList
+    ObjectPtr fx_list_new(ObjectPtr parent);
+    void fx_list_append_item(ObjectPtr wgt, const char* text);
+    void fx_list_clear_items(ObjectPtr wgt);
+    int fx_list_get_current_item(ObjectPtr wgt);
+    void fx_list_set_current_item(ObjectPtr wgt, int index);
+    const char* fx_list_get_item_text(ObjectPtr wgt, int index);
+    int fx_list_get_num_items(ObjectPtr wgt);
+
+
 // FXListBox
     ObjectPtr fx_list_box_new(ObjectPtr parent);
-    void fx_list_box_append_item(ObjectPtr wgt, const char* text, void* ptr);
+    void fx_list_box_append_item(ObjectPtr wgt, const char* text);
     void fx_list_box_clear_items(ObjectPtr wgt);
     int fx_list_box_get_current_item(ObjectPtr wgt);
     void fx_list_box_set_current_item(ObjectPtr wgt, int index);
@@ -138,7 +165,7 @@ typedef long (*CTimerCb)(ObjectPtr application, void* context);
 
 // FXTabBook
     ObjectPtr fx_tab_book_new(ObjectPtr parent);
-    ObjectPtr fx_tab_item_new(ObjectPtr parent_, const char* text, ObjectPtr icon, unsigned int opts, int x, int y, int w, int h, int pl, int pr, int pt, int pb);
+    ObjectPtr fx_tab_item_new(ObjectPtr parent_, const char* text);
 
 // FXScrollBar
     ObjectPtr fx_scroll_bar_new(ObjectPtr parent);
@@ -147,11 +174,12 @@ typedef long (*CTimerCb)(ObjectPtr application, void* context);
     void fx_scroll_bar_set_range(ObjectPtr wgt, int hi);
 
 // FXMenuBar
-    ObjectPtr fx_menu_bar_new(ObjectPtr parent, ObjectPtr g_);
-    ObjectPtr fx_menu_pane_new(ObjectPtr parent, unsigned int opts);
-    ObjectPtr fx_menu_title_new(ObjectPtr parent_, const char* text, ObjectPtr icon, ObjectPtr pup, unsigned int opts);
-    ObjectPtr fx_menu_command_new(ObjectPtr parent_, const char* text, ObjectPtr icon, ObjectPtr tgt, int sel, unsigned int opts);
+    ObjectPtr fx_menu_bar_new(ObjectPtr parent);
+    ObjectPtr fx_menu_pane_new(ObjectPtr parent);
+    ObjectPtr fx_menu_title_new(ObjectPtr parent, const char* text, ObjectPtr pop);
+    ObjectPtr fx_menu_command_new(ObjectPtr parent_, const char* text);
 
 #ifdef __cplusplus
 }
+#endif
 #endif

@@ -96,63 +96,40 @@ impl Component for Calc {
         true
     }
     fn update(&self, model: &Self::State) {
-        self.outp.set_value(&model.output.clone());
-        self.prev.set_value(&model.prev.to_string());
-        self.oper.set_value(&model.operation.clone());
-        self.curr.set_value(&model.current.clone());
+        self.outp.set_text(&model.output.clone());
+        self.prev.set_text(&model.prev.to_string());
+        self.oper.set_text(&model.operation.clone());
+        self.curr.set_text(&model.current.clone());
     }
-    fn view(&mut self, parent: &impl CompositeExt, sender: Sender<Self::Event>) {
-        efl::Box::new(parent)
-            .with_homogeneous(false)
-            .insert(|parent| {
-                self.outp = efl::Entry::new(parent)
-                    .with_editable(false)
-                    .with_single_line(false)
-                    .with_tooltip("Output");
-                efl::Box::new(parent)
-                    .with_horizontal(true)
-                    .insert(|parent| {
-                        self.oper = efl::Entry::new(parent)
-                            .with_editable(false)
-                            .with_single_line(false)
-                            .with_tooltip("Operation");
-                        efl::Box::new(parent).insert(|parent| {
-                            self.prev = efl::Entry::new(parent)
-                                .with_size(0, 45)
-                                .with_editable(false)
-                                .with_tooltip("Previos");
-                            self.curr = efl::Entry::new(parent)
-                                .with_size(0, 45)
-                                .with_editable(false)
-                                .with_tooltip("Current");
-                        });
-                    });
-                for row in [
-                    ["CE", "C", "%", "/"],
-                    ["7", "8", "9", "x"],
-                    ["4", "5", "6", "-"],
-                    ["1", "2", "3", "+"],
-                    ["0", ".", "<", "="],
-                ] {
-                    efl::Box::new(parent)
-                        .with_weight(true, false)
-                        .with_horizontal(true)
-                        .insert(|parent| {
-                            for cell in row {
-                                efl::Button::new(parent)
-                                    .with_size(90, 90)
-                                    .with_text(cell)
-                                    .with_tooltip(cell)
-                                    .with_cursor("hand1")
-                                    .on_clicked({
-                                        let sender = sender.clone();
-                                        move |wgt| {
-                                            sender.send(Msg::Push(wgt.text())).unwrap();
-                                        }
-                                    });
+    fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
+        foxtk::VerticalFrame::new(prt).inside(|prt| {
+            self.outp = foxtk::TextField::new(prt).with_editable(false);
+            foxtk::HorizontalFrame::new(prt).inside(|prt| {
+                self.oper = foxtk::TextField::new(prt).with_editable(false);
+                foxtk::VerticalFrame::new(prt).inside(|prt| {
+                    self.prev = foxtk::TextField::new(prt).with_editable(false);
+                    self.curr = foxtk::TextField::new(prt).with_editable(false);
+                });
+            });
+            for row in [
+                ["CE", "C", "%", "/"],
+                ["7", "8", "9", "x"],
+                ["4", "5", "6", "-"],
+                ["1", "2", "3", "+"],
+                ["0", ".", "<", "="],
+            ] {
+                foxtk::HorizontalFrame::new(prt).inside(|prt| {
+                    for cell in row {
+                        foxtk::Button::new(prt, cell).set_callback({
+                            let sender = sender.clone();
+                            move |wgt| {
+                                sender.send(Msg::Push(wgt.text())).unwrap();
+                                false
                             }
                         });
-                }
-            });
+                    }
+                });
+            }
+        });
     }
 }

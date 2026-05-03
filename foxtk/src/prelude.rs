@@ -2,7 +2,7 @@ pub use std::sync::mpsc::Sender;
 use {
     foxtk_sys::*,
     std::{
-        ffi::{CString, c_int, c_long, c_void},
+        ffi::{CString, c_long, c_void},
         sync::mpsc::channel,
     },
 };
@@ -23,9 +23,9 @@ unsafe extern "C" fn ctimer<T: AppExt>(ptr: ObjectPtr, context: *mut c_void) -> 
     }
 }
 
-pub trait SwitcherExt: CompositeExt {
+pub trait SwitcherExt: PackerExt {
     fn set_curent(&self, idx: i32) {
-        unsafe { fx_switcher_set_current(self.as_raw(), idx as c_int) }
+        unsafe { fx_switcher_set_current(self.as_raw(), idx) }
     }
 }
 
@@ -142,25 +142,20 @@ pub trait CompositeExt: IdExt {
         self
     }
 }
-pub trait ListBoxExt: ObjectExt {
+pub trait GroupBoxExt: CompositeExt {
+    fn set_style(&self, val: usize) {
+        unsafe {
+            fx_groupbox_set_style(self.as_raw(), val as u32);
+        }
+    }
+}
+
+impl SelectorExt for super::ListBox {
     fn append_item(&self, text: &str) {
         let c_text = CString::new(text).unwrap();
         unsafe {
-            fx_list_box_append_item(self.as_raw(), c_text.as_ptr(), std::ptr::null_mut());
+            fx_list_box_append_item(self.as_raw(), c_text.as_ptr());
         }
-    }
-    fn append_items(&self, items: &[&str]) {
-        for text in items {
-            self.append_item(text);
-        }
-    }
-    fn with_item(self, text: &str) -> Self {
-        self.append_item(text);
-        self
-    }
-    fn with_items(self, items: &[&str]) -> Self {
-        self.append_items(items);
-        self
     }
     fn clear_items(&self) {
         unsafe {
@@ -190,13 +185,60 @@ pub trait ListBoxExt: ObjectExt {
     }
 }
 
-pub trait ComboBoxExt: ObjectExt {
+impl SelectorExt for super::List {
     fn append_item(&self, text: &str) {
         let c_text = CString::new(text).unwrap();
         unsafe {
-            fx_combo_box_append_item(self.as_raw(), c_text.as_ptr(), std::ptr::null_mut());
+            fx_list_append_item(self.as_raw(), c_text.as_ptr());
         }
     }
+    fn clear_items(&self) {
+        unsafe {
+            fx_list_clear_items(self.as_raw());
+        }
+    }
+
+    fn current_item(&self) -> i32 {
+        unsafe { fx_list_get_current_item(self.as_raw()) }
+    }
+
+    fn set_current_item(&self, index: i32) {
+        unsafe {
+            fx_list_box_set_current_item(self.as_raw(), index);
+        }
+    }
+
+    fn item_text(&self, index: i32) -> String {
+        unsafe {
+            let ptr = fx_list_get_item_text(self.as_raw(), index);
+            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+        }
+    }
+    fn num_items(&self) -> i32 {
+        unsafe { fx_list_get_num_items(self.as_raw()) }
+    }
+}
+
+pub trait PackerExt: CompositeExt {
+    fn set_hspacing(&self, val: i32) {
+        unsafe {
+            fx_packer_set_hspacing(self.as_raw(), val);
+        }
+    }
+    fn set_vspacing(&self, val: i32) {
+        unsafe {
+            fx_packer_set_vspacing(self.as_raw(), val);
+        }
+    }
+}
+
+pub trait SelectorExt: PackerExt {
+    fn append_item(&self, text: &str);
+    fn clear_items(&self);
+    fn current_item(&self) -> i32;
+    fn set_current_item(&self, index: i32);
+    fn num_items(&self) -> i32;
+    fn item_text(&self, index: i32) -> String;
     fn append_items(&self, items: &[&str]) {
         for text in items {
             self.append_item(text);
@@ -210,6 +252,16 @@ pub trait ComboBoxExt: ObjectExt {
         self.append_items(items);
         self
     }
+}
+
+impl SelectorExt for super::ComboBox {
+    fn append_item(&self, text: &str) {
+        let c_text = CString::new(text).unwrap();
+        unsafe {
+            fx_combo_box_append_item(self.as_raw(), c_text.as_ptr());
+        }
+    }
+
     fn clear_items(&self) {
         unsafe {
             fx_combo_box_clear_items(self.as_raw());
@@ -250,6 +302,12 @@ pub trait AppExt: ObjectExt {
             );
         }
     }
+    fn add_chore<F: FnMut(Self) -> bool + 'static>(&self, func: F) {
+        let raw_ptr: *mut Box<dyn FnMut(Self) -> bool> = Box::into_raw(Box::new(Box::new(func)));
+        unsafe {
+            fx_app_add_chore(self.as_raw(), Some(ctimer::<Self>), raw_ptr as *mut c_void);
+        }
+    }
     fn run(&self) -> i32 {
         unsafe { fx_app_run(self.as_raw()) }
     }
@@ -260,6 +318,12 @@ pub trait IdExt: ObjectExt {
         super::App::from_raw(unsafe { fx_id_get_app(self.as_raw()) })
     }
 }
+
+pub enum Trigger {
+    COMMAND = 0,
+    CHANGED,
+}
+
 pub trait WindowExt: IdExt {
     fn set_callback<F: FnMut(Self) -> bool + 'static>(&self, func: F) {
         let raw_ptr: *mut Box<dyn FnMut(Self) -> bool> = Box::into_raw(Box::new(Box::new(func)));
@@ -270,6 +334,41 @@ pub trait WindowExt: IdExt {
                 raw_ptr as *mut c_void,
             );
         }
+    }
+    fn set_trigger(&self, val: Trigger) {
+        unsafe {
+            fx_window_set_selector(self.as_raw(), val as i32);
+        }
+    }
+    fn set_layout_hints(&self, val: u32) {
+        unsafe {
+            fx_window_set_layout_hints(self.as_raw(), val);
+        }
+    }
+    fn set_height(&self, val: i32) {
+        unsafe {
+            fx_window_set_height(self.as_raw(), val);
+        }
+    }
+    fn has_focus(&self) -> bool {
+        unsafe { fx_window_has_focus(self.as_raw()) != 0 }
+    }
+    fn set_width(&self, val: i32) {
+        unsafe {
+            fx_window_set_width(self.as_raw(), val);
+        }
+    }
+    fn with_height(self, val: i32) -> Self {
+        self.set_height(val);
+        self
+    }
+    fn with_width(self, val: i32) -> Self {
+        self.set_width(val);
+        self
+    }
+    fn with_trigger(self, val: Trigger) -> Self {
+        self.set_trigger(val);
+        self
     }
     fn with_callback<F: FnMut(Self) -> bool + 'static>(self, func: F) -> Self {
         self.set_callback(func);
@@ -286,6 +385,15 @@ pub trait TextFieldExt: WindowExt {
                 String::new()
             }
         }
+    }
+    fn set_editable(&self, val: bool) {
+        unsafe {
+            fx_textfield_set_editable(self.as_raw(), val as c_long);
+        }
+    }
+    fn with_editable(self, val: bool) -> Self {
+        self.set_editable(val);
+        self
     }
     fn set_text(&self, text_: &str) {
         let text = std::ffi::CString::new(text_).unwrap();
@@ -383,6 +491,9 @@ pub trait ProgressBarExt: WindowExt {
     fn set_progress(&self, value: u32) {
         unsafe { fx_progressbar_set_progress(self.as_raw(), value) }
     }
+    fn set_value(&self, value: u32) {
+        self.set_progress(value);
+    }
     fn set_total(&self, value: u32) {
         unsafe { fx_progressbar_set_total(self.as_raw(), value) }
     }
@@ -422,6 +533,7 @@ pub trait MainWindowExt: WindowExt {
         unsafe { fx_main_window_show(self.as_raw()) }
     }
 }
+
 pub trait Component: Default + 'static {
     type Event: 'static;
     type State: Default + 'static;
@@ -434,8 +546,7 @@ pub trait Component: Default + 'static {
         let mut model = Self::State::default();
         page.view(parent, sender.clone());
         page.update(&model);
-        const TICK: u32 = 200;
-        parent.app().add_timeout(TICK, move |_| {
+        parent.app().add_timeout(200, move |_| {
             if let Ok(msg) = receiver.try_recv()
                 && Self::handle(msg, &mut model, sender.clone())
             {
@@ -444,9 +555,11 @@ pub trait Component: Default + 'static {
             true
         });
     }
-    fn run(name: &str, vendor: &str, title: &str) {
+    fn run(name: &str, vendor: &str, title: &str) -> i32 {
         let app = super::App::new(name, vendor);
-        Self::mount(&super::MainWindow::new(&app, title, 480, 270));
-        app.run();
+        let win = super::MainWindow::new(&app, title, 360, 640);
+        Self::mount(&win);
+        win.show();
+        app.run()
     }
 }
