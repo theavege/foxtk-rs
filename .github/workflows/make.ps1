@@ -56,6 +56,6 @@ $ErrorActionPreference = 'stop'
 Set-PSDebug -Strict #-Trace 1
 @(
     'https://aka.ms/vs/17/release/vs_community.exe'
-) | Get-Packages | Install-Packages
+) | Get-Package | Install-Packages
 & cargo clippy --quiet --example simple | Out-Log
 Exit($LastExitCode)
