@@ -16,10 +16,11 @@ Filter Out-Log {
     ) | Out-Host
 }
 
-Filter Get-Packages {
-    "Downloading Visual Studio 18 Community installer to $installerPath..." | Out-Log
-    Invoke-WebRequest $_
-    $_.OutFile
+Filter Get-Package {
+    $OutFile = '{0}.{1}' -f (New-TemporaryFile).FullName, (Split-Path -Path $_ -Leaf).Split('?')[0]
+    Invoke-WebRequest -OutFile $OutFile -Uri $_
+    'Get-Package from {0} to {1}' -f $_, $OutFile | Out-Log
+    $OutFile
 }
 
 Filter Install-Packages {
@@ -53,9 +54,8 @@ Filter Install-Packages {
 
 $ErrorActionPreference = 'stop'
 Set-PSDebug -Strict #-Trace 1
-@{
-    Uri = 'https://aka.ms/vs/17/release/vs_community.exe'
-    OutFile = (New-TemporaryFile).FullName
-} | Get-Packages | Install-Packages
+@(
+    'https://aka.ms/vs/17/release/vs_community.exe'
+) | Get-Packages | Install-Packages
 & cargo clippy --quiet --example simple | Out-Log
 Exit($LastExitCode)
