@@ -40,5 +40,4 @@ jobs:
         if: runner.os == 'Windows'
         shell: powershell
         run: |
-          # pwsh -File '.github/workflows/make.ps1'
-          & cargo build --quiet --example simple | Out-Host
+          pwsh -File '.github/workflows/make.ps1'
