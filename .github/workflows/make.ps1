@@ -35,10 +35,10 @@ Filter Install-Packages {
         'Microsoft.VisualStudio.Component.VC.ATL',
         'Microsoft.VisualStudio.Component.VC.ATLMFC',
         'Microsoft.VisualStudio.Component.VC.CMake.Project',
-        'Microsoft.VisualStudio.Component.VC.CoreBuildTools'
+        'Microsoft.VisualStudio.Component.VC.CoreBuildTools',
         'Microsoft.VisualStudio.Component.VC.Redist.14.Latest',
         'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
-        'Microsoft.VisualStudio.Component.Windows11SDK.23000',
+        'Microsoft.VisualStudio.Component.Windows11SDK.23000'
     ) | ForEach-Object { $arguments += "--add $_" }
     "Starting Visual Studio 18 Community installer..."  | Out-Log
     Start-Process -FilePath $_ -ArgumentList $arguments -Wait -NoNewWindow
