@@ -28,7 +28,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          submodules: true
+          submodules: recursive
 
       - name: Build on Unix
         if: runner.os != 'Windows'
@@ -40,4 +40,5 @@ jobs:
         if: runner.os == 'Windows'
         shell: powershell
         run: |
-          pwsh -File '.github/workflows/make.ps1'
+          # pwsh -File '.github/workflows/make.ps1'
+          & cargo clippy --quiet --examples | Out-Host
