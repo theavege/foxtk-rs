@@ -1,6 +1,8 @@
 pub mod prelude;
 use {foxtk_sys::*, prelude::*, std::ffi::CString};
 
+pub(crate) const HEIGHT: i32 = 30;
+
 pub struct App(ObjectPtr);
 impl App {
     pub fn new(name_: &str, vendor_: &str) -> Self {
@@ -44,6 +46,7 @@ impl ObjectExt for Button {
     }
 }
 impl IdExt for Button {}
+impl FrameExt for Button {}
 impl WindowExt for Button {}
 impl LabelExt for Button {}
 impl ButtonExt for Button {}
@@ -63,8 +66,9 @@ impl ObjectExt for Canvas {
         Self(ptr)
     }
 }
-impl WindowExt for Canvas {}
 impl IdExt for Canvas {}
+impl FrameExt for Canvas {}
+impl WindowExt for Canvas {}
 
 #[derive(Default)]
 pub struct CheckButton(ObjectPtr);
@@ -72,6 +76,7 @@ impl CheckButton {
     pub fn new(parent: &impl ObjectExt, title_: &str) -> Self {
         let title = CString::new(title_).unwrap();
         Self::from_raw(unsafe { fx_check_button_new(parent.as_raw(), title.as_ptr()) })
+            .with_layout(Layout::FillX)
     }
 }
 impl ObjectExt for CheckButton {
@@ -83,6 +88,7 @@ impl ObjectExt for CheckButton {
     }
 }
 impl IdExt for CheckButton {}
+impl FrameExt for CheckButton {}
 impl WindowExt for CheckButton {}
 impl LabelExt for CheckButton {}
 impl CheckButtonExt for CheckButton {}
@@ -91,7 +97,8 @@ impl CheckButtonExt for CheckButton {}
 pub struct ComboBox(ObjectPtr);
 impl ComboBox {
     pub fn new(parent: &impl WindowExt, cols: i32) -> Self {
-        unsafe { Self::from_raw(fx_combo_box_new(parent.as_raw(), cols)) }
+        Self::from_raw(unsafe { fx_combo_box_new(parent.as_raw(), cols) })
+            .with_layout(Layout::FillX)
     }
 }
 impl ObjectExt for ComboBox {
@@ -104,6 +111,7 @@ impl ObjectExt for ComboBox {
     }
 }
 impl IdExt for ComboBox {}
+impl FrameExt for ComboBox {}
 impl WindowExt for ComboBox {}
 impl PackerExt for ComboBox {}
 impl CompositeExt for ComboBox {}
@@ -113,6 +121,8 @@ impl GroupBox {
     pub fn new(parent: &impl ObjectExt, title_: &str) -> Self {
         let title = CString::new(title_).unwrap();
         Self::from_raw(unsafe { fx_groupbox_new(parent.as_raw(), title.as_ptr()) })
+            .with_frame(Frame::Line)
+            .with_layout(Layout::Fill)
     }
 }
 impl ObjectExt for GroupBox {
@@ -125,7 +135,10 @@ impl ObjectExt for GroupBox {
 }
 impl CompositeExt for GroupBox {}
 impl IdExt for GroupBox {}
+impl FrameExt for GroupBox {}
 impl WindowExt for GroupBox {}
+impl PackerExt for GroupBox {}
+impl GroupBoxExt for GroupBox {}
 
 pub struct Spring(ObjectPtr);
 impl Spring {
@@ -144,12 +157,13 @@ impl ObjectExt for Spring {
 impl CompositeExt for Spring {}
 impl PackerExt for Spring {}
 impl IdExt for Spring {}
+impl FrameExt for Spring {}
 impl WindowExt for Spring {}
 
 pub struct VerticalFrame(ObjectPtr);
 impl VerticalFrame {
     pub fn new(parent: &impl ObjectExt) -> Self {
-        Self::from_raw(unsafe { fx_vertical_frame_new(parent.as_raw()) })
+        Self::from_raw(unsafe { fx_vertical_frame_new(parent.as_raw()) }).with_layout(Layout::Fill)
     }
 }
 impl ObjectExt for VerticalFrame {
@@ -162,12 +176,14 @@ impl ObjectExt for VerticalFrame {
 }
 impl CompositeExt for VerticalFrame {}
 impl IdExt for VerticalFrame {}
+impl FrameExt for VerticalFrame {}
+impl PackerExt for VerticalFrame {}
 impl WindowExt for VerticalFrame {}
 
 pub struct HorizontalFrame(ObjectPtr);
 impl HorizontalFrame {
     pub fn new(parent: &impl ObjectExt) -> Self {
-        Self::from_raw(unsafe { fx_horizontal_frame_new(parent.as_raw()) })
+        Self::from_raw(unsafe { fx_horizontal_frame_new(parent.as_raw()) }).with_height(HEIGHT)
     }
 }
 impl ObjectExt for HorizontalFrame {
@@ -179,14 +195,16 @@ impl ObjectExt for HorizontalFrame {
     }
 }
 impl CompositeExt for HorizontalFrame {}
+impl PackerExt for HorizontalFrame {}
 impl IdExt for HorizontalFrame {}
+impl FrameExt for HorizontalFrame {}
 impl WindowExt for HorizontalFrame {}
 
 #[derive(Default)]
 pub struct Switcher(ObjectPtr);
 impl Switcher {
     pub fn new(parent: &impl ObjectExt) -> Self {
-        Self::from_raw(unsafe { fx_switcher_new(parent.as_raw()) })
+        Self::from_raw(unsafe { fx_switcher_new(parent.as_raw()) }).with_layout(Layout::Fill)
     }
 }
 impl ObjectExt for Switcher {
@@ -199,6 +217,7 @@ impl ObjectExt for Switcher {
 }
 impl CompositeExt for Switcher {}
 impl SwitcherExt for Switcher {}
+impl FrameExt for Switcher {}
 impl IdExt for Switcher {}
 impl WindowExt for Switcher {}
 impl PackerExt for Switcher {}
@@ -208,7 +227,7 @@ pub struct Label(ObjectPtr);
 impl Label {
     pub fn new(parent: &impl ObjectExt, title_: &str) -> Self {
         let title = CString::new(format!("&{title_}").as_str()).unwrap();
-        Self::from_raw(unsafe { fx_label_new(parent.as_raw(), title.as_ptr()) })
+        Self::from_raw(unsafe { fx_label_new(parent.as_raw(), title.as_ptr()) }).with_height(HEIGHT)
     }
 }
 impl ObjectExt for Label {
@@ -220,15 +239,16 @@ impl ObjectExt for Label {
         Self(ptr)
     }
 }
-impl WindowExt for Label {}
 impl IdExt for Label {}
+impl FrameExt for Label {}
+impl WindowExt for Label {}
 impl LabelExt for Label {}
 
 #[derive(Default)]
 pub struct ListBox(ObjectPtr);
 impl ListBox {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        unsafe { Self::from_raw(fx_list_box_new(parent.as_raw())) }
+        Self::from_raw(unsafe { fx_list_box_new(parent.as_raw()) }).with_layout(Layout::FillX)
     }
 }
 impl ObjectExt for ListBox {
@@ -242,6 +262,7 @@ impl ObjectExt for ListBox {
 }
 impl IdExt for ListBox {}
 impl WindowExt for ListBox {}
+impl FrameExt for ListBox {}
 impl CompositeExt for ListBox {}
 impl PackerExt for ListBox {}
 
@@ -262,6 +283,7 @@ impl ObjectExt for List {
     }
 }
 impl IdExt for List {}
+impl FrameExt for List {}
 impl WindowExt for List {}
 impl PackerExt for List {}
 impl CompositeExt for List {}
@@ -270,10 +292,9 @@ impl CompositeExt for List {}
 pub struct ProgressBar(ObjectPtr);
 impl ProgressBar {
     pub fn new(parent: &impl ObjectExt) -> Self {
-        Self::from_raw(unsafe { fx_progressbar_new(parent.as_raw()) })
+        Self::from_raw(unsafe { fx_progressbar_new(parent.as_raw()) }).with_height(HEIGHT)
     }
 }
-
 impl ObjectExt for ProgressBar {
     fn as_raw(&self) -> ObjectPtr {
         self.0
@@ -284,6 +305,7 @@ impl ObjectExt for ProgressBar {
     }
 }
 impl IdExt for ProgressBar {}
+impl FrameExt for ProgressBar {}
 impl WindowExt for ProgressBar {}
 impl ProgressBarExt for ProgressBar {}
 
@@ -293,6 +315,7 @@ impl RadioButton {
     pub fn new(parent: &impl ObjectExt, title_: &str) -> Self {
         let title = CString::new(title_).unwrap();
         Self::from_raw(unsafe { fx_radio_button_new(parent.as_raw(), title.as_ptr()) })
+            .with_layout(Layout::FillX)
     }
 }
 impl ObjectExt for RadioButton {
@@ -304,6 +327,7 @@ impl ObjectExt for RadioButton {
     }
 }
 impl IdExt for RadioButton {}
+impl FrameExt for RadioButton {}
 impl WindowExt for RadioButton {}
 impl LabelExt for RadioButton {}
 impl RadioButtonExt for RadioButton {}
@@ -323,8 +347,9 @@ impl ObjectExt for ScrollBar {
         Self(ptr)
     }
 }
-impl WindowExt for ScrollBar {}
 impl IdExt for ScrollBar {}
+impl FrameExt for ScrollBar {}
+impl WindowExt for ScrollBar {}
 impl ScrollBarExt for ScrollBar {}
 
 #[derive(Default)]
@@ -332,6 +357,8 @@ pub struct Slider(ObjectPtr);
 impl Slider {
     pub fn new(parent: &impl ObjectExt) -> Self {
         Self::from_raw(unsafe { fx_slider_new(parent.as_raw()) })
+            .with_trigger(Trigger::CHANGED)
+            .with_layout(Layout::FillX)
     }
 }
 impl ObjectExt for Slider {
@@ -343,6 +370,7 @@ impl ObjectExt for Slider {
     }
 }
 impl IdExt for Slider {}
+impl FrameExt for Slider {}
 impl WindowExt for Slider {}
 impl SliderExt for Slider {}
 
@@ -350,7 +378,7 @@ impl SliderExt for Slider {}
 pub struct Spinner(ObjectPtr);
 impl Spinner {
     pub fn new(parent: &impl ObjectExt) -> Self {
-        Self::from_raw(unsafe { fx_spinner_new(parent.as_raw()) })
+        Self::from_raw(unsafe { fx_spinner_new(parent.as_raw()) }).with_layout(Layout::FillX)
     }
 }
 impl ObjectExt for Spinner {
@@ -362,7 +390,10 @@ impl ObjectExt for Spinner {
     }
 }
 impl IdExt for Spinner {}
+impl FrameExt for Spinner {}
 impl WindowExt for Spinner {}
+impl CompositeExt for Spinner {}
+impl PackerExt for Spinner {}
 impl SpinnerExt for Spinner {}
 
 pub struct TabBook(ObjectPtr);
@@ -371,7 +402,6 @@ impl TabBook {
         unsafe { Self::from_raw(fx_tab_book_new(parent.as_raw())) }
     }
 }
-
 impl ObjectExt for TabBook {
     fn as_raw(&self) -> ObjectPtr {
         self.0
@@ -381,9 +411,9 @@ impl ObjectExt for TabBook {
         Self(ptr)
     }
 }
-
-impl WindowExt for TabBook {}
 impl IdExt for TabBook {}
+impl FrameExt for TabBook {}
+impl WindowExt for TabBook {}
 
 pub struct TabItem(ObjectPtr);
 impl TabItem {
@@ -401,8 +431,9 @@ impl ObjectExt for TabItem {
         Self(ptr)
     }
 }
-impl WindowExt for TabItem {}
 impl IdExt for TabItem {}
+impl FrameExt for TabItem {}
+impl WindowExt for TabItem {}
 
 pub struct Table(ObjectPtr);
 impl Table {
@@ -410,8 +441,6 @@ impl Table {
         unsafe { Self::from_raw(fx_table_new(parent.as_raw())) }
     }
 }
-
-impl TableExt for Table {}
 impl ObjectExt for Table {
     fn as_raw(&self) -> ObjectPtr {
         self.0
@@ -421,8 +450,10 @@ impl ObjectExt for Table {
         Self(ptr)
     }
 }
-impl WindowExt for Table {}
 impl IdExt for Table {}
+impl FrameExt for Table {}
+impl WindowExt for Table {}
+impl TableExt for Table {}
 
 pub struct Text(ObjectPtr);
 impl Text {
@@ -440,6 +471,7 @@ impl ObjectExt for Text {
     }
 }
 impl IdExt for Text {}
+impl FrameExt for Text {}
 impl WindowExt for Text {}
 impl TextExt for Text {}
 
@@ -448,9 +480,10 @@ pub struct TextField(ObjectPtr);
 impl TextField {
     pub fn new(parent: &impl ObjectExt) -> Self {
         Self::from_raw(unsafe { fx_textfield_new(parent.as_raw()) })
+            .with_trigger(Trigger::CHANGED)
+            .with_layout(Layout::FillX)
     }
 }
-
 impl ObjectExt for TextField {
     fn as_raw(&self) -> ObjectPtr {
         self.0
@@ -461,6 +494,7 @@ impl ObjectExt for TextField {
 }
 impl IdExt for TextField {}
 impl WindowExt for TextField {}
+impl FrameExt for TextField {}
 impl TextFieldExt for TextField {}
 
 pub struct TreeList(ObjectPtr);
@@ -469,7 +503,6 @@ impl TreeList {
         unsafe { Self::from_raw(fx_tree_list_new(parent.as_raw())) }
     }
 }
-impl TreeListExt for TreeList {}
 
 impl ObjectExt for TreeList {
     fn as_raw(&self) -> ObjectPtr {
@@ -482,7 +515,9 @@ impl ObjectExt for TreeList {
 }
 
 impl IdExt for TreeList {}
+impl FrameExt for TreeList {}
 impl WindowExt for TreeList {}
+impl TreeListExt for TreeList {}
 
 pub struct TreeItem(ObjectPtr);
 
@@ -501,6 +536,7 @@ impl MainWindow {
     pub fn new(app: &impl AppExt, title_: &str, w: i32, h: i32) -> Self {
         let title = CString::new(title_).unwrap();
         Self::from_raw(unsafe { fx_main_window_new(app.as_raw(), title.as_ptr(), w, h) })
+            .with_pad(0)
     }
 }
 impl ObjectExt for MainWindow {
@@ -513,6 +549,7 @@ impl ObjectExt for MainWindow {
 }
 
 impl IdExt for MainWindow {}
+impl FrameExt for MainWindow {}
 impl WindowExt for MainWindow {}
 impl CompositeExt for MainWindow {}
 impl MainWindowExt for MainWindow {}
@@ -520,7 +557,7 @@ impl MainWindowExt for MainWindow {}
 pub struct MenuBar(ObjectPtr);
 impl MenuBar {
     pub fn new(parent: &impl WindowExt) -> Self {
-        Self::from_raw(unsafe { fx_menu_bar_new(parent.as_raw()) })
+        Self::from_raw(unsafe { fx_menu_bar_new(parent.as_raw()) }).with_layout(Layout::FillX)
     }
 }
 
@@ -551,8 +588,9 @@ impl ObjectExt for MenuBar {
     }
 }
 impl CompositeExt for MenuBar {}
-impl WindowExt for MenuBar {}
 impl IdExt for MenuBar {}
+impl FrameExt for MenuBar {}
+impl WindowExt for MenuBar {}
 
 pub struct MenuPane(ObjectPtr);
 
@@ -565,8 +603,9 @@ impl ObjectExt for MenuPane {
     }
 }
 impl CompositeExt for MenuPane {}
-impl WindowExt for MenuPane {}
 impl IdExt for MenuPane {}
+impl WindowExt for MenuPane {}
+impl FrameExt for MenuPane {}
 
 pub struct MenuTitle(ObjectPtr);
 
@@ -580,8 +619,9 @@ impl ObjectExt for MenuTitle {
     }
 }
 
-impl WindowExt for MenuTitle {}
 impl IdExt for MenuTitle {}
+impl FrameExt for MenuTitle {}
+impl WindowExt for MenuTitle {}
 
 pub struct MenuCommand(ObjectPtr);
 
@@ -602,5 +642,6 @@ impl ObjectExt for MenuCommand {
     }
 }
 
-impl WindowExt for MenuCommand {}
 impl IdExt for MenuCommand {}
+impl FrameExt for MenuCommand {}
+impl WindowExt for MenuCommand {}

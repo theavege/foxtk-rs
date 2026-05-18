@@ -40,6 +40,8 @@ Finally, FOX makes it easy to maintain the state of the GUI in an application by
 - [RSTK](https://codeberg.org/peterlane/rstk)
 - [EFL-rs](https://codeberg.org/JustSoup321/efl-rs)
 
+## [Human Interface Guidelines](https://www.fltk.org/hig.php)
+
 ## Work in process
 
 - [x] [FXApp](docs/fx_app.md)

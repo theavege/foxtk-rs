@@ -6,9 +6,9 @@ extern "C" {
 #endif
 
 // Opaque handles
-typedef void* ObjectPtr;
-typedef long (*CWidgetCb)(ObjectPtr widget, void* context);
-typedef long (*CTimerCb)(ObjectPtr application, void* context);
+    typedef void* ObjectPtr;
+    typedef long (*CWidgetCb)(ObjectPtr widget, void* context);
+    typedef long (*CTimerCb)(ObjectPtr application, void* context);
 
 // FXObject
     void fx_object_delete(ObjectPtr wgt);
@@ -22,13 +22,6 @@ typedef long (*CTimerCb)(ObjectPtr application, void* context);
     void fx_app_add_timeout(ObjectPtr app, CTimerCb cb, unsigned int ns, void* ctx);
     void fx_app_add_chore(ObjectPtr app, CTimerCb cb, void* ctx);
 
-// FXLabel
-    ObjectPtr fx_label_new(ObjectPtr parent, const char* title);
-    void fx_label_set_text(ObjectPtr wgt, const char* text);
-    const char* fx_label_get_text(ObjectPtr wgt);
-    void fx_label_set_justify(ObjectPtr wgt, unsigned int justify);
-    unsigned int fx_label_get_justify(ObjectPtr wgt);
-
 // FXWindow
     void fx_window_set_target(ObjectPtr wgt, CWidgetCb callback, void* context);
     void fx_window_set_selector(ObjectPtr wgt, int val);
@@ -38,9 +31,27 @@ typedef long (*CTimerCb)(ObjectPtr application, void* context);
     ObjectPtr fx_window_get_parent(ObjectPtr wgt);
     long fx_window_has_focus(ObjectPtr wgt);
 
+// FXFrame
+    void fx_frame_set_frame_style(ObjectPtr wgt, unsigned int val);
+    void fx_frame_set_pad_bottom(ObjectPtr wgt, int pad);
+    void fx_frame_set_pad_left(ObjectPtr wgt, int pad);
+    void fx_frame_set_pad_right(ObjectPtr wgt, int pad);
+    void fx_frame_set_pad_top(ObjectPtr wgt, int pad);
+
+// FXLabel
+    ObjectPtr fx_label_new(ObjectPtr parent, const char* title);
+    void fx_label_set_text(ObjectPtr wgt, const char* text);
+    void fx_label_set_help_text(ObjectPtr wgt, const char* text);
+    void fx_label_set_tip_text(ObjectPtr wgt, const char* text);
+    const char* fx_label_get_text(ObjectPtr wgt);
+    void fx_label_set_justify(ObjectPtr wgt, unsigned int justify);
+    unsigned int fx_label_get_justify(ObjectPtr wgt);
+
 // FXTextField
     ObjectPtr fx_textfield_new(ObjectPtr frm);
     void fx_textfield_set_text(ObjectPtr wgt, const char* text);
+    void fx_textfield_set_help_text(ObjectPtr wgt, const char* text);
+    void fx_textfield_set_tip_text(ObjectPtr wgt, const char* text);
     const char* fx_textfield_get_text(ObjectPtr wgt);
     void fx_textfield_set_editable(ObjectPtr wgt, long val);
 
@@ -75,18 +86,30 @@ typedef long (*CTimerCb)(ObjectPtr application, void* context);
     void fx_progressbar_set_bar_size(ObjectPtr wgt, int size);
     int fx_progressbar_get_bar_size(ObjectPtr wgt);
 
-// FXButton
+// FXArrowButton.h
+    ObjectPtr fx_arrow_button_new(ObjectPtr prt);
+
+// FXButton.h
     ObjectPtr fx_button_new(ObjectPtr parent, const char* title);
 
-// FXRadioButton
-    ObjectPtr fx_radio_button_new(ObjectPtr parent_, const char* title);
-    unsigned char fx_radio_button_get_check(ObjectPtr wgt);
-    void fx_radio_button_set_check(ObjectPtr wgt);
+// FXButton.h
+    ObjectPtr fx_button_new(ObjectPtr parent, const char* title);
 
 // FXCheckButton
     ObjectPtr fx_check_button_new(ObjectPtr parent, const char* title);
     unsigned char fx_check_button_get_check(ObjectPtr wgt);
     void fx_check_button_set_check(ObjectPtr wgt, unsigned char check);
+
+// FXMenuButton.h
+    ObjectPtr fx_menu_button_new(ObjectPtr prt, const char* title);
+
+// FXToggleButton.h
+    ObjectPtr fx_toggle_button_new(ObjectPtr prt, const char* text1, const char* text2);
+
+// FXRadioButton
+    ObjectPtr fx_radio_button_new(ObjectPtr parent_, const char* title);
+    unsigned char fx_radio_button_get_check(ObjectPtr wgt);
+    void fx_radio_button_set_check(ObjectPtr wgt);
 
 // FXMainWindow
     ObjectPtr fx_main_window_new(ObjectPtr app, const char* title, int width, int height);
@@ -100,6 +123,7 @@ typedef long (*CTimerCb)(ObjectPtr application, void* context);
 // FXGroupBox
     ObjectPtr fx_groupbox_new(ObjectPtr parent, const char* title);
     void fx_groupbox_set_style(ObjectPtr wgt, unsigned int val);
+    void fx_groupbox_set_text(ObjectPtr wgt, const char* text);
 
 // FXSpring
     ObjectPtr fx_spring_new(ObjectPtr parent);
