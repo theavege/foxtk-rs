@@ -6,7 +6,7 @@ add_compile_definitions(WIN32)
 
 set(FOX_PATH "$ENV{FOX_PATH}")
 file(GLOB FX_SOURCE ${FOX_PATH}/lib/*.cpp)
-cmake_path(NATIVE_PATH FX_SOURCE FOX_SOURCE NORMALIZE)
+cmake_path(NATIVE_PATH FX_SOURCE NORMALIZE FOX_SOURCE)
 add_library(fox OBJECT ${FOX_SOURCE} )
 
 set(OBJS foxtk.cpp $<TARGET_OBJECTS:fox>)
