@@ -4,8 +4,7 @@ project(cfoxtk CXX)
 
 add_compile_definitions(WIN32)
 
-set(FX_PATH "$ENV{FOX_PATH}")
-cmake_path(FX_PATH NORMALIZE FOX_PATH)
+cmake_path(SET FOX_PATH NORMALIZE "$ENV{FOX_PATH}")
 file(GLOB FOX_SOURCE ${FOX_PATH}/lib/*.cpp)
 add_library(fox OBJECT ${FOX_SOURCE} )
 
