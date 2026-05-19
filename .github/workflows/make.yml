@@ -42,3 +42,4 @@ jobs:
         run: |
           # pwsh -File '.github/workflows/make.ps1'
           & cargo clippy --quiet --features="all" --examples | Out-Host
+          & cargo build --release --features="all" --examples | Out-Host

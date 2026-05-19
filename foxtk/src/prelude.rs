@@ -373,6 +373,11 @@ pub trait IdExt: ObjectExt {
     fn app(&self) -> impl AppExt {
         super::App::from_raw(unsafe { fx_id_get_app(self.as_raw()) })
     }
+    #[cfg(target_os = "windows")]
+    fn id(&self) -> u32 {
+        unsafe { fx_id_get_id(self.as_raw()) }
+    }
+    #[cfg(target_os = "linux")]
     fn id(&self) -> u64 {
         unsafe { fx_id_get_id(self.as_raw()) }
     }
