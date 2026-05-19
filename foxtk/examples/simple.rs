@@ -33,27 +33,15 @@ impl Component for Simple {
                     .inside(|prt| {
                         foxtk::MenuPane::new(prt).inside(|mpaine| {
                             foxtk::MenuTitle::new(prt, "Nav", mpaine);
-                            foxtk::MenuCommand::new(mpaine, "Converter").set_callback({
-                                let sender = sender.clone();
-                                move |_| {
-                                    sender.send(Msg::SetVal(0)).unwrap();
-                                    false
-                                }
-                            });
-                            foxtk::MenuCommand::new(mpaine, "Calc").set_callback({
-                                let sender = sender.clone();
-                                move |_| {
-                                    sender.send(Msg::SetVal(1)).unwrap();
-                                    false
-                                }
-                            });
-                            foxtk::MenuCommand::new(mpaine, "NicCalc").set_callback({
-                                let sender = sender.clone();
-                                move |_| {
-                                    sender.send(Msg::SetVal(2)).unwrap();
-                                    false
-                                }
-                            });
+                            for (idx, item) in ["Converter", "Calc", "NicCalc", "Dialect"].iter().enumerate() {
+                                foxtk::MenuCommand::new(mpaine, item).set_callback({
+                                    let sender = sender.clone();
+                                    move |_| {
+                                        sender.send(Msg::SetVal(idx as i32)).unwrap();
+                                        false
+                                    }
+                                });
+                            }
                         });
                     });
                 self.0 = foxtk::Switcher::new(prt)
@@ -63,9 +51,11 @@ impl Component for Simple {
                             components::Converter::mount(prt);
                             components::Rangers::mount(prt);
                             components::Selectors::mount(prt);
+                            components::Nmap::mount(prt);
                         });
                         components::Calc::mount(prt);
                         components::NicCalc::mount(prt);
+                        components::Dialect::mount(prt);
                     });
             });
     }

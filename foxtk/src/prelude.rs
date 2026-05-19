@@ -564,6 +564,24 @@ impl<T: SelectorExt + 'static> Update<i32> for T {
     }
 }
 
+impl<T: SelectorExt + 'static> Update<(Vec<String>, i32)> for T {
+    fn update(&self, value: (Vec<String>, i32)) {
+        if !self.has_focus() {
+            if self.num_items() != value.0.len() as i32 {
+                self.clear_items();
+                if !value.0.is_empty() {
+                    for item in &value.0 {
+                        self.append_item(&item);
+                    }
+                    if self.current_item() != value.1 {
+                        self.set_current_item(value.1);
+                    };
+                }
+            };
+        }
+    }
+}
+
 impl Update<i32> for super::Slider {
     fn update(&self, value: i32) {
         if !self.has_focus() && self.value() != value {
