@@ -1,12 +1,12 @@
 mod calculator;
 mod converter;
+mod dialect;
 mod niccalc;
+mod nmap;
 mod rangers;
 mod selectors;
-mod nmap;
-mod dialect;
 
 pub use {
-    calculator::Calc, converter::Converter, niccalc::NicCalc, rangers::Rangers,
-    selectors::Selectors, nmap::Nmap, dialect::Dialect,
+    calculator::Calc, converter::Converter, dialect::Dialect, niccalc::NicCalc, nmap::Nmap,
+    rangers::Rangers, selectors::Selectors,
 };

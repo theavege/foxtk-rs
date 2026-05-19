@@ -5,24 +5,26 @@
 extern "C" {
 #endif
 
-// Opaque handles
-    typedef void* ObjectPtr;
-    typedef long (*CWidgetCb)(ObjectPtr widget, void* context);
-    typedef long (*CTimerCb)(ObjectPtr application, void* context);
+//~ OPAQUE HANDLES
+    typedef unsigned int FXuint;
+    typedef void*        ObjectPtr;
+    typedef long         (*CWidgetCb)(ObjectPtr widget, void* context);
+    typedef long         (*CTimerCb)(ObjectPtr application, void* context);
 
-// FXObject
+//~ FXObject
     void fx_object_delete(ObjectPtr wgt);
 
-// FXId
+//~ FXId
     ObjectPtr fx_id_get_app(ObjectPtr wgt);
+    unsigned long fx_id_get_id(ObjectPtr wgt);
 
-// FXApp
+//~ FXApp
     ObjectPtr fx_app_new(const char* name, const char* vendor, int argc, char** argv);
     int fx_app_run(ObjectPtr app);
     void fx_app_add_timeout(ObjectPtr app, CTimerCb cb, unsigned int ns, void* ctx);
     void fx_app_add_chore(ObjectPtr app, CTimerCb cb, void* ctx);
 
-// FXWindow
+//~ FXWindow
     void fx_window_set_target(ObjectPtr wgt, CWidgetCb callback, void* context);
     void fx_window_set_selector(ObjectPtr wgt, int val);
     void fx_window_set_width(ObjectPtr wgt, int val);
@@ -31,15 +33,15 @@ extern "C" {
     ObjectPtr fx_window_get_parent(ObjectPtr wgt);
     long fx_window_has_focus(ObjectPtr wgt);
 
-// FXFrame
+//~ FXFrame
     void fx_frame_set_frame_style(ObjectPtr wgt, unsigned int val);
     void fx_frame_set_pad_bottom(ObjectPtr wgt, int pad);
     void fx_frame_set_pad_left(ObjectPtr wgt, int pad);
     void fx_frame_set_pad_right(ObjectPtr wgt, int pad);
     void fx_frame_set_pad_top(ObjectPtr wgt, int pad);
 
-// FXLabel
-    ObjectPtr fx_label_new(ObjectPtr parent, const char* title);
+//~ FXLabel
+    ObjectPtr fx_label_new(ObjectPtr prt, const char* title);
     void fx_label_set_text(ObjectPtr wgt, const char* text);
     void fx_label_set_help_text(ObjectPtr wgt, const char* text);
     void fx_label_set_tip_text(ObjectPtr wgt, const char* text);
@@ -47,7 +49,7 @@ extern "C" {
     void fx_label_set_justify(ObjectPtr wgt, unsigned int justify);
     unsigned int fx_label_get_justify(ObjectPtr wgt);
 
-// FXTextField
+//~ FXTextField
     ObjectPtr fx_textfield_new(ObjectPtr frm);
     void fx_textfield_set_text(ObjectPtr wgt, const char* text);
     void fx_textfield_set_help_text(ObjectPtr wgt, const char* text);
@@ -55,8 +57,8 @@ extern "C" {
     const char* fx_textfield_get_text(ObjectPtr wgt);
     void fx_textfield_set_editable(ObjectPtr wgt, long val);
 
-// FXSpinner
-    ObjectPtr fx_spinner_new(ObjectPtr parent);
+//~ FXSpinner
+    ObjectPtr fx_spinner_new(ObjectPtr prt);
     int fx_spinner_get_value(ObjectPtr wgt);
     void fx_spinner_set_value(ObjectPtr wgt, int value);
     void fx_spinner_get_range(ObjectPtr wgt, int* lo, int* hi);
@@ -65,8 +67,8 @@ extern "C" {
     void fx_spinner_increment(ObjectPtr wgt);
     void fx_spinner_decrement(ObjectPtr wgt);
 
-// FXSlider
-    ObjectPtr fx_slider_new(ObjectPtr parent_);
+//~ FXSlider
+    ObjectPtr fx_slider_new(ObjectPtr prt);
     int fx_slider_get_value(ObjectPtr wgt);
     void fx_slider_set_value(ObjectPtr wgt, int value);
     void fx_slider_get_range(ObjectPtr wgt, int* lo, int* hi);
@@ -74,8 +76,8 @@ extern "C" {
     int fx_slider_get_increment(ObjectPtr wgt);
     void fx_slider_set_increment(ObjectPtr wgt, int inc);
 
-// FXProgressBar
-    ObjectPtr fx_progressbar_new(ObjectPtr parent_);
+//~ FXProgressBar
+    ObjectPtr fx_progressbar_new(ObjectPtr prt);
     void fx_progressbar_set_progress(ObjectPtr wgt, unsigned int value);
     unsigned int fx_progressbar_get_progress(ObjectPtr wgt);
     void fx_progressbar_set_total(ObjectPtr wgt, unsigned int value);
@@ -86,62 +88,59 @@ extern "C" {
     void fx_progressbar_set_bar_size(ObjectPtr wgt, int size);
     int fx_progressbar_get_bar_size(ObjectPtr wgt);
 
-// FXArrowButton.h
+//~ FXArrowButton.h
     ObjectPtr fx_arrow_button_new(ObjectPtr prt);
 
-// FXButton.h
-    ObjectPtr fx_button_new(ObjectPtr parent, const char* title);
+//~ FXButton.h
+    ObjectPtr fx_button_new(ObjectPtr prt, const char* title);
 
-// FXButton.h
-    ObjectPtr fx_button_new(ObjectPtr parent, const char* title);
+//~ FXButton.h
+    ObjectPtr fx_button_new(ObjectPtr prt, const char* title);
 
-// FXCheckButton
-    ObjectPtr fx_check_button_new(ObjectPtr parent, const char* title);
+//~ FXCheckButton
+    ObjectPtr fx_check_button_new(ObjectPtr prt, const char* title);
     unsigned char fx_check_button_get_check(ObjectPtr wgt);
     void fx_check_button_set_check(ObjectPtr wgt, unsigned char check);
 
-// FXMenuButton.h
-    ObjectPtr fx_menu_button_new(ObjectPtr prt, const char* title);
-
-// FXToggleButton.h
+//~ FXToggleButton.h
     ObjectPtr fx_toggle_button_new(ObjectPtr prt, const char* text1, const char* text2);
 
-// FXRadioButton
-    ObjectPtr fx_radio_button_new(ObjectPtr parent_, const char* title);
+//~ FXRadioButton
+    ObjectPtr fx_radio_button_new(ObjectPtr prt, const char* title);
     unsigned char fx_radio_button_get_check(ObjectPtr wgt);
     void fx_radio_button_set_check(ObjectPtr wgt);
 
-// FXMainWindow
+//~ FXMainWindow
     ObjectPtr fx_main_window_new(ObjectPtr app, const char* title, int width, int height);
     void fx_main_window_show(ObjectPtr wgt_);
 
-// FXPacker
-    ObjectPtr fx_packer_new(ObjectPtr parent);
+//~ FXPacker
+    ObjectPtr fx_packer_new(ObjectPtr prt);
     void fx_packer_set_hspacing(ObjectPtr wgt, int val);
     void fx_packer_set_vspacing(ObjectPtr wgt, int val);
 
-// FXGroupBox
-    ObjectPtr fx_groupbox_new(ObjectPtr parent, const char* title);
+//~ FXGroupBox
+    ObjectPtr fx_groupbox_new(ObjectPtr prt, const char* title);
     void fx_groupbox_set_style(ObjectPtr wgt, unsigned int val);
     void fx_groupbox_set_text(ObjectPtr wgt, const char* text);
 
-// FXSpring
-    ObjectPtr fx_spring_new(ObjectPtr parent);
+//~ FXSpring
+    ObjectPtr fx_spring_new(ObjectPtr prt);
 
-// FXVerticalFrame
-    ObjectPtr fx_vertical_frame_new(ObjectPtr parent);
+//~ FXVerticalFrame
+    ObjectPtr fx_vertical_frame_new(ObjectPtr prt);
 
-// FXHorizontalFrame
-    ObjectPtr fx_horizontal_frame_new(ObjectPtr parent);
+//~ FXHorizontalFrame
+    ObjectPtr fx_horizontal_frame_new(ObjectPtr prt);
 
-// FXSwitcher
-    ObjectPtr fx_switcher_new(ObjectPtr parent);
+//~ FXSwitcher
+    ObjectPtr fx_switcher_new(ObjectPtr prt);
 
-    /// Bring the child window at index to the top
+    //~/ Bring the child window at index to the top
     void fx_switcher_set_current(ObjectPtr wgt, int index);
 
-// FXComboBox
-    ObjectPtr fx_combo_box_new(ObjectPtr parent_, int cols);
+//~ FXComboBox
+    ObjectPtr fx_combo_box_new(ObjectPtr prt, int cols);
     void fx_combo_box_append_item(ObjectPtr wgt, const char* text);
     void fx_combo_box_clear_items(ObjectPtr wgt);
     int fx_combo_box_get_current_item(ObjectPtr wgt);
@@ -149,8 +148,8 @@ extern "C" {
     const char* fx_combo_box_get_item_text(ObjectPtr wgt, int index);
     int fx_combo_box_get_num_items(ObjectPtr wgt);
 
-// FXList
-    ObjectPtr fx_list_new(ObjectPtr parent);
+//~ FXList
+    ObjectPtr fx_list_new(ObjectPtr prt);
     void fx_list_append_item(ObjectPtr wgt, const char* text);
     void fx_list_clear_items(ObjectPtr wgt);
     int fx_list_get_current_item(ObjectPtr wgt);
@@ -159,8 +158,8 @@ extern "C" {
     int fx_list_get_num_items(ObjectPtr wgt);
 
 
-// FXListBox
-    ObjectPtr fx_list_box_new(ObjectPtr parent);
+//~ FXListBox
+    ObjectPtr fx_list_box_new(ObjectPtr prt);
     void fx_list_box_append_item(ObjectPtr wgt, const char* text);
     void fx_list_box_clear_items(ObjectPtr wgt);
     int fx_list_box_get_current_item(ObjectPtr wgt);
@@ -168,40 +167,67 @@ extern "C" {
     const char* fx_list_box_get_item_text(ObjectPtr wgt, int index);
     int fx_list_box_get_num_items(ObjectPtr wgt);
 
-// FXText
-    ObjectPtr fx_text_new(ObjectPtr parent);
+//~ FXText
+    ObjectPtr fx_text_new(ObjectPtr prt);
     void fx_text_set_text(ObjectPtr wgt, const char* text);
     const char* fx_text_get_text(ObjectPtr wgt);
 
-// FXTreeList
-    ObjectPtr fx_tree_list_new(ObjectPtr parent);
-    ObjectPtr fx_tree_list_append_item(ObjectPtr wgt, ObjectPtr parent_item, const char* text, void* openicon, void* closedicon, void* ptr);
+//~ FXTreeList
+    ObjectPtr fx_tree_list_new(ObjectPtr prt);
+    ObjectPtr fx_tree_list_append_item(ObjectPtr wgt, ObjectPtr prt, const char* text);
     void fx_tree_list_clear_items(ObjectPtr wgt);
 
-// FXTable
-    ObjectPtr fx_table_new(ObjectPtr parent);
+//~ FXTable
+    ObjectPtr fx_table_new(ObjectPtr prt);
     void fx_table_set_table_size(ObjectPtr wgt, int nr, int nc);
     void fx_table_set_item_text(ObjectPtr wgt, int r, int c, const char* text);
     const char* fx_table_get_item_text(ObjectPtr wgt, int r, int c);
 
-// FXCanvas
-    ObjectPtr fx_canvas_new(ObjectPtr parent);
+//~ FXCanvas
+    ObjectPtr fx_canvas_new(ObjectPtr prt);
 
-// FXTabBook
-    ObjectPtr fx_tab_book_new(ObjectPtr parent);
-    ObjectPtr fx_tab_item_new(ObjectPtr parent_, const char* text);
+//~ FXTabBook
+    ObjectPtr fx_tab_book_new(ObjectPtr prt);
+    ObjectPtr fx_tab_item_new(ObjectPtr prt, const char* text);
 
-// FXScrollBar
-    ObjectPtr fx_scroll_bar_new(ObjectPtr parent);
+//~ FXScrollBar
+    ObjectPtr fx_scroll_bar_new(ObjectPtr prt);
     int fx_scroll_bar_get_position(ObjectPtr wgt);
     void fx_scroll_bar_set_position(ObjectPtr wgt, int pos);
     void fx_scroll_bar_set_range(ObjectPtr wgt, int hi);
 
-// FXMenuBar
-    ObjectPtr fx_menu_bar_new(ObjectPtr parent);
-    ObjectPtr fx_menu_pane_new(ObjectPtr parent);
-    ObjectPtr fx_menu_title_new(ObjectPtr parent, const char* text, ObjectPtr pop);
-    ObjectPtr fx_menu_command_new(ObjectPtr parent_, const char* text);
+//~ FXMenuBar
+    ObjectPtr fx_menu_bar_new(ObjectPtr prt);
+
+//~ FXMenuButton.h
+    ObjectPtr fx_menu_button_new(ObjectPtr prt, const char* title, ObjectPtr pop);
+    void fx_menu_button_style(ObjectPtr wgt, FXuint style);
+    void fx_menu_button_popup_style(ObjectPtr wgt, FXuint style);
+    void fx_menu_button_attachment(ObjectPtr wgt, FXuint attachment);
+
+//~ FXMenuCaption
+    ObjectPtr fx_menu_caption_new(ObjectPtr prt, const char* text);
+
+//~ FXMenuCascade
+    ObjectPtr fx_menu_cascade_new(ObjectPtr prt, const char* text);
+
+//~ FXMenuPane
+    ObjectPtr fx_menu_pane_new(ObjectPtr prt);
+
+//~ FXMenuTitle
+    ObjectPtr fx_menu_title_new(ObjectPtr prt, const char* text, ObjectPtr pop);
+
+//~ FXMenuCommand
+    ObjectPtr fx_menu_command_new(ObjectPtr prt, const char* text);
+
+//~ FXMenuSeparator
+    ObjectPtr fx_menu_separator_new(ObjectPtr prt);
+
+//~ FXMenuRadio
+    ObjectPtr fx_menu_radio_new(ObjectPtr prt, const char* text);
+
+//~ FXMenuCheck
+    ObjectPtr fx_menu_check_new(ObjectPtr prt, const char* text);
 
 #ifdef __cplusplus
 }

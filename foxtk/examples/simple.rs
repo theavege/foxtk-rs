@@ -27,23 +27,23 @@ impl Component for Simple {
             .with_frame(Frame::Line)
             .with_layout(Layout::Fill)
             .inside(|prt| {
-                foxtk::MenuBar::new(prt)
-                    .with_frame(Frame::Line)
-                    .with_layout(Layout::FillX)
-                    .inside(|prt| {
-                        foxtk::MenuPane::new(prt).inside(|mpaine| {
-                            foxtk::MenuTitle::new(prt, "Nav", mpaine);
-                            for (idx, item) in ["Converter", "Calc", "NicCalc", "Dialect"].iter().enumerate() {
-                                foxtk::MenuCommand::new(mpaine, item).set_callback({
-                                    let sender = sender.clone();
-                                    move |_| {
-                                        sender.send(Msg::SetVal(idx as i32)).unwrap();
-                                        false
-                                    }
-                                });
-                            }
-                        });
+                foxtk::MenuBar::new(prt).inside(|prt| {
+                    foxtk::MenuPane::new(prt).inside(|mpaine| {
+                        foxtk::MenuTitle::new(prt, "Nav", mpaine);
+                        for (idx, item) in ["Converter", "Calc", "NicCalc", "Dialect"]
+                            .iter()
+                            .enumerate()
+                        {
+                            foxtk::MenuCommand::new(mpaine, item).set_callback({
+                                let sender = sender.clone();
+                                move |_| {
+                                    sender.send(Msg::SetVal(idx as i32)).unwrap();
+                                    false
+                                }
+                            });
+                        }
                     });
+                });
                 self.0 = foxtk::Switcher::new(prt)
                     .with_layout(Layout::Fill)
                     .inside(|prt| {

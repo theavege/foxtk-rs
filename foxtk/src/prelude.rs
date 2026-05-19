@@ -111,18 +111,13 @@ pub trait LabelExt: FrameExt {
     }
 }
 pub trait TreeListExt: ObjectExt {
-    fn add_item_first(&self, parent_item: Option<&super::TreeItem>, text: &str) -> super::TreeItem {
+    fn add_item_first(&self, prt: &super::TreeItem, text: &str) -> super::TreeItem {
         let c_text = CString::new(text).unwrap();
         unsafe {
             super::TreeItem::from_raw(fx_tree_list_append_item(
                 self.as_raw(),
-                parent_item
-                    .map(|i| i.as_raw())
-                    .unwrap_or(std::ptr::null_mut()),
+                prt.as_raw(),
                 c_text.as_ptr(),
-                std::ptr::null_mut(),
-                std::ptr::null_mut(),
-                std::ptr::null_mut(),
             ))
         }
     }
@@ -378,6 +373,9 @@ pub trait IdExt: ObjectExt {
     fn app(&self) -> impl AppExt {
         super::App::from_raw(unsafe { fx_id_get_app(self.as_raw()) })
     }
+    fn id(&self) -> u64 {
+        unsafe { fx_id_get_id(self.as_raw()) }
+    }
 }
 
 pub trait WindowExt: IdExt {
@@ -566,19 +564,17 @@ impl<T: SelectorExt + 'static> Update<i32> for T {
 
 impl<T: SelectorExt + 'static> Update<(Vec<String>, i32)> for T {
     fn update(&self, value: (Vec<String>, i32)) {
-        if !self.has_focus() {
-            if self.num_items() != value.0.len() as i32 {
-                self.clear_items();
-                if !value.0.is_empty() {
-                    for item in &value.0 {
-                        self.append_item(&item);
-                    }
-                    if self.current_item() != value.1 {
-                        self.set_current_item(value.1);
-                    };
+        if !self.has_focus() && self.num_items() != value.0.len() as i32 {
+            self.clear_items();
+            if !value.0.is_empty() {
+                for item in &value.0 {
+                    self.append_item(item);
                 }
-            };
-        }
+                if self.current_item() != value.1 {
+                    self.set_current_item(value.1);
+                };
+            }
+        };
     }
 }
 
@@ -703,12 +699,27 @@ pub trait ProgressBarExt: FrameExt {
         self
     }
 }
+
 pub trait ButtonExt: LabelExt {
     fn new(parent: &impl ObjectExt, title_: &str) -> Self {
         let title = std::ffi::CString::new(format!("&{title_}").as_str()).unwrap();
         Self::from_raw(unsafe { fx_button_new(parent.as_raw(), title.as_ptr()) }).with_height(30)
     }
 }
+
+pub trait MenuButtonExt: WindowExt {
+    fn new(prt: &impl WindowExt, text_: &str, pane: &super::MenuPane) -> Self {
+        Self::from_raw(unsafe {
+            foxtk_sys::fx_menu_button_new(
+                prt.as_raw(),
+                CString::new(text_).unwrap().as_ptr(),
+                pane.as_raw(),
+            )
+        })
+        .with_layout(Layout::FillX)
+    }
+}
+
 pub trait RadioButtonExt: LabelExt {
     fn check(&self) -> bool {
         unsafe { fx_radio_button_get_check(self.as_raw()) != 0 }

@@ -567,17 +567,6 @@ impl MenuPane {
     }
 }
 
-impl MenuTitle {
-    pub fn new(prt: &impl WindowExt, text_: &str, pane: &MenuPane) -> Self {
-        unsafe {
-            Self::from_raw(foxtk_sys::fx_menu_title_new(
-                prt.as_raw(),
-                CString::new(text_).unwrap().as_ptr(),
-                pane.as_raw(),
-            ))
-        }
-    }
-}
 impl ObjectExt for MenuBar {
     fn as_raw(&self) -> ObjectPtr {
         self.0
@@ -607,7 +596,36 @@ impl IdExt for MenuPane {}
 impl WindowExt for MenuPane {}
 impl FrameExt for MenuPane {}
 
+pub struct MenuButton(ObjectPtr);
+
+impl ObjectExt for MenuButton {
+    fn as_raw(&self) -> ObjectPtr {
+        self.0
+    }
+
+    fn from_raw(ptr: ObjectPtr) -> Self {
+        Self(ptr)
+    }
+}
+impl IdExt for MenuButton {}
+impl FrameExt for MenuButton {}
+impl WindowExt for MenuButton {}
+impl MenuButtonExt for MenuButton {}
+
 pub struct MenuTitle(ObjectPtr);
+
+impl MenuTitle {
+    pub fn new(prt: &impl WindowExt, text_: &str, pane: &MenuPane) -> Self {
+        Self::from_raw(unsafe {
+            foxtk_sys::fx_menu_title_new(
+                prt.as_raw(),
+                CString::new(text_).unwrap().as_ptr(),
+                pane.as_raw(),
+            )
+        })
+        .with_layout(Layout::FillX)
+    }
+}
 
 impl ObjectExt for MenuTitle {
     fn as_raw(&self) -> ObjectPtr {
@@ -618,7 +636,6 @@ impl ObjectExt for MenuTitle {
         Self(ptr)
     }
 }
-
 impl IdExt for MenuTitle {}
 impl FrameExt for MenuTitle {}
 impl WindowExt for MenuTitle {}

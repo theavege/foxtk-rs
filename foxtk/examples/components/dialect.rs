@@ -19,10 +19,15 @@ mod models {
             };
         }
         fn file() -> String {
-            format!("{}/.config/{}", std::env::var(match cfg!(target_os = "windows") {
-                true => "HOMEPATH",
-                false => "HOME",
-            }).unwrap(), Self::NAME)
+            format!(
+                "{}/.config/{}",
+                std::env::var(match cfg!(target_os = "windows") {
+                    true => "HOMEPATH",
+                    false => "HOME",
+                })
+                .unwrap(),
+                Self::NAME
+            )
         }
         pub fn switch(&mut self) {
             std::mem::swap(&mut self.from, &mut self.to);
@@ -149,7 +154,7 @@ impl Component for Dialect {
         self.source.update(&state.source);
         self.target.update(&state.target);
     }
-     fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
+    fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
         foxtk::VerticalFrame::new(prt).inside(|prt| {
             foxtk::HorizontalFrame::new(prt).inside(|prt| {
                 self.from = foxtk::ListBox::new(prt).with_callback({
@@ -161,7 +166,7 @@ impl Component for Dialect {
                 });
                 foxtk::Button::new(prt, "Switch").set_callback({
                     let sender = sender.clone();
-                    move |wgt| {
+                    move |_| {
                         sender.send(Msg::Switch).unwrap();
                         false
                     }
@@ -175,7 +180,7 @@ impl Component for Dialect {
                 });
                 foxtk::Button::new(prt, "Translate").set_callback({
                     let sender = sender.clone();
-                    move |wgt| {
+                    move |_| {
                         sender.send(Msg::Run).unwrap();
                         false
                     }

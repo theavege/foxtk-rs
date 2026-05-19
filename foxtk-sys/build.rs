@@ -1,7 +1,7 @@
 use std::{env, path::Path};
 
 const COMPILE: &str = "cfoxtk";
-const CAPI: &str = "lib/foxtk.cpp";
+const CAPI: &str = "src/foxtk.cpp";
 
 #[cfg(target_os = "linux")]
 fn compile() -> Vec<String> {
@@ -50,7 +50,7 @@ fn compile() -> Vec<String> {
         .expect("Failed to extract zip");
     }
 
-    cmake::Config::new("lib")
+    cmake::Config::new("src")
         .env("FOX_PATH", extract_dir)
         .generator("Ninja")
         .build_target("all")
@@ -66,7 +66,7 @@ fn compile() -> Vec<String> {
 
 fn main() {
     bindgen::Builder::default()
-        .header("lib/foxtk.h")
+        .header("src/foxtk.h")
         .clang_args(compile())
         .generate()
         .expect("Unable to generate bindings")
