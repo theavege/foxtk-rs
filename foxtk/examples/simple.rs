@@ -52,6 +52,7 @@ impl Component for Simple {
                             components::Rangers::mount(prt);
                             components::Selectors::mount(prt);
                             components::Nmap::mount(prt);
+                            components::Booker::mount(prt);
                         });
                         components::Calc::mount(prt);
                         components::NicCalc::mount(prt);

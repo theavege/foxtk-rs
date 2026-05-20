@@ -30,6 +30,8 @@ extern "C" {
     void fx_window_set_width(ObjectPtr wgt, int val);
     void fx_window_set_height(ObjectPtr wgt, int val);
     void fx_window_set_layout_hints(ObjectPtr wgt, unsigned int val);
+    void fx_window_disable(ObjectPtr wgt);
+    void fx_window_enable(ObjectPtr wgt);
     ObjectPtr fx_window_get_parent(ObjectPtr wgt);
     long fx_window_has_focus(ObjectPtr wgt);
 

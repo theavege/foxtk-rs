@@ -99,6 +99,12 @@ extern "C" {
     void fx_window_set_layout_hints(ObjectPtr wgt, unsigned int val) {
         static_cast<FXWindow*>(wgt)->setLayoutHints(val);
     }
+    void fx_window_disable(ObjectPtr wgt) {
+        static_cast<FXWindow*>(wgt)->disable();
+    }
+    void fx_window_enable(ObjectPtr wgt) {
+        static_cast<FXWindow*>(wgt)->enable();
+    }
     FXWindow* fx_window_get_parent(ObjectPtr wgt) {
         return static_cast<FXWindow*>(wgt)->getParent();
     }

@@ -50,6 +50,11 @@ fn compile() -> Vec<String> {
         .expect("Failed to extract zip");
     }
 
+    std::process::Command::new("git")
+        .args(["submodule", "update", "--init", "--recursive", "--force", "--remote"])
+        .status()
+        .unwrap();
+
     cmake::Config::new("src")
         .env("FOX_PATH", extract_dir)
         .generator("Ninja")

@@ -399,6 +399,16 @@ pub trait WindowExt: IdExt {
             fx_window_set_layout_hints(self.as_raw(), layout as u32);
         }
     }
+    fn disable(&self) {
+        unsafe {
+            fx_window_disable(self.as_raw());
+        }
+    }
+    fn enable(&self) {
+        unsafe {
+            fx_window_enable(self.as_raw());
+        }
+    }
     fn with_layout(self, layout: Layout) -> Self {
         self.set_layout(layout);
         self

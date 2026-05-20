@@ -1,3 +1,4 @@
+mod booker;
 mod calculator;
 mod converter;
 mod dialect;
@@ -7,6 +8,6 @@ mod rangers;
 mod selectors;
 
 pub use {
-    calculator::Calc, converter::Converter, dialect::Dialect, niccalc::NicCalc, nmap::Nmap,
-    rangers::Rangers, selectors::Selectors,
+    booker::Booker, calculator::Calc, converter::Converter, dialect::Dialect, niccalc::NicCalc,
+    nmap::Nmap, rangers::Rangers, selectors::Selectors,
 };
