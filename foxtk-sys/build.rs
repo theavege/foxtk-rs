@@ -5,17 +5,17 @@ const CAPI: &str = "src/foxtk.cpp";
 
 #[cfg(target_os = "linux")]
 fn compile() -> Vec<String> {
-    const LIBRARY: &str = "fox";
-    println!("cargo:rust-link-lib=dylib={LIBRARY}");
+    let library = "fox";
+    println!("cargo:rust-link-lib=dylib={library}");
     let mut includes = Vec::new();
-    match pkg_config::probe_library(LIBRARY) {
+    match pkg_config::probe_library(library) {
         Ok(lib) => {
             for dir in lib.include_paths {
                 includes.push(format!("-I{}", dir.display()));
             }
         }
         Err(e) => {
-            eprintln!("Failed to find {LIBRARY}: {e}");
+            eprintln!("Failed to find {library}: {e}");
             std::process::exit(1);
         }
     }
@@ -51,7 +51,14 @@ fn compile() -> Vec<String> {
     }
 
     std::process::Command::new("git")
-        .args(["submodule", "update", "--init", "--recursive", "--force", "--remote"])
+        .args([
+            "submodule",
+            "update",
+            "--init",
+            "--recursive",
+            "--force",
+            "--remote",
+        ])
         .status()
         .unwrap();
 
