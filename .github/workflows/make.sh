@@ -7,6 +7,6 @@ case ${ID:?} in
     ';;
     fedora | alma) sudo apt-get install -y fox-devel ;;
 esac 1> /dev/null
-cargo clippy --quiet --example simple
-cargo build --release --example simple
+cargo clippy --quiet --features="all" --examples
+cargo build --release --features="all" --examples
 cargo fmt --check --all

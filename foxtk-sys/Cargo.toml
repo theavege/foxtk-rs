@@ -7,8 +7,8 @@ repository = "https://github.com/theavege/foxtk-rs"
 edition = "2024"
 
 [build-dependencies]
-cc = { version = "1.2", features = ["parallel"] }
 bindgen = { version = "0.72" }
+cc = { version = "1.2", features = ["parallel"] }
 
 [target.'cfg(target_os = "windows")'.build-dependencies]
 reqwest = { version = "0.13", features = ["json", "native-tls", "blocking"] }

@@ -1,21 +1,21 @@
 use std::{env, path::Path};
 
 const COMPILE: &str = "cfoxtk";
-const CAPI: &str = "lib/foxtk.cpp";
+const CAPI: &str = "src/foxtk.cpp";
 
 #[cfg(target_os = "linux")]
 fn compile() -> Vec<String> {
-    const LIBRARY: &str = "fox";
-    println!("cargo:rust-link-lib=dylib={LIBRARY}");
+    let library = "fox";
+    println!("cargo:rust-link-lib=dylib={library}");
     let mut includes = Vec::new();
-    match pkg_config::probe_library(LIBRARY) {
+    match pkg_config::probe_library(library) {
         Ok(lib) => {
             for dir in lib.include_paths {
                 includes.push(format!("-I{}", dir.display()));
             }
         }
         Err(e) => {
-            eprintln!("Failed to find {LIBRARY}: {e}");
+            eprintln!("Failed to find {library}: {e}");
             std::process::exit(1);
         }
     }
@@ -50,7 +50,19 @@ fn compile() -> Vec<String> {
         .expect("Failed to extract zip");
     }
 
-    cmake::Config::new("lib")
+    std::process::Command::new("git")
+        .args([
+            "submodule",
+            "update",
+            "--init",
+            "--recursive",
+            "--force",
+            "--remote",
+        ])
+        .status()
+        .unwrap();
+
+    cmake::Config::new("src")
         .env("FOX_PATH", extract_dir)
         .generator("Ninja")
         .build_target("all")
@@ -66,7 +78,7 @@ fn compile() -> Vec<String> {
 
 fn main() {
     bindgen::Builder::default()
-        .header("lib/foxtk.h")
+        .header("src/foxtk.h")
         .clang_args(compile())
         .generate()
         .expect("Unable to generate bindings")

@@ -43,38 +43,34 @@ impl Component for Converter {
     }
     fn update(&self, model: &Self::State) {
         if let Some(value) = model.cel {
-            self.cel.set_text(&value.to_string());
+            self.cel.update(&value.to_string());
         }
         if let Some(value) = model.far {
-            self.far.set_text(&value.to_string());
+            self.far.update(&value.to_string());
         }
     }
     fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
         foxtk::GroupBox::new(prt, "Converter").inside(|prt| {
-            self.cel = foxtk::TextField::new(prt)
-                .with_trigger(Trigger::CHANGED)
-                .with_callback({
-                    let sender = sender.clone();
-                    move |wgt| {
-                        if wgt.has_focus() {
-                            let value = wgt.text().parse::<f64>().unwrap_or_default();
-                            sender.send(Msg::Cel(value)).unwrap();
-                        }
-                        false
+            self.cel = foxtk::TextField::new(prt).with_callback({
+                let sender = sender.clone();
+                move |wgt| {
+                    if wgt.has_focus() {
+                        let value = wgt.text().parse::<f64>().unwrap_or_default();
+                        sender.send(Msg::Cel(value)).unwrap();
                     }
-                });
-            self.far = foxtk::TextField::new(prt)
-                .with_trigger(Trigger::CHANGED)
-                .with_callback({
-                    let sender = sender.clone();
-                    move |wgt| {
-                        if wgt.has_focus() {
-                            let value = wgt.text().parse::<f64>().unwrap_or_default();
-                            sender.send(Msg::Far(value)).unwrap();
-                        }
-                        false
+                    false
+                }
+            });
+            self.far = foxtk::TextField::new(prt).with_callback({
+                let sender = sender.clone();
+                move |wgt| {
+                    if wgt.has_focus() {
+                        let value = wgt.text().parse::<f64>().unwrap_or_default();
+                        sender.send(Msg::Far(value)).unwrap();
                     }
-                });
+                    false
+                }
+            });
         });
     }
 }

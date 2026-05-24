@@ -96,16 +96,20 @@ impl Component for Calc {
         true
     }
     fn update(&self, model: &Self::State) {
-        self.outp.set_text(&model.output.clone());
-        self.prev.set_text(&model.prev.to_string());
-        self.oper.set_text(&model.operation.clone());
-        self.curr.set_text(&model.current.clone());
+        self.outp.update(&model.output.clone());
+        self.prev.update(&model.prev.to_string());
+        self.oper.update(&model.operation.clone());
+        self.curr.update(&model.current.clone());
     }
     fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
         foxtk::VerticalFrame::new(prt).inside(|prt| {
-            self.outp = foxtk::TextField::new(prt).with_editable(false);
+            self.outp = foxtk::TextField::new(prt)
+                .with_layout(Layout::Fill)
+                .with_editable(false);
             foxtk::HorizontalFrame::new(prt).inside(|prt| {
-                self.oper = foxtk::TextField::new(prt).with_editable(false);
+                self.oper = foxtk::TextField::new(prt)
+                    .with_layout(Layout::Fill)
+                    .with_editable(false);
                 foxtk::VerticalFrame::new(prt).inside(|prt| {
                     self.prev = foxtk::TextField::new(prt).with_editable(false);
                     self.curr = foxtk::TextField::new(prt).with_editable(false);
@@ -120,13 +124,15 @@ impl Component for Calc {
             ] {
                 foxtk::HorizontalFrame::new(prt).inside(|prt| {
                     for cell in row {
-                        foxtk::Button::new(prt, cell).set_callback({
-                            let sender = sender.clone();
-                            move |wgt| {
-                                sender.send(Msg::Push(wgt.text())).unwrap();
-                                false
-                            }
-                        });
+                        foxtk::Button::new(prt, cell)
+                            .with_layout(Layout::Fill)
+                            .set_callback({
+                                let sender = sender.clone();
+                                move |wgt| {
+                                    sender.send(Msg::Push(wgt.text())).unwrap();
+                                    false
+                                }
+                            });
                     }
                 });
             }

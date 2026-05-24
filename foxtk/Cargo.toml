@@ -9,3 +9,11 @@ exclude = ["examples"]
 
 [dependencies]
 foxtk-sys = { path = "../foxtk-sys" }
+reqwest = { version = "0.12", features = ["json", "native-tls", "blocking"], optional = true }
+xlsxwriter = { version = "0", optional = true }
+
+[features]
+default = []
+reqwest = [ "dep:reqwest" ]
+xlsxwriter = [ "dep:xlsxwriter" ]
+all = ["reqwest"]
