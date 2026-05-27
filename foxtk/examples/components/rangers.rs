@@ -49,15 +49,27 @@ impl Component for Rangers {
                                 }
                             });
                             self.label = foxtk::Label::new(prt, "");
-                            foxtk::Button::new(prt, "Next").set_callback({
-                                let sender = sender.clone();
-                                move |wgt| {
-                                    if wgt.has_focus() {
-                                        sender.send(Msg::Add(1)).unwrap();
+                            foxtk::Button::new(prt, "Next")
+                                .with_tip("This is the tooltip for the button.")
+                                .set_callback({
+                                    let sender = sender.clone();
+                                    move |wgt| {
+                                        if wgt.has_focus() {
+                                            sender.send(Msg::Add(1)).unwrap();
+                                        }
+                                        false
                                     }
+                                });
+                            foxtk::ArrowButton::new(prt)
+                                .with_callback(|wgt| {
+                                    wgt.message(MessageBox::Ok, "CANCEL", Message::Error);
                                     false
-                                }
-                            });
+                                })
+                                .set_color(Color::from_rgb(220, 50, 47));
+                            foxtk::TreeList::new(prt);
+                            foxtk::RadioButton::new(prt, "Radio");
+                            foxtk::CheckButton::new(prt, "Check");
+                            foxtk::ToggleButton::new(prt, "Toggle", "Toggle_");
                         });
                         self.spinner = foxtk::Spinner::new(prt)
                             .with_range(0, 8)

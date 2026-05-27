@@ -68,6 +68,25 @@ FXDEFMAP(CTimeout) CTimeoutMap[] = {
 FXIMPLEMENT(CTimeout, FXObject, CTimeoutMap, ARRAYNUMBER(CTimeoutMap))
 
 extern "C" {
+    unsigned int fx_rgb(unsigned int r, unsigned int g, unsigned int b) {
+        return FXRGB(r,g,b);
+    }
+    unsigned int fx_rgba(unsigned int r, unsigned int g, unsigned int b, unsigned int a) {
+        return FXRGBA(r,g,b,a);
+    }
+    unsigned int fx_red_val(unsigned int rgba) {
+        return FXREDVAL(rgba);
+    }
+    unsigned int fx_green_val(unsigned int rgba) {
+        return FXGREENVAL(rgba);
+    }
+    unsigned int fx_blue_val(unsigned int rgba) {
+        return FXBLUEVAL(rgba);
+    }
+    unsigned int fx_alpha_val(unsigned int rgba) {
+        return FXALPHAVAL(rgba);
+    }
+
 //~ FXObject
     void fx_object_delete(ObjectPtr wgt) {
         if (wgt) delete static_cast<FXObject*>(wgt);
@@ -82,6 +101,15 @@ extern "C" {
     }
 
 //~ FXWindow
+    FXWindow* fx_window_get_parent(ObjectPtr wgt) {
+        return static_cast<FXWindow*>(wgt)->getParent();
+    }
+    FXWindow* fx_window_get_root(ObjectPtr wgt) {
+        return static_cast<FXWindow*>(wgt)->getRoot();
+    }
+    long fx_window_has_focus(ObjectPtr wgt) {
+        return static_cast<FXWindow*>(wgt)->hasFocus();
+    }
     void fx_window_set_target(ObjectPtr wgt, CWidgetCb cb, void* ctx) {
         static_cast<FXWindow*>(wgt)->setTarget(static_cast<FXObject*>(new CTarget(cb, ctx)));
     }
@@ -105,12 +133,6 @@ extern "C" {
     void fx_window_enable(ObjectPtr wgt) {
         static_cast<FXWindow*>(wgt)->enable();
     }
-    FXWindow* fx_window_get_parent(ObjectPtr wgt) {
-        return static_cast<FXWindow*>(wgt)->getParent();
-    }
-    long fx_window_has_focus(ObjectPtr wgt) {
-        return static_cast<FXWindow*>(wgt)->hasFocus();
-    }
 
 //~ FXApp
     ObjectPtr fx_app_new(const char* name, const char* vendor, int argc, char** argv) {
@@ -130,6 +152,29 @@ extern "C" {
         static_cast<FXApp*>(app)->addChore(new CTimeout(cb, 0), CTimeout::SEL_CHORE, ctx);
     }
 
+//~ FXFrame
+    void fx_frame_set_frame_style(ObjectPtr wgt, unsigned int style) {
+        static_cast<FXFrame*>(wgt) -> setFrameStyle(style);
+    }
+    void fx_frame_set_pad_bottom(ObjectPtr wgt, int pad) {
+        static_cast<FXFrame*>(wgt) -> setPadBottom(pad);
+    }
+    void fx_frame_set_pad_left(ObjectPtr wgt, int pad) {
+        static_cast<FXFrame*>(wgt) -> setPadLeft(pad);
+    }
+    void fx_frame_set_pad_right(ObjectPtr wgt, int pad) {
+        static_cast<FXFrame*>(wgt) -> setPadRight(pad);
+    }
+    void fx_frame_set_pad_top(ObjectPtr wgt, int pad) {
+        static_cast<FXFrame*>(wgt) -> setPadTop(pad);
+    }
+    void fx_frame_set_base_color(ObjectPtr wgt, unsigned int color) {
+        static_cast<FXFrame*>(wgt) -> setBaseColor(color);
+    }
+    void fx_frame_set_border_color(ObjectPtr wgt, unsigned int color) {
+        static_cast<FXFrame*>(wgt) -> setBorderColor(color);
+    }
+
 //~ FXLabel
     ObjectPtr fx_label_new(ObjectPtr prt, const char* title) {
         return new FXLabel(static_cast<FXComposite*>(prt), title);
@@ -139,6 +184,9 @@ extern "C" {
         buffer = static_cast<FXLabel*>(wgt)->getText();
         return buffer.text();
     }
+    unsigned int fx_label_get_justify(ObjectPtr wgt) {
+        return static_cast<FXLabel*>(wgt)->getJustify();
+    }
     void fx_label_set_text(ObjectPtr wgt, const char* text) {
         static_cast<FXLabel*>(wgt) -> setText(text);
     }    void fx_label_set_help_text(ObjectPtr wgt, const char* text) {
@@ -147,17 +195,66 @@ extern "C" {
     void fx_label_set_tip_text(ObjectPtr wgt, const char* text) {
         static_cast<FXLabel*>(wgt) -> setTipText(text);
     }
-
-    unsigned int fx_label_get_justify(ObjectPtr wgt) {
-        return static_cast<FXLabel*>(wgt)->getJustify();
-    }
     void fx_label_set_justify(ObjectPtr wgt, unsigned int justify) {
         static_cast<FXLabel*>(wgt) -> setJustify(justify);
+    }
+    void fx_label_set_text_color(ObjectPtr wgt, unsigned int color) {
+        static_cast<FXLabel*>(wgt) -> setTextColor(color);
     }
 
 //~ FXArrowButton.h
     ObjectPtr fx_arrow_button_new(ObjectPtr prt) {
         return new FXArrowButton(static_cast<FXComposite*>(prt));
+    }
+    void fx_arrow_button_set_arrow_size(ObjectPtr wgt, int size) {
+        static_cast<FXArrowButton*>(wgt) -> setArrowSize(size);
+    }
+    void fx_arrow_button_set_arrow_color(ObjectPtr wgt, unsigned int color) {
+        static_cast<FXArrowButton*>(wgt) -> setArrowColor(color);
+    }
+
+//~ FXMessageBox.h
+    unsigned int fx_message_box_error(ObjectPtr owner, unsigned int opts, const char* caption, const char* message) {
+        return FXMessageBox::error(static_cast<FXWindow*>(owner), opts, caption, message);
+    }
+    unsigned int fx_message_box_warning(ObjectPtr owner, unsigned int opts, const char* caption, const char* message) {
+        return FXMessageBox::warning(static_cast<FXWindow*>(owner), opts, caption, message);
+    }
+    unsigned int fx_message_box_question(ObjectPtr owner, unsigned int opts, const char* caption, const char* message) {
+        return FXMessageBox::question(static_cast<FXWindow*>(owner), opts, caption, message);
+    }
+    unsigned int fx_message_box_information(ObjectPtr owner, unsigned int opts, const char* caption, const char* message) {
+        return FXMessageBox::information(static_cast<FXWindow*>(owner), opts, caption, message);
+    }
+
+//~ FXChoiceBox.h
+    int fx_choice_box_ask(ObjectPtr app, unsigned int opts, const char* caption, const char* text, ObjectPtr icon, const char** choices) {
+        return FXChoiceBox::ask(static_cast<FXApp*>(app), opts, caption, text, static_cast<FXIcon*>(icon), choices);
+    }
+
+//~ FXTreeListBox.h
+    ObjectPtr fx_tree_list_box_box_new(ObjectPtr prt) {
+        return new FXTreeListBox(static_cast<FXComposite*>(prt));
+    }
+
+//~ FXDriveBox.h
+    ObjectPtr fx_drive_box_new(ObjectPtr prt) {
+        return new FXDriveBox(static_cast<FXComposite*>(prt));
+    }
+
+//~ FXDirBox.h
+    ObjectPtr fx_dir_box_new(ObjectPtr prt) {
+        return new FXDirBox(static_cast<FXComposite*>(prt));
+    }
+
+//~ FXDial.h
+    ObjectPtr fx_dial_new(ObjectPtr prt) {
+        return new FXDial(static_cast<FXComposite*>(prt));
+    }
+
+//~ FXDialogBox.h
+    ObjectPtr fx_dialog_box_new(ObjectPtr owner, const char* title) {
+        return new FXDialogBox(static_cast<FXWindow*>(owner), title);
     }
 
 //~ FXButton.h
@@ -192,6 +289,28 @@ extern "C" {
         return new FXToggleButton(static_cast<FXComposite*>(prt), text1, text2);
     }
 
+//~ FXText.h
+    ObjectPtr fx_text_new(ObjectPtr prt) {
+        return new FXText(static_cast<FXComposite*>(prt));
+    }
+    const char* fx_text_get_text(ObjectPtr wgt) {
+        static thread_local FXString buffer;
+        buffer = static_cast<FXText*>(wgt)->getText();
+        return buffer.text();
+    }
+    void fx_text_set_text(ObjectPtr wgt, const char* text) {
+        static_cast<FXText*>(wgt) -> setText(text);
+    }
+    void fx_text_set_editable(ObjectPtr wgt, long editable) {
+        static_cast<FXText*>(wgt) -> setEditable(editable != 0);
+    }
+    void fx_text_set_help_text(ObjectPtr wgt, const char* text) {
+        static_cast<FXText*>(wgt) -> setHelpText(text);
+    }
+    void fx_text_set_tip_text(ObjectPtr wgt, const char* text) {
+        static_cast<FXText*>(wgt) -> setTipText(text);
+    }
+
 //~ FXTextField
     ObjectPtr fx_textfield_new(ObjectPtr prt) {
         return new FXTextField(static_cast<FXComposite*>(prt), 8);
@@ -210,9 +329,11 @@ extern "C" {
     void fx_textfield_set_tip_text(ObjectPtr wgt, const char* text) {
         static_cast<FXTextField*>(wgt) -> setTipText(text);
     }
-
     void fx_textfield_set_editable(ObjectPtr wgt, long val) {
         static_cast<FXTextField*>(wgt) -> setEditable(val != 0);
+    }
+    void fx_textfield_set_text_color(ObjectPtr wgt, unsigned int color) {
+        static_cast<FXTextField*>(wgt) -> setTextColor(color);
     }
 
 //~ FXSpinner
@@ -302,23 +423,6 @@ extern "C" {
         return static_cast<FXProgressBar*>(wgt)->getBarSize();
     }
 
-//~ FXFrame
-    void fx_frame_set_frame_style(ObjectPtr wgt, unsigned int style) {
-        static_cast<FXFrame*>(wgt) -> setFrameStyle(style);
-    }
-    void fx_frame_set_pad_bottom(ObjectPtr wgt, int pad) {
-        static_cast<FXFrame*>(wgt) -> setPadBottom(pad);
-    }
-    void fx_frame_set_pad_left(ObjectPtr wgt, int pad) {
-        static_cast<FXFrame*>(wgt) -> setPadLeft(pad);
-    }
-    void fx_frame_set_pad_right(ObjectPtr wgt, int pad) {
-        static_cast<FXFrame*>(wgt) -> setPadRight(pad);
-    }
-    void fx_frame_set_pad_top(ObjectPtr wgt, int pad) {
-        static_cast<FXFrame*>(wgt) -> setPadTop(pad);
-    }
-
 //~ FXPacker
     ObjectPtr fx_packer_new(ObjectPtr prt) {
         return new FXPacker(static_cast<FXComposite*>(prt));
@@ -365,10 +469,14 @@ extern "C" {
         static_cast<FXSwitcher*>(wgt)->setCurrent(index);
     }
 
+//~ FXDCWindow
+    ObjectPtr fx_dc_window_new(ObjectPtr drawable) {
+        return new FXDCWindow(static_cast<FXDrawable*>(drawable));
+    }
+
 //~ FXMainWindow
-    ObjectPtr fx_main_window_new(ObjectPtr app_, const char* title, int width, int height) {
-        auto obj = static_cast<FXApp*>(app_);
-        return new FXMainWindow(obj, title, nullptr, nullptr, DECOR_ALL, 0, 0, width, height);
+    ObjectPtr fx_main_window_new(ObjectPtr app, const char* title, int width, int height) {
+        return new FXMainWindow(static_cast<FXApp*>(app), title, nullptr, nullptr, DECOR_ALL, 0, 0, width, height);
     }
     void fx_main_window_show(ObjectPtr wgt) {
         static_cast<FXMainWindow*>(wgt)-> show(PLACEMENT_SCREEN);
@@ -448,18 +556,8 @@ extern "C" {
     int fx_list_box_get_num_items(ObjectPtr wgt) {
         return static_cast<FXListBox*>(wgt)->getNumItems();
     }
-
-//~ FXText
-    ObjectPtr fx_text_new(ObjectPtr prt) {
-        return new FXText(static_cast<FXComposite*>(prt));
-    }
-    void fx_text_set_text(ObjectPtr wgt, const char* text) {
-        static_cast<FXText*>(wgt)->setText(text);
-    }
-    const char* fx_text_get_text(ObjectPtr wgt) {
-        static thread_local FXString buffer;
-        buffer = static_cast<FXText*>(wgt)->getText();
-        return buffer.text();
+    void fx_list_box_set_num_visible(ObjectPtr wgt, int nvis) {
+        static_cast<FXListBox*>(wgt)->setNumVisible(nvis);
     }
 
 //~ FXTreeList
@@ -563,10 +661,22 @@ extern "C" {
     ObjectPtr fx_menu_radio_new(ObjectPtr prt, const char* text) {
         return new FXMenuRadio(static_cast<FXComposite*>(prt), text);
     }
+    unsigned char fx_menu_radio_get_check(ObjectPtr wgt) {
+        return static_cast<FXMenuRadio*>(wgt)->getCheck();
+    }
+    void fx_menu_radio_set_check(ObjectPtr wgt) {
+        static_cast<FXMenuRadio*>(wgt)->setCheck();
+    }
 
 //~ FXMenuCheck
     ObjectPtr fx_menu_check_new(ObjectPtr prt, const char* text) {
         return new FXMenuCheck(static_cast<FXComposite*>(prt), text);
+    }
+    unsigned char fx_menu_check_get_check(ObjectPtr wgt) {
+        return static_cast<FXMenuCheck*>(wgt)->getCheck();
+    }
+    void fx_menu_check_set_check(ObjectPtr wgt, unsigned char check) {
+        static_cast<FXMenuCheck*>(wgt)->setCheck(check);
     }
 
 //~ FXMenuSeparator

@@ -58,6 +58,8 @@ fn compile() -> Vec<String> {
             "--recursive",
             "--force",
             "--remote",
+            "--depth",
+            "1",
         ])
         .status()
         .unwrap();

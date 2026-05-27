@@ -34,6 +34,16 @@ impl AppExt for App {}
 
 #[derive(Default)]
 pub struct Button(Option<ObjectPtr>);
+impl Button {
+    pub fn new(parent: &impl ObjectExt, title: &str) -> Self {
+        Self::from_raw(unsafe {
+            fx_button_new(
+                parent.as_raw(),
+                CString::new(format!("&{title}").as_str()).unwrap().as_ptr(),
+            )
+        })
+    }
+}
 impl ObjectExt for Button {
     fn as_raw(&self) -> ObjectPtr {
         self.0.unwrap()
@@ -46,7 +56,35 @@ impl IdExt for Button {}
 impl FrameExt for Button {}
 impl WindowExt for Button {}
 impl LabelExt for Button {}
-impl ButtonExt for Button {}
+
+#[derive(Default)]
+pub struct ArrowButton(Option<ObjectPtr>);
+impl ArrowButton {
+    pub fn new(parent: &impl ObjectExt) -> Self {
+        Self::from_raw(unsafe { fx_arrow_button_new(parent.as_raw()) })
+    }
+    pub fn set_size(&self, size: i32) {
+        unsafe {
+            fx_arrow_button_set_arrow_size(self.as_raw(), size);
+        }
+    }
+    pub fn set_color(&self, color: Color) {
+        unsafe {
+            fx_arrow_button_set_arrow_color(self.as_raw(), color.bits());
+        }
+    }
+}
+impl ObjectExt for ArrowButton {
+    fn as_raw(&self) -> ObjectPtr {
+        self.0.unwrap()
+    }
+    fn from_raw(ptr: ObjectPtr) -> Self {
+        Self(Some(ptr))
+    }
+}
+impl IdExt for ArrowButton {}
+impl FrameExt for ArrowButton {}
+impl WindowExt for ArrowButton {}
 
 pub struct Canvas(Option<ObjectPtr>);
 impl Canvas {
@@ -69,10 +107,11 @@ impl WindowExt for Canvas {}
 #[derive(Default)]
 pub struct CheckButton(Option<ObjectPtr>);
 impl CheckButton {
-    pub fn new(parent: &impl ObjectExt, title_: &str) -> Self {
-        let title = CString::new(title_).unwrap();
-        Self::from_raw(unsafe { fx_check_button_new(parent.as_raw(), title.as_ptr()) })
-            .with_layout(Layout::FillX)
+    pub fn new(parent: &impl ObjectExt, title: &str) -> Self {
+        Self::from_raw(unsafe {
+            fx_check_button_new(parent.as_raw(), CString::new(title).unwrap().as_ptr())
+        })
+        .with_layout(Layout::FillX)
     }
 }
 impl ObjectExt for CheckButton {
@@ -114,10 +153,11 @@ impl CompositeExt for ComboBox {}
 pub struct GroupBox(Option<ObjectPtr>);
 impl GroupBox {
     pub fn new(parent: &impl ObjectExt, title_: &str) -> Self {
-        let title = CString::new(title_).unwrap();
-        Self::from_raw(unsafe { fx_groupbox_new(parent.as_raw(), title.as_ptr()) })
-            .with_frame(Frame::Line)
-            .with_layout(Layout::Fill)
+        Self::from_raw(unsafe {
+            fx_groupbox_new(parent.as_raw(), CString::new(title_).unwrap().as_ptr())
+        })
+        .with_frame(Frame::Line)
+        .with_layout(Layout::Fill)
     }
 }
 impl ObjectExt for GroupBox {
@@ -220,9 +260,14 @@ impl PackerExt for Switcher {}
 #[derive(Default)]
 pub struct Label(Option<ObjectPtr>);
 impl Label {
-    pub fn new(parent: &impl ObjectExt, title_: &str) -> Self {
-        let title = CString::new(format!("&{title_}").as_str()).unwrap();
-        Self::from_raw(unsafe { fx_label_new(parent.as_raw(), title.as_ptr()) }).with_height(HEIGHT)
+    pub fn new(parent: &impl ObjectExt, title: &str) -> Self {
+        Self::from_raw(unsafe {
+            fx_label_new(
+                parent.as_raw(),
+                CString::new(format!("&{title}").as_str()).unwrap().as_ptr(),
+            )
+        })
+        .with_height(HEIGHT)
     }
 }
 impl ObjectExt for Label {
@@ -242,7 +287,18 @@ impl LabelExt for Label {}
 pub struct ListBox(Option<ObjectPtr>);
 impl ListBox {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { fx_list_box_new(parent.as_raw()) }).with_layout(Layout::FillX)
+        Self::from_raw(unsafe { fx_list_box_new(parent.as_raw()) })
+            .with_layout(Layout::FillX)
+            .with_num_visible(3)
+    }
+    pub fn set_num_visible(&self, nvis: i32) {
+        unsafe {
+            fx_list_box_set_num_visible(self.as_raw(), nvis);
+        }
+    }
+    pub fn with_num_visible(self, nvis: i32) -> Self {
+        self.set_num_visible(nvis);
+        self
     }
 }
 impl ObjectExt for ListBox {
@@ -301,12 +357,41 @@ impl WindowExt for ProgressBar {}
 impl ProgressBarExt for ProgressBar {}
 
 #[derive(Default)]
+pub struct ToggleButton(Option<ObjectPtr>);
+impl ToggleButton {
+    pub fn new(parent: &impl ObjectExt, title: &str, title_: &str) -> Self {
+        Self::from_raw(unsafe {
+            fx_toggle_button_new(
+                parent.as_raw(),
+                CString::new(title).unwrap().as_ptr(),
+                CString::new(title_).unwrap().as_ptr(),
+            )
+        })
+        .with_layout(Layout::FillX)
+    }
+}
+impl ObjectExt for ToggleButton {
+    fn as_raw(&self) -> ObjectPtr {
+        self.0.unwrap()
+    }
+    fn from_raw(ptr: ObjectPtr) -> Self {
+        Self(Some(ptr))
+    }
+}
+impl IdExt for ToggleButton {}
+impl FrameExt for ToggleButton {}
+impl WindowExt for ToggleButton {}
+impl LabelExt for ToggleButton {}
+impl RadioButtonExt for ToggleButton {}
+
+#[derive(Default)]
 pub struct RadioButton(Option<ObjectPtr>);
 impl RadioButton {
-    pub fn new(parent: &impl ObjectExt, title_: &str) -> Self {
-        let title = CString::new(title_).unwrap();
-        Self::from_raw(unsafe { fx_radio_button_new(parent.as_raw(), title.as_ptr()) })
-            .with_layout(Layout::FillX)
+    pub fn new(parent: &impl ObjectExt, title: &str) -> Self {
+        Self::from_raw(unsafe {
+            fx_radio_button_new(parent.as_raw(), CString::new(title).unwrap().as_ptr())
+        })
+        .with_layout(Layout::FillX)
     }
 }
 impl ObjectExt for RadioButton {
@@ -442,10 +527,11 @@ impl FrameExt for Table {}
 impl WindowExt for Table {}
 impl TableExt for Table {}
 
+#[derive(Default)]
 pub struct Text(Option<ObjectPtr>);
 impl Text {
     pub fn new(parent: &impl WindowExt) -> Self {
-        unsafe { Self::from_raw(fx_text_new(parent.as_raw())) }
+        Self::from_raw(unsafe { fx_text_new(parent.as_raw()) }).with_trigger(Trigger::CHANGED)
     }
 }
 impl ObjectExt for Text {
@@ -518,9 +604,10 @@ impl ObjectExt for TreeItem {
 pub struct MainWindow(Option<ObjectPtr>);
 impl MainWindow {
     pub fn new(app: &impl AppExt, title_: &str, w: i32, h: i32) -> Self {
-        let title = CString::new(title_).unwrap();
-        Self::from_raw(unsafe { fx_main_window_new(app.as_raw(), title.as_ptr(), w, h) })
-            .with_pad(0)
+        Self::from_raw(unsafe {
+            fx_main_window_new(app.as_raw(), CString::new(title_).unwrap().as_ptr(), w, h)
+        })
+        .with_pad(0)
     }
 }
 impl ObjectExt for MainWindow {
@@ -580,7 +667,18 @@ impl WindowExt for MenuPane {}
 impl FrameExt for MenuPane {}
 
 pub struct MenuButton(Option<ObjectPtr>);
-
+impl MenuButton {
+    pub fn new(prt: &impl WindowExt, text_: &str, pane: &MenuPane) -> Self {
+        Self::from_raw(unsafe {
+            foxtk_sys::fx_menu_button_new(
+                prt.as_raw(),
+                CString::new(text_).unwrap().as_ptr(),
+                pane.as_raw(),
+            )
+        })
+        .with_layout(Layout::FillX)
+    }
+}
 impl ObjectExt for MenuButton {
     fn as_raw(&self) -> ObjectPtr {
         self.0.unwrap()
@@ -592,7 +690,6 @@ impl ObjectExt for MenuButton {
 impl IdExt for MenuButton {}
 impl FrameExt for MenuButton {}
 impl WindowExt for MenuButton {}
-impl MenuButtonExt for MenuButton {}
 
 pub struct MenuTitle(Option<ObjectPtr>);
 
@@ -621,12 +718,59 @@ impl IdExt for MenuTitle {}
 impl FrameExt for MenuTitle {}
 impl WindowExt for MenuTitle {}
 
+pub struct MenuRadio(Option<ObjectPtr>);
+
+impl MenuRadio {
+    pub fn new(parent: &impl WindowExt, text: &str) -> Self {
+        Self::from_raw(unsafe {
+            fx_menu_radio_new(parent.as_raw(), CString::new(text).unwrap().as_ptr())
+        })
+    }
+}
+
+impl ObjectExt for MenuRadio {
+    fn as_raw(&self) -> ObjectPtr {
+        self.0.unwrap()
+    }
+    fn from_raw(ptr: ObjectPtr) -> Self {
+        Self(Some(ptr))
+    }
+}
+
+impl IdExt for MenuRadio {}
+impl FrameExt for MenuRadio {}
+impl WindowExt for MenuRadio {}
+
+pub struct MenuCheck(Option<ObjectPtr>);
+
+impl MenuCheck {
+    pub fn new(parent: &impl WindowExt, text: &str) -> Self {
+        Self::from_raw(unsafe {
+            fx_menu_check_new(parent.as_raw(), CString::new(text).unwrap().as_ptr())
+        })
+    }
+}
+
+impl ObjectExt for MenuCheck {
+    fn as_raw(&self) -> ObjectPtr {
+        self.0.unwrap()
+    }
+    fn from_raw(ptr: ObjectPtr) -> Self {
+        Self(Some(ptr))
+    }
+}
+
+impl IdExt for MenuCheck {}
+impl FrameExt for MenuCheck {}
+impl WindowExt for MenuCheck {}
+
 pub struct MenuCommand(Option<ObjectPtr>);
 
 impl MenuCommand {
-    pub fn new(parent: &impl WindowExt, text_: &str) -> Self {
-        let text = CString::new(text_).unwrap();
-        Self::from_raw(unsafe { fx_menu_command_new(parent.as_raw(), text.as_ptr()) })
+    pub fn new(parent: &impl WindowExt, text: &str) -> Self {
+        Self::from_raw(unsafe {
+            fx_menu_command_new(parent.as_raw(), CString::new(text).unwrap().as_ptr())
+        })
     }
 }
 

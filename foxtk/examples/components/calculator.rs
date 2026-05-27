@@ -80,7 +80,7 @@ pub enum Msg {
 
 #[derive(Default)]
 pub struct Calc {
-    outp: foxtk::TextField,
+    outp: foxtk::Text,
     prev: foxtk::TextField,
     oper: foxtk::TextField,
     curr: foxtk::TextField,
@@ -103,7 +103,7 @@ impl Component for Calc {
     }
     fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
         foxtk::VerticalFrame::new(prt).inside(|prt| {
-            self.outp = foxtk::TextField::new(prt)
+            self.outp = foxtk::Text::new(prt)
                 .with_layout(Layout::Fill)
                 .with_editable(false);
             foxtk::HorizontalFrame::new(prt).inside(|prt| {

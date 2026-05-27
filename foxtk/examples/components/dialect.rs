@@ -79,8 +79,8 @@ pub enum Msg {
 
 #[derive(Default)]
 pub struct Dialect {
-    source: foxtk::TextField,
-    target: foxtk::TextField,
+    source: foxtk::Text,
+    target: foxtk::Text,
     from: foxtk::ListBox,
     to: foxtk::ListBox,
 }
@@ -186,18 +186,23 @@ impl Component for Dialect {
                     }
                 });
             });
-            foxtk::HorizontalFrame::new(prt).inside(|prt| {
-                self.source = foxtk::TextField::new(prt).with_callback({
-                    let sender = sender.clone();
-                    move |wgt| {
-                        if wgt.has_focus() {
-                            sender.send(Msg::Source(wgt.text())).unwrap();
-                        }
-                        false
-                    }
-                });
-                self.target = foxtk::TextField::new(prt);
-            });
+            foxtk::HorizontalFrame::new(prt)
+                .inside(|prt| {
+                    self.source = foxtk::Text::new(prt)
+                        .with_callback({
+                            let sender = sender.clone();
+                            move |wgt| {
+                                if wgt.has_focus() {
+                                    sender.send(Msg::Source(wgt.text())).unwrap();
+                                }
+                                false
+                            }
+                        })
+                        .with_layout(Layout::Fill)
+                        .with_editable(false);
+                    self.target = foxtk::Text::new(prt).with_layout(Layout::Fill);
+                })
+                .set_layout(Layout::Fill);
         });
         std::thread::spawn({
             let sender = sender.clone();

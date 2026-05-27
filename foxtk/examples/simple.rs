@@ -43,6 +43,14 @@ impl Component for Simple {
                             });
                         }
                     });
+                    foxtk::MenuPane::new(prt).inside(|mpaine| {
+                        foxtk::MenuTitle::new(prt, "Check", mpaine);
+                        foxtk::MenuCheck::new(mpaine, "q");
+                    });
+                    foxtk::MenuPane::new(prt).inside(|mpaine| {
+                        foxtk::MenuTitle::new(prt, "Radio", mpaine);
+                        foxtk::MenuRadio::new(mpaine, "e");
+                    });
                 });
                 self.0 = foxtk::Switcher::new(prt)
                     .with_layout(Layout::Fill)
