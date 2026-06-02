@@ -25,7 +25,7 @@ fn compile() -> Vec<String> {
         .file(CAPI)
         .flags(&includes)
         .compile(COMPILE);
-    println!("cargo:rerun-if-env-changed={CAPI}");
+    println!("cargo:rerun-if-changed={CAPI}");
 
     includes
 }
@@ -49,20 +49,6 @@ fn compile() -> Vec<String> {
         )
         .expect("Failed to extract zip");
     }
-
-    std::process::Command::new("git")
-        .args([
-            "submodule",
-            "update",
-            "--init",
-            "--recursive",
-            "--force",
-            "--remote",
-            "--depth",
-            "1",
-        ])
-        .status()
-        .unwrap();
 
     cmake::Config::new("src")
         .env("FOX_PATH", extract_dir)

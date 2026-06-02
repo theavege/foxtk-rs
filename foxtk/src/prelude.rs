@@ -69,7 +69,7 @@ pub enum Trigger {
     CHANGED,
 }
 
-unsafe extern "C" fn ccallback<T: ObjectExt>(ptr: ObjectPtr, context: *mut c_void) -> c_long {
+unsafe extern "C" fn ccallback<T: ObjectExt>(ptr: *mut ObjectPtr, context: *mut c_void) -> c_long {
     unsafe {
         let func: &mut Box<dyn FnMut(T) -> bool> =
             &mut *(context as *mut Box<dyn FnMut(T) -> bool>);
@@ -77,7 +77,7 @@ unsafe extern "C" fn ccallback<T: ObjectExt>(ptr: ObjectPtr, context: *mut c_voi
     }
 }
 
-unsafe extern "C" fn ctimer<T: AppExt>(ptr: ObjectPtr, context: *mut c_void) -> c_long {
+unsafe extern "C" fn ctimer<T: AppExt>(ptr: *mut ObjectPtr, context: *mut c_void) -> c_long {
     unsafe {
         let func: &mut Box<dyn FnMut(T) -> bool> =
             &mut *(context as *mut Box<dyn FnMut(T) -> bool>);
@@ -92,8 +92,8 @@ pub trait SwitcherExt: PackerExt {
 }
 
 pub trait ObjectExt: Sized {
-    fn as_raw(&self) -> ObjectPtr;
-    fn from_raw(ptr: ObjectPtr) -> Self;
+    fn as_raw(&self) -> *mut ObjectPtr;
+    fn from_raw(ptr: *mut ObjectPtr) -> Self;
 }
 
 pub trait LabelExt: FrameExt {

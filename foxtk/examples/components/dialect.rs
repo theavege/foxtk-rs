@@ -160,7 +160,7 @@ impl Component for Dialect {
                 self.from = foxtk::ListBox::new(prt).with_callback({
                     let sender = sender.clone();
                     move |wgt| {
-                        sender.send(Msg::To(wgt.current_item())).unwrap();
+                        sender.send(Msg::From(wgt.current_item())).unwrap();
                         false
                     }
                 });
@@ -199,26 +199,23 @@ impl Component for Dialect {
                             }
                         })
                         .with_layout(Layout::Fill)
-                        .with_editable(false);
-                    self.target = foxtk::Text::new(prt).with_layout(Layout::Fill);
+                        ;
+                    self.target = foxtk::Text::new(prt).with_layout(Layout::Fill).with_editable(false);
                 })
                 .set_layout(Layout::Fill);
         });
-        std::thread::spawn({
-            let sender = sender.clone();
-            move || {
-                if let Ok(get) = reqwest::blocking::get("https://lingva.ml/api/v1/languages") {
-                    let value = get
-                        .json::<HashMap<String, Vec<HashMap<String, String>>>>()
-                        .unwrap()
-                        .get("languages")
-                        .unwrap()
-                        .iter()
-                        .map(|lang| (lang["code"].clone(), lang["name"].clone()))
-                        .collect::<Vec<(String, String)>>();
-                    if !value.is_empty() {
-                        sender.send(Msg::Lang(value)).unwrap();
-                    }
+        std::thread::spawn(move || {
+            if let Ok(get) = reqwest::blocking::get("https://lingva.ml/api/v1/languages") {
+                let value = get
+                    .json::<HashMap<String, Vec<HashMap<String, String>>>>()
+                    .unwrap()
+                    .get("languages")
+                    .unwrap()
+                    .iter()
+                    .map(|lang| (lang["code"].clone(), lang["name"].clone()))
+                    .collect::<Vec<(String, String)>>();
+                if !value.is_empty() {
+                    sender.send(Msg::Lang(value)).unwrap();
                 }
             }
         });
