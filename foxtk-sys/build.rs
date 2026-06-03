@@ -14,10 +14,7 @@ fn compile() -> Vec<String> {
                 includes.push(format!("-I{}", dir.display()));
             }
         }
-        Err(e) => {
-            eprintln!("Failed to find {library}: {e}");
-            std::process::exit(1);
-        }
+        Err(e) => panic!("Failed to find {library}: {e}"),
     }
 
     cc::Build::new()
@@ -25,7 +22,7 @@ fn compile() -> Vec<String> {
         .file(CAPI)
         .flags(&includes)
         .compile(COMPILE);
-    println!("cargo:rerun-if-env-changed={CAPI}");
+    println!("cargo:rerun-if-changed={CAPI}");
 
     includes
 }
@@ -49,18 +46,6 @@ fn compile() -> Vec<String> {
         )
         .expect("Failed to extract zip");
     }
-
-    std::process::Command::new("git")
-        .args([
-            "submodule",
-            "update",
-            "--init",
-            "--recursive",
-            "--force",
-            "--remote",
-        ])
-        .status()
-        .unwrap();
 
     cmake::Config::new("src")
         .env("FOX_PATH", extract_dir)

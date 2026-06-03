@@ -40,6 +40,4 @@ jobs:
         if: runner.os == 'Windows'
         shell: powershell
         run: |
-          # pwsh -File '.github/workflows/make.ps1'
-          & cargo clippy --quiet --features="all" --examples | Out-Host
-          & cargo build --release --features="all" --examples | Out-Host
+          pwsh -File '.github/workflows/make.ps1'
