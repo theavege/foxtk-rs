@@ -514,13 +514,13 @@ pub trait WindowExt: IdExt {
     fn parent(&self) -> Self {
         Self::from_raw(unsafe { fx_window_get_parent(self.as_raw()) })
     }
-    fn root(&self) -> Self {
-        Self::from_raw(unsafe { fx_window_get_root(self.as_raw()) })
+    fn root(&self) -> super::MainWindow {
+        super::MainWindow::from_raw(unsafe { fx_window_get_root(self.as_raw()) })
     }
     fn message(&self, opts: MessageBox, message: &str, kind: Message) -> u32 {
         unsafe {
             match kind {
-                Message::Error => fx_message_box_warning(
+                Message::Error => fx_message_box_error(
                     self.root().as_raw(),
                     opts as u32,
                     CString::new("Error").unwrap().as_ptr(),
