@@ -54,9 +54,15 @@ Filter Install-Packages {
 
 $ErrorActionPreference = 'stop'
 Set-PSDebug -Strict #-Trace 1
-@(
-    'https://aka.ms/vs/17/release/vs_community.exe'
-) | Get-Package | Install-Packages
+try {
+    (Get-Command 'cmake').Source | Out-Log
+}
+catch {
+    'An error occurred: {0}' -f $_ | Out-Log
+    @(
+        'https://aka.ms/vs/17/release/vs_community.exe'
+    ) | Get-Package | Install-Packages
+}
 & cargo clippy --features="all" --quiet  --examples | Out-Log
 & cargo build --features="all" --release --examples | Out-Log
 Exit($LastExitCode)
