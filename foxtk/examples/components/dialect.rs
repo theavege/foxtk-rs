@@ -198,9 +198,10 @@ impl Component for Dialect {
                                 false
                             }
                         })
+                        .with_layout(Layout::Fill);
+                    self.target = foxtk::Text::new(prt)
                         .with_layout(Layout::Fill)
-                        ;
-                    self.target = foxtk::Text::new(prt).with_layout(Layout::Fill).with_editable(false);
+                        .with_editable(false);
                 })
                 .set_layout(Layout::Fill);
         });

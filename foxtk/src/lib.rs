@@ -1,5 +1,9 @@
 pub mod prelude;
-use {foxtk_sys::*, prelude::*, std::{ffi::CString, ptr::NonNull}};
+use {
+    foxtk_sys::*,
+    prelude::*,
+    std::{ffi::CString, ptr::NonNull},
+};
 
 pub(crate) const HEIGHT: i32 = 30;
 
@@ -628,7 +632,7 @@ impl MainWindowExt for MainWindow {}
 pub struct MenuBar(Option<NonNull<ObjectPtr>>);
 impl MenuBar {
     pub fn new(parent: &impl WindowExt) -> Self {
-        Self::from_raw(unsafe { fx_menu_bar_new(parent.as_raw()) }).with_layout(Layout::FillX)
+        Self::from_raw(unsafe { fx_menu_bar_new(parent.as_raw()) })
     }
 }
 
