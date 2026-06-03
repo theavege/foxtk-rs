@@ -8,7 +8,7 @@ Filter Out-Log {
     $(
         If (! (Test-Path -Path Variable:LastExitCode)) {
             "$(Get-Date -uformat '%y-%m-%d_%T')$([char]27)[33m {0}$([char]27)[0m" -f $_
-        } ElseIf ($LastExitCode -eq 0) {
+        } ElseIf ($LastExitCode -eq 0) {s
             "$(Get-Date -uformat '%y-%m-%d_%T')$([char]27)[32m {0}$([char]27)[0m" -f $_
         } Else {
             "$(Get-Date -uformat '%y-%m-%d_%T')$([char]27)[31m [{0}]`t{1}$([char]27)[0m" -f $LastExitCode, $_
@@ -54,9 +54,15 @@ Filter Install-Packages {
 
 $ErrorActionPreference = 'stop'
 Set-PSDebug -Strict #-Trace 1
-@(
-    'https://aka.ms/vs/17/release/vs_community.exe'
-) | Get-Package | Install-Packages
+try {
+    (Get-Command 'cmake').Source | Out-Log
+}
+catch {
+    'An error occurred: {0}' -f $_ | Out-Log
+    @(
+        'https://aka.ms/vs/17/release/vs_community.exe'
+    ) | Get-Package | Install-Packages    
+}
 & cargo clippy --quiet --examples | Out-Log
 & cargo build --release --examples | Out-Log
 Exit($LastExitCode)

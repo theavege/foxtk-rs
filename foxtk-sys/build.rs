@@ -14,10 +14,7 @@ fn compile() -> Vec<String> {
                 includes.push(format!("-I{}", dir.display()));
             }
         }
-        Err(e) => {
-            eprintln!("Failed to find {library}: {e}");
-            std::process::exit(1);
-        }
+        Err(e) => panic!("Failed to find {library}: {e}"),
     }
 
     cc::Build::new()
