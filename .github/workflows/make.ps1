@@ -57,6 +57,6 @@ Set-PSDebug -Strict #-Trace 1
 @(
     'https://aka.ms/vs/17/release/vs_community.exe'
 ) | Get-Package | Install-Packages
-& cargo clippy --quiet --examples | Out-Log
-& cargo build --release --examples | Out-Log
+& cargo clippy --features="all" --quiet  --examples | Out-Log
+& cargo build --features="all" --release --examples | Out-Log
 Exit($LastExitCode)
