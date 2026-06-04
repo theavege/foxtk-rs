@@ -27,7 +27,7 @@ impl Component for Selectors {
     }
     fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
         foxtk::GroupBox::new(prt, "Selectors")
-            .with_frame(Frame::Line)
+            .with_frame(FrameStyle::Line)
             .with_layout(Layout::Fill)
             .inside(|prt| {
                 let items = ["Item 1", "Item 2", "Item 3", "Item 4", "Item 5"];

@@ -100,7 +100,15 @@ extern "C" {
         return static_cast<FXId*>(wgt) -> id();
     }
 
-//~ FXWindow
+//~ FXDrawable.h
+    int fx_drawable_get_height(ObjectPtr* wgt) {
+        return static_cast<FXDrawable*>(wgt)->getHeight();
+    }
+    int fx_drawable_get_width(ObjectPtr* wgt) {
+        return static_cast<FXDrawable*>(wgt)->getWidth();
+    }
+
+//~ FXWindow.h
     FXWindow* fx_window_get_parent(ObjectPtr* wgt) {
         return static_cast<FXWindow*>(wgt)->getParent();
     }
@@ -118,11 +126,17 @@ extern "C" {
         if (val == 0) wgt->setSelector(CTarget::SEL_COMMAND);
         if (val == 1) wgt->setSelector(CTarget::SEL_CHANGED);
     }
-    void fx_window_set_width(ObjectPtr* wgt, int val) {
-        static_cast<FXWindow*>(wgt)->setWidth(val);
+    void fx_window_set_width(ObjectPtr* wgt, int width) {
+        static_cast<FXWindow*>(wgt)->setWidth(width);
     }
-    void fx_window_set_height(ObjectPtr* wgt, int val) {
-        static_cast<FXWindow*>(wgt)->setHeight(val);
+    void fx_window_set_x(ObjectPtr* wgt, int x) {
+        static_cast<FXWindow*>(wgt)->setX(x);
+    }
+    void fx_window_set_y(ObjectPtr* wgt, int y) {
+        static_cast<FXWindow*>(wgt)->setX(y);
+    }
+    void fx_window_set_height(ObjectPtr* wgt, int height) {
+        static_cast<FXWindow*>(wgt)->setHeight(height);
     }
     void fx_window_set_layout_hints(ObjectPtr* wgt, unsigned int val) {
         static_cast<FXWindow*>(wgt)->setLayoutHints(val);
@@ -174,6 +188,33 @@ extern "C" {
     void fx_frame_set_border_color(ObjectPtr* wgt, unsigned int color) {
         static_cast<FXFrame*>(wgt) -> setBorderColor(color);
     }
+    void fx_frame_set_hilite_color(ObjectPtr* wgt, unsigned int color) {
+        static_cast<FXFrame*>(wgt) -> setHiliteColor(color);
+    }
+    void fx_frame_set_shadow_color(ObjectPtr* wgt, unsigned int color) {
+        static_cast<FXFrame*>(wgt) -> setShadowColor(color);
+    }
+
+//~ FXKnob.h
+    ObjectPtr* fx_knob_new(ObjectPtr* prt) {
+        return new FXKnob(static_cast<FXComposite*>(prt));
+    }
+    void fx_knob_set_help_text(ObjectPtr* wgt, const char* text) {
+        static_cast<FXKnob*>(wgt) -> setHelpText(text);
+    }
+    void fx_knob_set_tip_text(ObjectPtr* wgt, const char* text) {
+        static_cast<FXKnob*>(wgt) -> setTipText(text);
+    }
+    void fx_knob_set_value(ObjectPtr* wgt, int value) {
+        static_cast<FXKnob*>(wgt)->setValue(value);
+    }
+    void fx_knob_set_range(ObjectPtr* wgt, int lo, int hi) {
+        static_cast<FXKnob*>(wgt)->setRange(lo, hi);
+    }
+    void fx_knob_set_increment(ObjectPtr* wgt, int inc) {
+        static_cast<FXKnob*>(wgt)->setIncrement(inc);
+    }
+
 
 //~ FXLabel
     ObjectPtr* fx_label_new(ObjectPtr* prt, const char* title) {
@@ -184,12 +225,10 @@ extern "C" {
         buffer = static_cast<FXLabel*>(wgt)->getText();
         return buffer.text();
     }
-    unsigned int fx_label_get_justify(ObjectPtr* wgt) {
-        return static_cast<FXLabel*>(wgt)->getJustify();
-    }
     void fx_label_set_text(ObjectPtr* wgt, const char* text) {
         static_cast<FXLabel*>(wgt) -> setText(text);
-    }    void fx_label_set_help_text(ObjectPtr* wgt, const char* text) {
+    }
+    void fx_label_set_help_text(ObjectPtr* wgt, const char* text) {
         static_cast<FXLabel*>(wgt) -> setHelpText(text);
     }
     void fx_label_set_tip_text(ObjectPtr* wgt, const char* text) {
@@ -260,6 +299,12 @@ extern "C" {
 //~ FXButton.h
     ObjectPtr* fx_button_new(ObjectPtr* prt, const char* title) {
         return new FXButton(static_cast<FXComposite*>(prt), title);
+    }
+    void fx_button_set_state(ObjectPtr* wgt, unsigned int state) {
+        static_cast<FXButton*>(wgt) -> setState(state);
+    }
+    void fx_button_set_style(ObjectPtr* wgt, unsigned int style) {
+        static_cast<FXButton*>(wgt) -> setButtonStyle(style);
     }
 
 //~ FXCheckButton.h
@@ -369,11 +414,11 @@ extern "C" {
     ObjectPtr* fx_slider_new(ObjectPtr* prt) {
         return new FXSlider(static_cast<FXComposite*>(prt));
     }
+    int fx_slider_get_increment(ObjectPtr* wgt) {
+        return static_cast<FXSlider*>(wgt)->getIncrement();
+    }
     int fx_slider_get_value(ObjectPtr* wgt) {
         return static_cast<FXSlider*>(wgt)->getValue();
-    }
-    void fx_slider_set_value(ObjectPtr* wgt, int value) {
-        static_cast<FXSlider*>(wgt)->setValue(value);
     }
     void fx_slider_get_range(ObjectPtr* wgt, int* lo, int* hi) {
         FXint lower, upper;
@@ -381,11 +426,11 @@ extern "C" {
         if (lo) *lo = lower;
         if (hi) *hi = upper;
     }
+    void fx_slider_set_value(ObjectPtr* wgt, int value) {
+        static_cast<FXSlider*>(wgt)->setValue(value);
+    }
     void fx_slider_set_range(ObjectPtr* wgt, int lo, int hi) {
         static_cast<FXSlider*>(wgt)->setRange(lo, hi);
-    }
-    int fx_slider_get_increment(ObjectPtr* wgt) {
-        return static_cast<FXSlider*>(wgt)->getIncrement();
     }
     void fx_slider_set_increment(ObjectPtr* wgt, int inc) {
         static_cast<FXSlider*>(wgt)->setIncrement(inc);

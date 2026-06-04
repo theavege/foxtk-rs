@@ -31,11 +31,11 @@ impl Component for Rangers {
     }
     fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
         foxtk::GroupBox::new(prt, "Ranges")
-            .with_frame(Frame::Line)
+            .with_frame(FrameStyle::Line)
             .with_layout(Layout::FillX)
             .inside(|prt| {
                 foxtk::VerticalFrame::new(prt)
-                    .with_frame(Frame::Line)
+                    .with_frame(FrameStyle::Line)
                     .with_layout(Layout::FillX)
                     .inside(|prt| {
                         foxtk::HorizontalFrame::new(prt).inside(|prt| {
@@ -70,6 +70,7 @@ impl Component for Rangers {
                             foxtk::RadioButton::new(prt, "Radio");
                             foxtk::CheckButton::new(prt, "Check");
                             foxtk::ToggleButton::new(prt, "Toggle", "Toggle_");
+                            foxtk::Knob::new(prt);
                         });
                         self.spinner = foxtk::Spinner::new(prt)
                             .with_range(0, 8)

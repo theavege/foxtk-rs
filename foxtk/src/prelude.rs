@@ -1,4 +1,4 @@
-pub use std::sync::mpsc::Sender;
+pub use {super::enums::*, std::sync::mpsc::Sender};
 use {
     foxtk_sys::*,
     std::{
@@ -6,68 +6,6 @@ use {
         sync::mpsc::channel,
     },
 };
-
-pub struct Color(u32);
-impl Color {
-    pub fn from_hex(hex: u32) -> Self {
-        Self::from_rgb((hex >> 16) & 0xff, (hex >> 8) & 0xff, hex & 0xff)
-    }
-    pub fn from_rgb(r: u32, g: u32, b: u32) -> Self {
-        Self(unsafe { fx_rgb(r, g, b) })
-    }
-    pub fn from_rgba(r: u32, g: u32, b: u32, a: u32) -> Self {
-        Self(unsafe { fx_rgba(r, g, b, a) })
-    }
-    pub fn bits(&self) -> u32 {
-        self.0
-    }
-}
-
-pub enum Message {
-    Error = 0,
-    Warning,
-    Question,
-    Information,
-}
-
-pub enum MessageBox {
-    Ok = 0x10000000,
-    OkCancel = 0x20000000,
-}
-
-pub enum Justify {
-    Normal = 0,
-    Left = 0x00008000,
-    Right = 0x00010000,
-    Top = 0x00020000,
-    Bottom = 0x00040000,
-    HzApart = 0x00008000 | 0x00010000,
-    VtApart = 0x00020000 | 0x00040000,
-}
-
-pub enum Layout {
-    Normal = 0,
-    FillX = 0x00000400,
-    FillY = 0x00000800,
-    Fill = 0x00000400 | 0x00000800,
-    FixWidth = 0x00000100,
-    FixHeight = 0x00000200,
-}
-
-pub enum Frame {
-    None = 0,
-    Sunken = 0x00001000,
-    Raised = 0x00002000,
-    Thick = 0x00004000,
-    Ridge = 0x00004000 | 0x00002000 | 0x00001000,
-    Line = 0x00002000 | 0x00001000,
-    Normal = 0x00000800 | 0x00004000,
-}
-
-pub enum Trigger {
-    COMMAND = 0,
-    CHANGED,
-}
 
 unsafe extern "C" fn ccallback<T: ObjectExt>(ptr: *mut ObjectPtr, context: *mut c_void) -> c_long {
     unsafe {
@@ -85,15 +23,199 @@ unsafe extern "C" fn ctimer<T: AppExt>(ptr: *mut ObjectPtr, context: *mut c_void
     }
 }
 
-pub trait SwitcherExt: PackerExt {
-    fn set_curent(&self, idx: i32) {
-        unsafe { fx_switcher_set_current(self.as_raw(), idx) }
-    }
-}
-
 pub trait ObjectExt: Sized {
     fn as_raw(&self) -> *mut ObjectPtr;
     fn from_raw(ptr: *mut ObjectPtr) -> Self;
+}
+
+pub trait IdExt: ObjectExt {
+    fn app(&self) -> impl AppExt {
+        super::App::from_raw(unsafe { fx_id_get_app(self.as_raw()) })
+    }
+    #[cfg(target_os = "windows")]
+    fn id(&self) -> u32 {
+        unsafe { fx_id_get_id(self.as_raw()) }
+    }
+    #[cfg(target_os = "linux")]
+    fn id(&self) -> u64 {
+        unsafe { fx_id_get_id(self.as_raw()) }
+    }
+}
+
+pub trait DrawableExt: IdExt {
+    fn height(&self) -> i32 {
+        unsafe { fx_drawable_get_height(self.as_raw()) }
+    }
+    fn width(&self) -> i32 {
+        unsafe { fx_drawable_get_width(self.as_raw()) }
+    }
+}
+
+pub trait WindowExt: DrawableExt {
+    fn set_callback<F: FnMut(Self) -> bool + 'static>(&self, func: F) {
+        let raw_ptr: *mut Box<dyn FnMut(Self) -> bool> = Box::into_raw(Box::new(Box::new(func)));
+        unsafe {
+            fx_window_set_target(
+                self.as_raw(),
+                Some(ccallback::<Self>),
+                raw_ptr as *mut c_void,
+            );
+        }
+    }
+    fn set_layout(&self, layout: Layout) {
+        unsafe {
+            fx_window_set_layout_hints(self.as_raw(), layout as u32);
+        }
+    }
+    fn set_enable(&self, enable: bool) {
+        match enable {
+            true => self.enable(),
+            false => self.disable(),
+        }
+    }
+    fn disable(&self) {
+        unsafe {
+            fx_window_disable(self.as_raw());
+        }
+    }
+    fn enable(&self) {
+        unsafe {
+            fx_window_enable(self.as_raw());
+        }
+    }
+    fn with_layout(self, layout: Layout) -> Self {
+        self.set_layout(layout);
+        self
+    }
+    fn set_selector(&self, selector: Selector) {
+        unsafe {
+            fx_window_set_selector(self.as_raw(), selector as i32);
+        }
+    }
+    fn set_height(&self, height: i32) {
+        unsafe {
+            fx_window_set_height(self.as_raw(), height);
+        };
+    }
+    fn has_focus(&self) -> bool {
+        unsafe { fx_window_has_focus(self.as_raw()) != 0 }
+    }
+    fn set_width(&self, width: i32) {
+        unsafe {
+            fx_window_set_width(self.as_raw(), width);
+        };
+    }
+    fn set_size(&self, width: i32, height: i32) {
+        self.set_height(height);
+        self.set_width(width);
+    }
+    fn with_size(self, width: i32, height: i32) -> Self {
+        self.set_size(width, height);
+        self.set_layout(Layout::Normal);
+        self
+    }
+    fn with_height(self, height: i32) -> Self {
+        self.set_height(height);
+        self.set_layout(match height {
+            0 => Layout::Fill,
+            _ => Layout::FillX,
+        });
+        self
+    }
+    fn with_width(self, width: i32) -> Self {
+        self.set_width(width);
+        self.set_layout(match width {
+            0 => Layout::Fill,
+            _ => Layout::FixWidth,
+        });
+        self
+    }
+    fn with_selector(self, selector: Selector) -> Self {
+        self.set_selector(selector);
+        self
+    }
+    fn with_callback<F: FnMut(Self) -> bool + 'static>(self, func: F) -> Self {
+        self.set_callback(func);
+        self
+    }
+    fn parent(&self) -> Self {
+        Self::from_raw(unsafe { fx_window_get_parent(self.as_raw()) })
+    }
+    fn root(&self) -> super::MainWindow {
+        super::MainWindow::from_raw(unsafe { fx_window_get_root(self.as_raw()) })
+    }
+    fn message(&self, opts: MessageBox, message: &str, kind: Message) -> u32 {
+        unsafe {
+            match kind {
+                Message::Error => fx_message_box_error(
+                    self.root().as_raw(),
+                    opts as u32,
+                    CString::new("Error").unwrap().as_ptr(),
+                    CString::new(message).unwrap().as_ptr(),
+                ),
+                Message::Information => fx_message_box_information(
+                    self.root().as_raw(),
+                    opts as u32,
+                    CString::new("Information").unwrap().as_ptr(),
+                    CString::new(message).unwrap().as_ptr(),
+                ),
+                Message::Question => fx_message_box_question(
+                    self.root().as_raw(),
+                    opts as u32,
+                    CString::new("Question").unwrap().as_ptr(),
+                    CString::new(message).unwrap().as_ptr(),
+                ),
+                Message::Warning => fx_message_box_warning(
+                    self.root().as_raw(),
+                    opts as u32,
+                    CString::new("Warning").unwrap().as_ptr(),
+                    CString::new(message).unwrap().as_ptr(),
+                ),
+            }
+        }
+    }
+}
+
+pub trait FrameExt: WindowExt {
+    fn set_pad_top(&self, pad: i32) {
+        unsafe {
+            fx_frame_set_pad_top(self.as_raw(), pad);
+        }
+    }
+    fn set_pad_left(&self, pad: i32) {
+        unsafe {
+            fx_frame_set_pad_left(self.as_raw(), pad);
+        }
+    }
+    fn set_pad_right(&self, pad: i32) {
+        unsafe {
+            fx_frame_set_pad_right(self.as_raw(), pad);
+        }
+    }
+    fn set_pad_bottom(&self, pad: i32) {
+        unsafe {
+            fx_frame_set_pad_bottom(self.as_raw(), pad);
+        }
+    }
+    fn set_pad(&self, pad: i32) {
+        self.set_pad_bottom(pad);
+        self.set_pad_left(pad);
+        self.set_pad_right(pad);
+        self.set_pad_top(pad);
+    }
+    fn with_pad(self, pad: i32) -> Self {
+        self.set_pad(pad);
+        self
+    }
+    fn set_frame(&self, frame: FrameStyle) {
+        unsafe {
+            fx_frame_set_frame_style(self.as_raw(), frame as u32);
+        }
+    }
+    fn with_frame(self, frame: FrameStyle) -> Self {
+        self.set_frame(frame);
+        self
+    }
 }
 
 pub trait LabelExt: FrameExt {
@@ -134,16 +256,106 @@ pub trait LabelExt: FrameExt {
         self
     }
 
-    fn justify(&self) -> u32 {
-        unsafe { fx_label_get_justify(self.as_raw()) }
-    }
     fn set_text_color(&self, color: Color) {
         unsafe {
             fx_label_set_text_color(self.as_raw(), color.bits());
         }
     }
 }
-pub trait TreeListExt: ObjectExt {
+
+pub trait TextFieldExt: FrameExt {
+    fn set_editable(&self, val: bool) {
+        unsafe {
+            fx_textfield_set_editable(self.as_raw(), val as c_long);
+        }
+    }
+    fn set_text(&self, text_: &str) {
+        let text = std::ffi::CString::new(text_).unwrap();
+        unsafe { fx_textfield_set_text(self.as_raw(), text.as_ptr()) };
+    }
+    fn set_tip(&self, text: &str) {
+        unsafe {
+            fx_textfield_set_tip_text(self.as_raw(), CString::new(text).unwrap().as_ptr());
+        }
+    }
+    fn set_help(&self, text: &str) {
+        unsafe {
+            fx_textfield_set_help_text(self.as_raw(), CString::new(text).unwrap().as_ptr());
+        }
+    }
+    fn set_text_color(&self, color: Color) {
+        unsafe {
+            fx_textfield_set_text_color(self.as_raw(), color.bits());
+        }
+    }
+    fn text(&self) -> String {
+        unsafe {
+            let ptr = fx_textfield_get_text(self.as_raw());
+            if !ptr.is_null() {
+                std::ffi::CStr::from_ptr(ptr).to_string_lossy().to_string()
+            } else {
+                String::new()
+            }
+        }
+    }
+    fn with_help(self, text: &str) -> Self {
+        self.set_help(text);
+        self
+    }
+    fn with_tip(self, text: &str) -> Self {
+        self.set_tip(text);
+        self
+    }
+    fn with_editable(self, val: bool) -> Self {
+        self.set_editable(val);
+        self
+    }
+}
+
+pub trait ProgressBarExt: FrameExt {
+    fn progress(&self) -> u32 {
+        unsafe { fx_progressbar_get_progress(self.as_raw()) }
+    }
+    fn total(&self) -> u32 {
+        unsafe { fx_progressbar_get_total(self.as_raw()) }
+    }
+    fn increment(&self, value: u32) {
+        unsafe { fx_progressbar_increment(self.as_raw(), value) }
+    }
+    fn show_number(&self) {
+        unsafe { fx_progressbar_show_number(self.as_raw()) }
+    }
+    fn hide_number(&self) {
+        unsafe { fx_progressbar_hide_number(self.as_raw()) }
+    }
+    fn bar_size(&self) -> i32 {
+        unsafe { fx_progressbar_get_bar_size(self.as_raw()) }
+    }
+    fn set_progress(&self, progress: u32) {
+        unsafe { fx_progressbar_set_progress(self.as_raw(), progress) }
+    }
+    fn set_value(&self, value: u32) {
+        self.set_progress(value);
+    }
+    fn set_total(&self, total: u32) {
+        unsafe { fx_progressbar_set_total(self.as_raw(), total) }
+    }
+    fn set_bar_size(&self, size: i32) {
+        unsafe { fx_progressbar_set_bar_size(self.as_raw(), size) }
+    }
+    fn with_total(self, value: u32) -> Self {
+        self.set_total(value);
+        self
+    }
+}
+
+pub trait SwitcherExt: PackerExt {
+    fn set_curent(&self, idx: i32) {
+        unsafe { fx_switcher_set_current(self.as_raw(), idx) }
+    }
+}
+
+pub trait TreeListExt: CompositeExt {
     fn add_item_first(&self, prt: &super::TreeItem, text: &str) -> super::TreeItem {
         unsafe {
             super::TreeItem::from_raw(fx_tree_list_append_item(
@@ -319,12 +531,12 @@ pub trait PackerExt: CompositeExt {
 }
 
 pub trait GroupBoxExt: PackerExt {
-    fn set_style(&self, val: Frame) {
+    fn set_style(&self, val: FrameStyle) {
         unsafe {
             fx_groupbox_set_style(self.as_raw(), val as u32);
         }
     }
-    fn with_style(self, val: Frame) -> Self {
+    fn with_style(self, val: FrameStyle) -> Self {
         self.set_style(val);
         self
     }
@@ -407,236 +619,6 @@ pub trait AppExt: ObjectExt {
     }
     fn run(&self) -> i32 {
         unsafe { fx_app_run(self.as_raw()) }
-    }
-}
-
-pub trait IdExt: ObjectExt {
-    fn app(&self) -> impl AppExt {
-        super::App::from_raw(unsafe { fx_id_get_app(self.as_raw()) })
-    }
-    #[cfg(target_os = "windows")]
-    fn id(&self) -> u32 {
-        unsafe { fx_id_get_id(self.as_raw()) }
-    }
-    #[cfg(target_os = "linux")]
-    fn id(&self) -> u64 {
-        unsafe { fx_id_get_id(self.as_raw()) }
-    }
-}
-
-pub trait WindowExt: IdExt {
-    fn set_callback<F: FnMut(Self) -> bool + 'static>(&self, func: F) {
-        let raw_ptr: *mut Box<dyn FnMut(Self) -> bool> = Box::into_raw(Box::new(Box::new(func)));
-        unsafe {
-            fx_window_set_target(
-                self.as_raw(),
-                Some(ccallback::<Self>),
-                raw_ptr as *mut c_void,
-            );
-        }
-    }
-    fn set_layout(&self, layout: Layout) {
-        unsafe {
-            fx_window_set_layout_hints(self.as_raw(), layout as u32);
-        }
-    }
-    fn set_enable(&self, enable: bool) {
-        match enable {
-            true => self.enable(),
-            false => self.disable(),
-        }
-    }
-    fn disable(&self) {
-        unsafe {
-            fx_window_disable(self.as_raw());
-        }
-    }
-    fn enable(&self) {
-        unsafe {
-            fx_window_enable(self.as_raw());
-        }
-    }
-    fn with_layout(self, layout: Layout) -> Self {
-        self.set_layout(layout);
-        self
-    }
-    fn set_trigger(&self, trigger: Trigger) {
-        unsafe {
-            fx_window_set_selector(self.as_raw(), trigger as i32);
-        }
-    }
-    fn set_height(&self, height: i32) {
-        unsafe {
-            fx_window_set_height(self.as_raw(), height);
-        };
-    }
-    fn has_focus(&self) -> bool {
-        unsafe { fx_window_has_focus(self.as_raw()) != 0 }
-    }
-    fn set_width(&self, width: i32) {
-        unsafe {
-            fx_window_set_width(self.as_raw(), width);
-        };
-    }
-    fn set_size(&self, width: i32, height: i32) {
-        self.set_height(height);
-        self.set_width(width);
-    }
-    fn with_size(self, width: i32, height: i32) -> Self {
-        self.set_size(width, height);
-        self.set_layout(Layout::Normal);
-        self
-    }
-    fn with_height(self, height: i32) -> Self {
-        self.set_height(height);
-        self.set_layout(match height {
-            0 => Layout::Fill,
-            _ => Layout::FillX,
-        });
-        self
-    }
-    fn with_width(self, width: i32) -> Self {
-        self.set_width(width);
-        self.set_layout(match width {
-            0 => Layout::Fill,
-            _ => Layout::FixWidth,
-        });
-        self
-    }
-    fn with_trigger(self, val: Trigger) -> Self {
-        self.set_trigger(val);
-        self
-    }
-    fn with_callback<F: FnMut(Self) -> bool + 'static>(self, func: F) -> Self {
-        self.set_callback(func);
-        self
-    }
-    fn parent(&self) -> Self {
-        Self::from_raw(unsafe { fx_window_get_parent(self.as_raw()) })
-    }
-    fn root(&self) -> super::MainWindow {
-        super::MainWindow::from_raw(unsafe { fx_window_get_root(self.as_raw()) })
-    }
-    fn message(&self, opts: MessageBox, message: &str, kind: Message) -> u32 {
-        unsafe {
-            match kind {
-                Message::Error => fx_message_box_error(
-                    self.root().as_raw(),
-                    opts as u32,
-                    CString::new("Error").unwrap().as_ptr(),
-                    CString::new(message).unwrap().as_ptr(),
-                ),
-                Message::Information => fx_message_box_information(
-                    self.root().as_raw(),
-                    opts as u32,
-                    CString::new("Information").unwrap().as_ptr(),
-                    CString::new(message).unwrap().as_ptr(),
-                ),
-                Message::Question => fx_message_box_question(
-                    self.root().as_raw(),
-                    opts as u32,
-                    CString::new("Question").unwrap().as_ptr(),
-                    CString::new(message).unwrap().as_ptr(),
-                ),
-                Message::Warning => fx_message_box_warning(
-                    self.root().as_raw(),
-                    opts as u32,
-                    CString::new("Warning").unwrap().as_ptr(),
-                    CString::new(message).unwrap().as_ptr(),
-                ),
-            }
-        }
-    }
-}
-
-pub trait FrameExt: WindowExt {
-    fn set_pad_top(&self, pad: i32) {
-        unsafe {
-            fx_frame_set_pad_top(self.as_raw(), pad);
-        }
-    }
-    fn set_pad_left(&self, pad: i32) {
-        unsafe {
-            fx_frame_set_pad_left(self.as_raw(), pad);
-        }
-    }
-    fn set_pad_right(&self, pad: i32) {
-        unsafe {
-            fx_frame_set_pad_right(self.as_raw(), pad);
-        }
-    }
-    fn set_pad_bottom(&self, pad: i32) {
-        unsafe {
-            fx_frame_set_pad_bottom(self.as_raw(), pad);
-        }
-    }
-    fn set_pad(&self, pad: i32) {
-        self.set_pad_bottom(pad);
-        self.set_pad_left(pad);
-        self.set_pad_right(pad);
-        self.set_pad_top(pad);
-    }
-    fn with_pad(self, pad: i32) -> Self {
-        self.set_pad(pad);
-        self
-    }
-    fn set_frame(&self, frame: Frame) {
-        unsafe {
-            fx_frame_set_frame_style(self.as_raw(), frame as u32);
-        }
-    }
-    fn with_frame(self, frame: Frame) -> Self {
-        self.set_frame(frame);
-        self
-    }
-}
-
-pub trait TextFieldExt: FrameExt {
-    fn set_editable(&self, val: bool) {
-        unsafe {
-            fx_textfield_set_editable(self.as_raw(), val as c_long);
-        }
-    }
-    fn set_text(&self, text_: &str) {
-        let text = std::ffi::CString::new(text_).unwrap();
-        unsafe { fx_textfield_set_text(self.as_raw(), text.as_ptr()) };
-    }
-    fn set_tip(&self, text: &str) {
-        unsafe {
-            fx_textfield_set_tip_text(self.as_raw(), CString::new(text).unwrap().as_ptr());
-        }
-    }
-    fn set_help(&self, text: &str) {
-        unsafe {
-            fx_textfield_set_help_text(self.as_raw(), CString::new(text).unwrap().as_ptr());
-        }
-    }
-    fn set_text_color(&self, color: Color) {
-        unsafe {
-            fx_textfield_set_text_color(self.as_raw(), color.bits());
-        }
-    }
-    fn text(&self) -> String {
-        unsafe {
-            let ptr = fx_textfield_get_text(self.as_raw());
-            if !ptr.is_null() {
-                std::ffi::CStr::from_ptr(ptr).to_string_lossy().to_string()
-            } else {
-                String::new()
-            }
-        }
-    }
-    fn with_help(self, text: &str) -> Self {
-        self.set_help(text);
-        self
-    }
-    fn with_tip(self, text: &str) -> Self {
-        self.set_tip(text);
-        self
-    }
-    fn with_editable(self, val: bool) -> Self {
-        self.set_editable(val);
-        self
     }
 }
 
@@ -771,42 +753,6 @@ pub trait SliderExt: WindowExt {
     }
     fn with_increment(self, inc: i32) -> Self {
         self.set_increment(inc);
-        self
-    }
-}
-pub trait ProgressBarExt: FrameExt {
-    fn progress(&self) -> u32 {
-        unsafe { fx_progressbar_get_progress(self.as_raw()) }
-    }
-    fn total(&self) -> u32 {
-        unsafe { fx_progressbar_get_total(self.as_raw()) }
-    }
-    fn increment(&self, value: u32) {
-        unsafe { fx_progressbar_increment(self.as_raw(), value) }
-    }
-    fn show_number(&self) {
-        unsafe { fx_progressbar_show_number(self.as_raw()) }
-    }
-    fn hide_number(&self) {
-        unsafe { fx_progressbar_hide_number(self.as_raw()) }
-    }
-    fn bar_size(&self) -> i32 {
-        unsafe { fx_progressbar_get_bar_size(self.as_raw()) }
-    }
-    fn set_progress(&self, progress: u32) {
-        unsafe { fx_progressbar_set_progress(self.as_raw(), progress) }
-    }
-    fn set_value(&self, value: u32) {
-        self.set_progress(value);
-    }
-    fn set_total(&self, total: u32) {
-        unsafe { fx_progressbar_set_total(self.as_raw(), total) }
-    }
-    fn set_bar_size(&self, size: i32) {
-        unsafe { fx_progressbar_set_bar_size(self.as_raw(), size) }
-    }
-    fn with_total(self, value: u32) -> Self {
-        self.set_total(value);
         self
     }
 }

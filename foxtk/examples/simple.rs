@@ -24,7 +24,7 @@ impl Component for Simple {
     }
     fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
         foxtk::VerticalFrame::new(prt)
-            .with_frame(Frame::Line)
+            .with_frame(FrameStyle::Line)
             .with_layout(Layout::Fill)
             .inside(|prt| {
                 foxtk::MenuBar::new(prt).inside(|prt| {
@@ -44,12 +44,19 @@ impl Component for Simple {
                         }
                     });
                     foxtk::MenuPane::new(prt).inside(|mpaine| {
-                        foxtk::MenuTitle::new(prt, "Check", mpaine);
-                        foxtk::MenuCheck::new(mpaine, "q");
+                        foxtk::MenuTitle::new(prt, "View", mpaine);
+                        foxtk::MenuCheck::new(mpaine, "Hidden files");
+                        foxtk::MenuCheck::new(mpaine, "File Browser");
+                        foxtk::MenuCheck::new(mpaine, "Toolbar");
+                        foxtk::MenuCheck::new(mpaine, "Status line");
+                        foxtk::MenuCheck::new(mpaine, "Undo Counters");
+                        foxtk::MenuCheck::new(mpaine, "Clock");
                     });
                     foxtk::MenuPane::new(prt).inside(|mpaine| {
-                        foxtk::MenuTitle::new(prt, "Radio", mpaine);
-                        foxtk::MenuRadio::new(mpaine, "e");
+                        foxtk::MenuTitle::new(prt, "Window", mpaine);
+                        foxtk::MenuRadio::new(mpaine, "1 untitled");
+                        foxtk::MenuRadio::new(mpaine, "2 untitled");
+                        foxtk::MenuRadio::new(mpaine, "3 untitled");
                     });
                 });
                 self.0 = foxtk::Switcher::new(prt)
