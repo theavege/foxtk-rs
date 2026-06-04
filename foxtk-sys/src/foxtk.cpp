@@ -133,7 +133,7 @@ extern "C" {
         static_cast<FXWindow*>(wgt)->setX(x);
     }
     void fx_window_set_y(ObjectPtr* wgt, int y) {
-        static_cast<FXWindow*>(wgt)->setX(y);
+        static_cast<FXWindow*>(wgt)->setY(y);
     }
     void fx_window_set_height(ObjectPtr* wgt, int height) {
         static_cast<FXWindow*>(wgt)->setHeight(height);
