@@ -100,7 +100,7 @@ impl Component for Booker {
                     .with_width(WIDTH)
                     .set_text_color(Color::from_rgb(108, 113, 196));
                 self.back = foxtk::TextField::new(prt)
-                    .with_trigger(Trigger::COMMAND)
+                    .with_selector(Selector::COMMAND)
                     .with_callback({
                         let sender = sender.clone();
                         move |wgt| {

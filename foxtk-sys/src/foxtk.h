@@ -52,6 +52,10 @@ extern "C" {
 //~ FXDialogBox.h
     ObjectPtr* fx_dialog_box_new(ObjectPtr*  owner, const char* title);
 
+//~ FXDrawable.h
+    int fx_drawable_get_height(ObjectPtr* wgt);
+    int fx_drawable_get_width(ObjectPtr* wgt);
+
 //~ FXWindow
     ObjectPtr* fx_window_get_parent(ObjectPtr* wgt);
     ObjectPtr* fx_window_get_root(ObjectPtr* wgt);
@@ -61,6 +65,8 @@ extern "C" {
     void fx_window_set_width(ObjectPtr*  wgt, int val);
     void fx_window_set_height(ObjectPtr*  wgt, int val);
     void fx_window_set_layout_hints(ObjectPtr*  wgt, unsigned int val);
+    void fx_window_set_x(ObjectPtr* wgt, int x);
+    void fx_window_set_y(ObjectPtr* wgt, int y);
     void fx_window_disable(ObjectPtr*  wgt);
     void fx_window_enable(ObjectPtr*  wgt);
 
@@ -75,11 +81,20 @@ extern "C" {
     void fx_frame_set_pad_top(ObjectPtr*  wgt, int pad);
     void fx_frame_set_base_color(ObjectPtr*  wgt, unsigned int color);
     void fx_frame_set_border_color(ObjectPtr*  wgt, unsigned int color);
+    void fx_frame_set_hilite_color(ObjectPtr* wgt, unsigned int color);
+    void fx_frame_set_shadow_color(ObjectPtr* wgt, unsigned int color);
+
+//~ FXKnob.h
+    ObjectPtr* fx_knob_new(ObjectPtr* prt);
+    void fx_knob_set_help_text(ObjectPtr* wgt, const char* text);
+    void fx_knob_set_tip_text(ObjectPtr* wgt, const char* text);
+    void fx_knob_set_value(ObjectPtr* wgt, int value);
+    void fx_knob_set_range(ObjectPtr* wgt, int lo, int hi);
+    void fx_knob_set_increment(ObjectPtr* wgt, int inc);
 
 //~ FXLabel
     ObjectPtr* fx_label_new(ObjectPtr*  prt, const char* title);
     const char* fx_label_get_text(ObjectPtr* wgt);
-    unsigned int fx_label_get_justify(ObjectPtr* wgt);
     void fx_label_set_text(ObjectPtr*  wgt, const char* text);
     void fx_label_set_help_text(ObjectPtr*  wgt, const char* text);
     void fx_label_set_tip_text(ObjectPtr*  wgt, const char* text);
@@ -141,6 +156,8 @@ extern "C" {
 
 //~ FXButton.h
     ObjectPtr* fx_button_new(ObjectPtr*  prt, const char* title);
+    void fx_button_set_state(ObjectPtr* wgt, unsigned int state);
+    void fx_button_set_style(ObjectPtr* wgt, unsigned int style);
 
 //~ FXButton.h
     ObjectPtr* fx_button_new(ObjectPtr*  prt, const char* title);
