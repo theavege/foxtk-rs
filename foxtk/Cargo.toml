@@ -1,6 +1,6 @@
 [package]
 name = "foxtk"
-version = "0.0.1"
+version = "0.0.2"
 authors = ["Artem V. Ageev <artem.v.ageev@gmail.com>"]
 license = "LGPL"
 repository = "https://github.com/theavege/foxtk-rs"
@@ -8,7 +8,7 @@ edition = "2024"
 exclude = ["examples"]
 
 [dependencies]
-foxtk-sys = { path = "../foxtk-sys" }
+foxtk-sys = { path = "../foxtk-sys", version = "=0.0.2"}
 reqwest = { version = "0.13", features = ["json", "native-tls", "blocking"], optional = true }
 xlsxwriter = { version = "0", optional = true }
 chrono = { version = "0.4", optional = true }

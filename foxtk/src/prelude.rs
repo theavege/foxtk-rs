@@ -443,6 +443,12 @@ pub trait CompositeExt: WindowExt {
         func(&self);
         self
     }
+    fn child_width(&self) -> i32 {
+        unsafe { fx_composite_child_width(self.as_raw()) }
+    }
+    fn child_height(&self) -> i32 {
+        unsafe { fx_composite_child_height(self.as_raw()) }
+    }
 }
 
 impl SelectorExt for super::ListBox {
@@ -725,7 +731,28 @@ pub trait SpinnerExt: PackerExt {
         self
     }
 }
-pub trait SliderExt: WindowExt {
+pub trait RangerExt: WindowExt {
+    fn value(&self) -> i32;
+    fn range(&self) -> (i32, i32);
+    fn increment(&self) -> i32
+    fn set_value(&self, value: i32);
+    fn set_range(&self, low: i32, high: i32);
+    fn set_increment(&self, inc: i32);
+    fn with_range(self, low: i32, high: i32) -> Self {
+        self.set_range(low, high);
+        self
+    }
+    fn with_increment(self, inc: i32) -> Self {
+        self.set_increment(inc);
+        self
+    }
+    fn with_value(self, value: i32) -> Self {
+        self.set_value(inc);
+        self
+    }
+}
+
+impl RangerExt for super::Slider {
     fn value(&self) -> i32 {
         unsafe { fx_slider_get_value(self.as_raw()) }
     }
@@ -741,19 +768,11 @@ pub trait SliderExt: WindowExt {
     fn set_range(&self, low: i32, high: i32) {
         unsafe { fx_slider_set_range(self.as_raw(), low, high) }
     }
-    fn with_range(self, low: i32, high: i32) -> Self {
-        self.set_range(low, high);
-        self
-    }
     fn increment(&self) -> i32 {
         unsafe { fx_slider_get_increment(self.as_raw()) }
     }
     fn set_increment(&self, inc: i32) {
         unsafe { fx_slider_set_increment(self.as_raw(), inc) }
-    }
-    fn with_increment(self, inc: i32) -> Self {
-        self.set_increment(inc);
-        self
     }
 }
 

@@ -1,6 +1,6 @@
 [package]
 name = "foxtk-sys"
-version = "0.0.1"
+version = "0.0.2"
 authors = ["Artem V. Ageev <artem.v.ageev@gmail.com>"]
 license = "LGPL"
 repository = "https://github.com/theavege/foxtk-rs"

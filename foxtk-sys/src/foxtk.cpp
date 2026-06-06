@@ -148,6 +148,14 @@ extern "C" {
         static_cast<FXWindow*>(wgt)->enable();
     }
 
+//~ FXComposite.h
+    int fx_composite_child_width(ObjectPtr* wgt) {
+        return static_cast<FXComposite*>(wgt)->maxChildWidth();
+    }
+    int fx_composite_child_height(ObjectPtr* wgt) {
+        return static_cast<FXComposite*>(wgt)->maxChildHeight();
+    }
+
 //~ FXApp
     ObjectPtr* fx_app_new(const char* name, const char* vendor, int argc, char** argv) {
         auto app = new FXApp(name, vendor);

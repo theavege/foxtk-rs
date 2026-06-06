@@ -70,6 +70,10 @@ extern "C" {
     void fx_window_disable(ObjectPtr*  wgt);
     void fx_window_enable(ObjectPtr*  wgt);
 
+//~ FXComposite.h
+    int fx_composite_child_width(ObjectPtr* wgt);
+    int fx_composite_child_height(ObjectPtr* wgt);
+
 //~ FXDial.h
     ObjectPtr* fx_dial_new(ObjectPtr*  prt);
 

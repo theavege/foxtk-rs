@@ -65,7 +65,7 @@ impl Component for Booker {
         true
     }
     fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
-        const WIDTH: i32 = 200;
+        const WIDTH: i32 = 150;
         foxtk::VerticalFrame::new(prt).inside(|prt| {
             foxtk::HorizontalFrame::new(prt).inside(|prt| {
                 foxtk::Label::new(prt, "Flight").set_width(WIDTH);
@@ -85,10 +85,9 @@ impl Component for Booker {
                     let sender = sender.clone();
                     move |wgt| {
                         if wgt.has_focus() {
-                            if chrono::NaiveDate::parse_from_str(&wgt.text(), "%Y-%m-%d").is_ok() {
-                                sender.send(Msg::Start(wgt.text())).unwrap();
-                            } else {
-                                wgt.message(MessageBox::Ok, "ERROR", Message::Warning);
+                            match chrono::NaiveDate::parse_from_str(&wgt.text(), "%Y-%m-%d").is_ok() {
+                                true => sender.send(Msg::Start(wgt.text())).unwrap(),
+                                false => wgt.message(MessageBox::Ok, "ERROR", Message::Warning),
                             }
                         }
                         false
