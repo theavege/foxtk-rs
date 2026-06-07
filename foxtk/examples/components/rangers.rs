@@ -39,6 +39,10 @@ impl Component for Rangers {
                     .with_layout(Layout::FillX)
                     .inside(|prt| {
                         foxtk::HorizontalFrame::new(prt).inside(|prt| {
+                            foxtk::TreeList::new(prt);
+                            foxtk::Knob::new(prt);
+                        });
+                        foxtk::HorizontalFrame::new(prt).inside(|prt| {
                             foxtk::Button::new(prt, "Prev").set_callback({
                                 let sender = sender.clone();
                                 move |wgt| {
@@ -60,43 +64,45 @@ impl Component for Rangers {
                                         false
                                     }
                                 });
+                            foxtk::ToggleButton::new(prt, "Toggle", "Toggle_");
+                            self.spinner = foxtk::Spinner::new(prt)
+                                .with_range(0, 8)
+                                .with_increment(1)
+                                .with_callback({
+                                    let sender = sender.clone();
+                                    move |wgt| {
+                                        if wgt.has_focus() {
+                                            sender.send(Msg::Set(wgt.value())).unwrap();
+                                        }
+                                        false
+                                    }
+                                });
+                        });
+                        foxtk::HorizontalFrame::new(prt).inside(|prt| {
                             foxtk::ArrowButton::new(prt)
                                 .with_callback(|wgt| {
                                     wgt.message(MessageBox::Ok, "CANCEL", Message::Error);
                                     false
                                 })
                                 .set_color(Color::from_rgb(220, 50, 47));
-                            foxtk::TreeList::new(prt);
                             foxtk::RadioButton::new(prt, "Radio");
                             foxtk::CheckButton::new(prt, "Check");
-                            foxtk::ToggleButton::new(prt, "Toggle", "Toggle_");
-                            foxtk::Knob::new(prt);
                         });
-                        self.spinner = foxtk::Spinner::new(prt)
-                            .with_range(0, 8)
-                            .with_increment(1)
-                            .with_callback({
-                                let sender = sender.clone();
-                                move |wgt| {
-                                    if wgt.has_focus() {
-                                        sender.send(Msg::Set(wgt.value())).unwrap();
+                        foxtk::HorizontalFrame::new(prt).inside(|prt| {
+                            self.progress = foxtk::ProgressBar::new(prt).with_total(8);
+                            self.slider = foxtk::Slider::new(prt)
+                                .with_range(0, 8)
+                                .with_increment(1)
+                                .with_callback({
+                                    let sender = sender.clone();
+                                    move |wgt| {
+                                        if wgt.has_focus() {
+                                            sender.send(Msg::Set(wgt.value())).unwrap();
+                                        }
+                                        false
                                     }
-                                    false
-                                }
-                            });
-                        self.progress = foxtk::ProgressBar::new(prt).with_total(8);
-                        self.slider = foxtk::Slider::new(prt)
-                            .with_range(0, 8)
-                            .with_increment(1)
-                            .with_callback({
-                                let sender = sender.clone();
-                                move |wgt| {
-                                    if wgt.has_focus() {
-                                        sender.send(Msg::Set(wgt.value())).unwrap();
-                                    }
-                                    false
-                                }
-                            });
+                                });
+                        });
                     });
             });
     }

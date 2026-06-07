@@ -734,7 +734,7 @@ pub trait SpinnerExt: PackerExt {
 pub trait RangerExt: WindowExt {
     fn value(&self) -> i32;
     fn range(&self) -> (i32, i32);
-    fn increment(&self) -> i32
+    fn increment(&self) -> i32;
     fn set_value(&self, value: i32);
     fn set_range(&self, low: i32, high: i32);
     fn set_increment(&self, inc: i32);
@@ -747,7 +747,7 @@ pub trait RangerExt: WindowExt {
         self
     }
     fn with_value(self, value: i32) -> Self {
-        self.set_value(inc);
+        self.set_value(value);
         self
     }
 }

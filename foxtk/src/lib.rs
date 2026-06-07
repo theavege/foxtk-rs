@@ -1,3 +1,5 @@
+#![doc = include_str!("../README.md")]
+
 pub mod enums;
 pub mod prelude;
 use {
@@ -500,7 +502,6 @@ impl IdExt for Slider {}
 impl FrameExt for Slider {}
 impl WindowExt for Slider {}
 impl DrawableExt for Slider {}
-impl SliderExt for Slider {}
 
 #[derive(Default)]
 pub struct Spinner(Option<NonNull<ObjectPtr>>);

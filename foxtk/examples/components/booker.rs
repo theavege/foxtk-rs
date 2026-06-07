@@ -85,9 +85,10 @@ impl Component for Booker {
                     let sender = sender.clone();
                     move |wgt| {
                         if wgt.has_focus() {
-                            match chrono::NaiveDate::parse_from_str(&wgt.text(), "%Y-%m-%d").is_ok() {
-                                true => sender.send(Msg::Start(wgt.text())).unwrap(),
-                                false => wgt.message(MessageBox::Ok, "ERROR", Message::Warning),
+                            if chrono::NaiveDate::parse_from_str(&wgt.text(), "%Y-%m-%d").is_ok() {
+                                sender.send(Msg::Start(wgt.text())).unwrap();
+                            } else {
+                                wgt.message(MessageBox::Ok, "ERROR", Message::Warning);
                             }
                         }
                         false
