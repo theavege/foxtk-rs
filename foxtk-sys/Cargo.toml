@@ -4,6 +4,9 @@ version = "0.0.2"
 authors = ["Artem V. Ageev <artem.v.ageev@gmail.com>"]
 license = "LGPL-2.1-only"
 repository = "https://github.com/theavege/foxtk-rs"
+description = "Rust bindings for the FOX Toolkit"
+keywords = ["FOX", "foxtk"]
+categories = ["external-ffi-bindings"]
 edition = "2024"
 exclude = ["use"]
 
