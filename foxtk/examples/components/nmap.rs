@@ -73,41 +73,43 @@ impl Component for Nmap {
         self.status.set_text(&model.status);
     }
     fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
-        foxtk::HorizontalFrame::new(prt).with_pad(0).inside(|prt| {
-            foxtk::Label::new(prt, "IP");
-            for idx in 0..4 {
+        const WIDTH: i32 = 30;
+        foxtk::HorizontalFrame::new(prt)
+            .inside(|prt| {
+                foxtk::Label::new(prt, "IP");
+                for idx in 0..4 {
+                    foxtk::TextField::new(prt).with_width(WIDTH).set_callback({
+                        let sender = sender.clone();
+                        move |wgt| {
+                            if wgt.has_focus() {
+                                let value = wgt.text().parse::<u8>().unwrap_or_default();
+                                sender.send(Msg::Address(idx, value)).unwrap();
+                            }
+                            false
+                        }
+                    });
+                }
+                foxtk::Label::new(prt, ":");
                 foxtk::TextField::new(prt).set_callback({
                     let sender = sender.clone();
                     move |wgt| {
                         if wgt.has_focus() {
-                            let value = wgt.text().parse::<u8>().unwrap_or_default();
-                            sender.send(Msg::Address(idx, value)).unwrap();
+                            let value = wgt.text().parse::<u16>().unwrap_or_default();
+                            sender.send(Msg::Port(value)).unwrap();
                         }
                         false
                     }
                 });
-            }
-            foxtk::Label::new(prt, ":");
-            foxtk::TextField::new(prt).set_callback({
-                let sender = sender.clone();
-                move |wgt| {
-                    if wgt.has_focus() {
-                        let value = wgt.text().parse::<u16>().unwrap_or_default();
-                        sender.send(Msg::Port(value)).unwrap();
-                    }
-                    false
-                }
+                foxtk::Button::new(prt, "Run")
+                    .with_width(WIDTH)
+                    .set_callback({
+                        let sender = sender.clone();
+                        move |_| {
+                            sender.send(Msg::Run).unwrap();
+                            false
+                        }
+                    });
+                self.status = foxtk::Label::new(prt, "");
             });
-            foxtk::Button::new(prt, "Run")
-                .with_layout(Layout::Fill)
-                .set_callback({
-                    let sender = sender.clone();
-                    move |_| {
-                        sender.send(Msg::Run).unwrap();
-                        false
-                    }
-                });
-            self.status = foxtk::Label::new(prt, "");
-        });
     }
 }

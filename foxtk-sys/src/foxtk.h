@@ -179,6 +179,11 @@ extern "C" {
     unsigned char fx_radio_button_get_check(ObjectPtr*  wgt);
     void fx_radio_button_set_check(ObjectPtr*  wgt);
 
+//~ FXTopWindow.h
+    void fx_top_window_set_decorations(ObjectPtr* wgt, unsigned int decorations);
+    void fx_top_window_set_hspacing(ObjectPtr* wgt, int hspacing);
+    void fx_top_window_set_vspacing(ObjectPtr* wgt, int vspacing);
+
 //~ FXMainWindow
     ObjectPtr* fx_main_window_new(ObjectPtr*  app, const char* title, int width, int height);
     void fx_main_window_show(ObjectPtr*  wgt_);
@@ -214,6 +219,7 @@ extern "C" {
     void fx_combo_box_append_item(ObjectPtr*  wgt, const char* text);
     void fx_combo_box_clear_items(ObjectPtr*  wgt);
     void fx_combo_box_set_current_item(ObjectPtr*  wgt, int index);
+    void fx_combo_box_set_num_visible(ObjectPtr* wgt, int nvis);
 
 //~ FXList
     ObjectPtr* fx_list_new(ObjectPtr*  prt);
@@ -221,8 +227,10 @@ extern "C" {
     int fx_list_get_num_items(ObjectPtr*  wgt);
     int fx_list_get_current_item(ObjectPtr*  wgt);
     void fx_list_append_item(ObjectPtr*  wgt, const char* text);
+    void fx_list_set_style(ObjectPtr* wgt, unsigned int style);
     void fx_list_clear_items(ObjectPtr*  wgt);
     void fx_list_set_current_item(ObjectPtr*  wgt, int index);
+    void fx_list_set_num_visible(ObjectPtr* wgt, int nvis);
 
 //~ FXListBox
     ObjectPtr* fx_list_box_new(ObjectPtr*  prt);

@@ -38,16 +38,10 @@ Considerable importance has been placed on making FOX one of the fastest toolkit
 
 - [x] [FXApp](docs/fx_app.md)
 - [x] [Composite](docs/fx_composite.md)
-  - [x] [FXMainWindow](docs/fx_composite.md#FXPacker) - Primari application window
-  - [x] [FXPacker](docs/fx_composite.md#FXPacker) - Basic packing
   - [x] [FXGroupBox](docs/fx_composite.md#FXGroupBox) - Framed container with title
-  - [x] [FXMatrix](docs/fx_composite.md#FXMatrix) - Grid-style layout
   - [x] [FXHorizontalFrame](docs/fx_composite.md#FXHorizontalFrame) - Basic horizontal packing
   - [x] [FXVerticalFrame](docs/fx_composite.md#FXVerticalFrame) - Basic vertical packing
   - [x] [FXSwitcher](docs/fx_composite.md#FXSwitcher)
-  - [x] [FXTabBar](docs/fx_composite.md#FXTabBar)
-  - [x] [FXTabBook](docs/fx_composite.md#FXTabBook)
-  - [x] [FXSplitter](docs/fx_composite.md#FXTabBook)
 - [x] Widgets
   - [x] [Outputs](docs/fx_outputs.md)
     - [x] [FXLabel](docs/fx_outputs.md#FXLabel) - Text and icon display
@@ -55,21 +49,19 @@ Considerable importance has been placed on making FOX one of the fastest toolkit
   - [x] [Triggers](docs/fx_triggers.md)
     - [x] [FXButton](docs/fx_triggers.md#FXButton) - Standart push button
     - [x] [FXMenuBar](docs/fx_triggers.md#FXMenuBar) - Top menu bar
-    - [x] [FXMenuPane](docs/fx_triggers.md#FXMenuPane) - Popup menus
-    - [x] [FXMenuCommand](docs/fx_triggers.md#FXMenuCommand) - Menu items
+      - [x] [FXMenuPane](docs/fx_triggers.md#FXMenuPane) - Popup menus
+        - [x] [FXMenuCommand](docs/fx_triggers.md#FXMenuCommand) - Menu items
   - [x] [Inputs](docs/fx_inputs.md)
-    - [x] [FXText](docs/fx_inputs.md#FXText) - Multi-line text editor
-    - [x] [FXTextField](docs/fx_inputs.md#FXTextField) - Single-line text input
-    - [x] [FXCheckButton](docs/fx_inputs.md#FXCheckButton) - Checkbox
-    - [x] [FXRadioButton](docs/fx_inputs.md#FXRadioButton) - Radio button
+    - [x] String
+      - [x] [FXText](docs/fx_inputs.md#FXText) - Multi-line text editor
+      - [x] [FXTextField](docs/fx_inputs.md#FXTextField) - Single-line text input
+    - [x] [Rangers](docs/fx_rangers.md)
+      - [x] Numeric
+        - [x] [FXSpinner](docs/fx_rangers.md#FXSpinner) - Numeric input with arrows
+        - [x] [FXSlider](docs/fx_rangers.md#FXSlider) - Value slider
   - [x] [Selectors](docs/fx_selectors.md)
-    - [x] [FXComboBox](docs/fx_selectors.md#FXComboBox) - Drop-down selection
-    - [x] [FXListBox](docs/fx_selectors.md#FXListBox)
     - [x] [FXList](docs/fx_selectors.md#FXList) - Simple item list
-  - [x] [Rangers](docs/fx_rangers.md)
-    - [x] [FXSlider](docs/fx_rangers.md#FXSlider) - Value slider
-    - [x] [FXSpinner](docs/fx_rangers.md#FXSpinner) - Numeric input with arrows
-    - [x] [FXKnob](docs/fx_rangers.md#FXKnob)
+    - [x] [FXListBox](docs/fx_selectors.md#FXListBox) - Choise
 
 # [Scrot](https://github.com/resurrecting-open-source-projects/scrot)
 

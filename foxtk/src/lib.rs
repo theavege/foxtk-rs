@@ -28,7 +28,6 @@ impl App {
         })
     }
 }
-
 impl ObjectExt for App {
     fn as_raw(&self) -> *mut ObjectPtr {
         self.0.expect("Empty ObjectPtr!").as_ptr()
@@ -49,16 +48,18 @@ impl Button {
                 CString::new(format!("&{title}").as_str()).unwrap().as_ptr(),
             )
         })
+        .with_layout(Layout::FillX)
     }
     pub fn set_state(&self, state: ButtonState) {
         unsafe {
             fx_button_set_state(self.as_raw(), state as u32);
         }
     }
-    pub fn set_style(&self, style: ButtonStyle) {
+    pub fn with_style(self, style: ButtonStyle) -> Self {
         unsafe {
             fx_button_set_style(self.as_raw(), style as u32);
         }
+        self
     }
 }
 impl ObjectExt for Button {
@@ -178,8 +179,8 @@ impl GroupBox {
         Self::from_raw(unsafe {
             fx_groupbox_new(parent.as_raw(), CString::new(title_).unwrap().as_ptr())
         })
-        .with_frame(FrameStyle::Line)
-        .with_layout(Layout::Fill)
+        .with_frame(FrameStyle::Thick)
+        .with_layout(Layout::FillX)
     }
 }
 impl ObjectExt for GroupBox {
@@ -222,7 +223,9 @@ impl WindowExt for Spring {}
 pub struct VerticalFrame(Option<NonNull<ObjectPtr>>);
 impl VerticalFrame {
     pub fn new(parent: &impl ObjectExt) -> Self {
-        Self::from_raw(unsafe { fx_vertical_frame_new(parent.as_raw()) }).with_layout(Layout::Fill)
+        Self::from_raw(unsafe { fx_vertical_frame_new(parent.as_raw()) })
+            .with_layout(Layout::FillX)
+            .with_frame(FrameStyle::Thick)
     }
 }
 impl ObjectExt for VerticalFrame {
@@ -243,7 +246,9 @@ impl WindowExt for VerticalFrame {}
 pub struct HorizontalFrame(Option<NonNull<ObjectPtr>>);
 impl HorizontalFrame {
     pub fn new(parent: &impl ObjectExt) -> Self {
-        Self::from_raw(unsafe { fx_horizontal_frame_new(parent.as_raw()) }).with_height(HEIGHT)
+        Self::from_raw(unsafe { fx_horizontal_frame_new(parent.as_raw()) })
+            .with_height(HEIGHT)
+            .with_frame(FrameStyle::Thick)
     }
 }
 impl ObjectExt for HorizontalFrame {
@@ -265,7 +270,9 @@ impl WindowExt for HorizontalFrame {}
 pub struct Switcher(Option<NonNull<ObjectPtr>>);
 impl Switcher {
     pub fn new(parent: &impl ObjectExt) -> Self {
-        Self::from_raw(unsafe { fx_switcher_new(parent.as_raw()) }).with_layout(Layout::Fill)
+        Self::from_raw(unsafe { fx_switcher_new(parent.as_raw()) })
+            .with_layout(Layout::Fill)
+            .with_frame(FrameStyle::Thick)
     }
 }
 impl ObjectExt for Switcher {
@@ -339,15 +346,6 @@ impl ListBox {
             .with_layout(Layout::FillX)
             .with_num_visible(3)
     }
-    pub fn set_num_visible(&self, nvis: i32) {
-        unsafe {
-            fx_list_box_set_num_visible(self.as_raw(), nvis);
-        }
-    }
-    pub fn with_num_visible(self, nvis: i32) -> Self {
-        self.set_num_visible(nvis);
-        self
-    }
 }
 impl ObjectExt for ListBox {
     fn as_raw(&self) -> *mut ObjectPtr {
@@ -368,7 +366,7 @@ impl PackerExt for ListBox {}
 pub struct List(Option<NonNull<ObjectPtr>>);
 impl List {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        unsafe { Self::from_raw(fx_list_new(parent.as_raw())) }
+        Self::from_raw(unsafe { fx_list_new(parent.as_raw()) }).with_layout(Layout::Fill)
     }
 }
 impl ObjectExt for List {
@@ -589,7 +587,9 @@ impl TableExt for Table {}
 pub struct Text(Option<NonNull<ObjectPtr>>);
 impl Text {
     pub fn new(parent: &impl WindowExt) -> Self {
-        Self::from_raw(unsafe { fx_text_new(parent.as_raw()) }).with_selector(Selector::CHANGED)
+        Self::from_raw(unsafe { fx_text_new(parent.as_raw()) })
+            .with_selector(Selector::CHANGED)
+            .with_layout(Layout::Fill)
     }
 }
 impl ObjectExt for Text {

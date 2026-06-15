@@ -96,19 +96,18 @@ impl Component for Calc {
         true
     }
     fn update(&self, model: &Self::State) {
-        self.outp.update(&model.output.clone());
+        self.outp.update(&model.output);
         self.prev.update(&model.prev.to_string());
-        self.oper.update(&model.operation.clone());
-        self.curr.update(&model.current.clone());
+        self.oper.update(&model.operation);
+        self.curr.update(&model.current);
     }
     fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
         foxtk::VerticalFrame::new(prt).inside(|prt| {
-            self.outp = foxtk::Text::new(prt)
-                .with_layout(Layout::Fill)
-                .with_editable(false);
+            self.outp = foxtk::Text::new(prt).with_editable(false);
             foxtk::HorizontalFrame::new(prt).inside(|prt| {
                 self.oper = foxtk::TextField::new(prt)
-                    .with_layout(Layout::Fill)
+                    .with_width(60)
+                    .with_layout(Layout::FillY)
                     .with_editable(false);
                 foxtk::VerticalFrame::new(prt).inside(|prt| {
                     self.prev = foxtk::TextField::new(prt).with_editable(false);

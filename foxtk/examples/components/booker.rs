@@ -65,12 +65,13 @@ impl Component for Booker {
         true
     }
     fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
-        const WIDTH: i32 = 150;
-        foxtk::VerticalFrame::new(prt).inside(|prt| {
+        const WIDTH: i32 = 100;
+        foxtk::GroupBox::new(prt, "Booker").inside(|prt| {
             foxtk::HorizontalFrame::new(prt).inside(|prt| {
-                foxtk::Label::new(prt, "Flight").set_width(WIDTH);
+                foxtk::Label::new(prt, "Flight").with_width(WIDTH);
                 self.flight = foxtk::ListBox::new(prt)
                     .with_items(&["One-way", "Return"])
+                    .with_num_visible(2)
                     .with_callback({
                         let sender = sender.clone();
                         move |wgt| {
@@ -80,7 +81,7 @@ impl Component for Booker {
                     });
             });
             foxtk::HorizontalFrame::new(prt).inside(|prt| {
-                foxtk::Label::new(prt, "Departure data").set_width(WIDTH);
+                foxtk::Label::new(prt, "Departure data").with_width(WIDTH);
                 self.start = foxtk::TextField::new(prt).with_callback({
                     let sender = sender.clone();
                     move |wgt| {
@@ -95,7 +96,7 @@ impl Component for Booker {
                     }
                 });
             });
-            foxtk::HorizontalFrame::new(prt).inside(|prt| {
+            foxtk::HorizontalFrame::new(prt).with_frame(FrameStyle::Thick).inside(|prt| {
                 foxtk::Label::new(prt, "Return data")
                     .with_width(WIDTH)
                     .set_text_color(Color::from_rgb(108, 113, 196));
@@ -117,7 +118,7 @@ impl Component for Booker {
                         }
                     });
             });
-            self.book = foxtk::Button::new(prt, "Book").with_callback({
+            self.book = foxtk::Button::new(prt, "Book").with_width(WIDTH).with_callback({
                 let sender = sender.clone();
                 move |wgt| {
                     if wgt.has_focus() {

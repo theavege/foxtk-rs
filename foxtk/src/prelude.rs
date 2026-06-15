@@ -96,6 +96,10 @@ pub trait WindowExt: DrawableExt {
         unsafe {
             fx_window_set_height(self.as_raw(), height);
         };
+        self.set_layout(match height {
+            0 => Layout::Fill,
+            _ => Layout::FixHeight,
+        });
     }
     fn has_focus(&self) -> bool {
         unsafe { fx_window_has_focus(self.as_raw()) != 0 }
@@ -104,14 +108,18 @@ pub trait WindowExt: DrawableExt {
         unsafe {
             fx_window_set_width(self.as_raw(), width);
         };
+        self.set_layout(match width {
+            0 => Layout::Fill,
+            _ => Layout::FixWidth,
+        });
     }
     fn set_size(&self, width: i32, height: i32) {
         self.set_height(height);
         self.set_width(width);
+        self.set_layout(Layout::Normal);
     }
     fn with_size(self, width: i32, height: i32) -> Self {
         self.set_size(width, height);
-        self.set_layout(Layout::Normal);
         self
     }
     fn with_height(self, height: i32) -> Self {
@@ -124,10 +132,6 @@ pub trait WindowExt: DrawableExt {
     }
     fn with_width(self, width: i32) -> Self {
         self.set_width(width);
-        self.set_layout(match width {
-            0 => Layout::Fill,
-            _ => Layout::FixWidth,
-        });
         self
     }
     fn with_selector(self, selector: Selector) -> Self {
@@ -177,43 +181,19 @@ pub trait WindowExt: DrawableExt {
 }
 
 pub trait FrameExt: WindowExt {
-    fn set_pad_top(&self, pad: i32) {
-        unsafe {
-            fx_frame_set_pad_top(self.as_raw(), pad);
-        }
-    }
-    fn set_pad_left(&self, pad: i32) {
-        unsafe {
-            fx_frame_set_pad_left(self.as_raw(), pad);
-        }
-    }
-    fn set_pad_right(&self, pad: i32) {
-        unsafe {
-            fx_frame_set_pad_right(self.as_raw(), pad);
-        }
-    }
-    fn set_pad_bottom(&self, pad: i32) {
+    fn with_pad(self, pad: i32) -> Self {
         unsafe {
             fx_frame_set_pad_bottom(self.as_raw(), pad);
+            fx_frame_set_pad_right(self.as_raw(), pad);
+            fx_frame_set_pad_left(self.as_raw(), pad);
+            fx_frame_set_pad_top(self.as_raw(), pad);
         }
-    }
-    fn set_pad(&self, pad: i32) {
-        self.set_pad_bottom(pad);
-        self.set_pad_left(pad);
-        self.set_pad_right(pad);
-        self.set_pad_top(pad);
-    }
-    fn with_pad(self, pad: i32) -> Self {
-        self.set_pad(pad);
         self
     }
-    fn set_frame(&self, frame: FrameStyle) {
+    fn with_frame(self, frame: FrameStyle) -> Self {
         unsafe {
             fx_frame_set_frame_style(self.as_raw(), frame as u32);
         }
-    }
-    fn with_frame(self, frame: FrameStyle) -> Self {
-        self.set_frame(frame);
         self
     }
 }
@@ -224,19 +204,17 @@ pub trait LabelExt: FrameExt {
             fx_label_set_text(self.as_raw(), CString::new(text).unwrap().as_ptr());
         }
     }
-    fn set_tip(&self, tip: &str) {
+    fn with_tip(self, tip: &str) -> Self {
         unsafe {
             fx_label_set_tip_text(self.as_raw(), CString::new(tip).unwrap().as_ptr());
         }
-    }
-    fn with_tip(self, tip: &str) -> Self {
-        self.set_tip(tip);
         self
     }
-    fn set_help(&self, help: &str) {
+    fn with_help(self, help: &str) -> Self {
         unsafe {
             fx_label_set_help_text(self.as_raw(), CString::new(help).unwrap().as_ptr());
         }
+        self
     }
     fn text(&self) -> String {
         unsafe {
@@ -245,14 +223,10 @@ pub trait LabelExt: FrameExt {
         }
     }
 
-    fn set_justify(&self, justify: Justify) {
+    fn with_justify(self, justify: Justify) -> Self {
         unsafe {
             fx_label_set_justify(self.as_raw(), justify as u32);
         }
-    }
-
-    fn with_justify(self, justify: Justify) -> Self {
-        self.set_justify(justify);
         self
     }
 
@@ -439,9 +413,8 @@ pub trait ScrollBarExt: WindowExt {
 }
 
 pub trait CompositeExt: WindowExt {
-    fn inside(self, mut func: impl FnMut(&Self)) -> Self {
-        func(&self);
-        self
+    fn inside(&self, mut func: impl FnMut(&Self)) {
+        func(self);
     }
     fn child_width(&self) -> i32 {
         unsafe { fx_composite_child_width(self.as_raw()) }
@@ -483,6 +456,11 @@ impl SelectorExt for super::ListBox {
     fn num_items(&self) -> i32 {
         unsafe { fx_list_box_get_num_items(self.as_raw()) }
     }
+    fn set_num_visible(&self, num_visible: i32) {
+        unsafe {
+            fx_list_box_set_num_visible(self.as_raw(), num_visible);
+        }
+    }
 }
 
 impl SelectorExt for super::List {
@@ -503,7 +481,7 @@ impl SelectorExt for super::List {
 
     fn set_current_item(&self, index: i32) {
         unsafe {
-            fx_list_box_set_current_item(self.as_raw(), index);
+            fx_list_set_current_item(self.as_raw(), index);
         }
     }
 
@@ -515,6 +493,11 @@ impl SelectorExt for super::List {
     }
     fn num_items(&self) -> i32 {
         unsafe { fx_list_get_num_items(self.as_raw()) }
+    }
+    fn set_num_visible(&self, num_visible: i32) {
+        unsafe {
+            fx_list_set_num_visible(self.as_raw(), num_visible);
+        }
     }
 }
 
@@ -537,13 +520,10 @@ pub trait PackerExt: CompositeExt {
 }
 
 pub trait GroupBoxExt: PackerExt {
-    fn set_style(&self, val: FrameStyle) {
+    fn with_style(self, style: GroupBoxStyle) -> Self {
         unsafe {
-            fx_groupbox_set_style(self.as_raw(), val as u32);
+            fx_groupbox_set_style(self.as_raw(), style as u32);
         }
-    }
-    fn with_style(self, val: FrameStyle) -> Self {
-        self.set_style(val);
         self
     }
 }
@@ -551,14 +531,19 @@ pub trait GroupBoxExt: PackerExt {
 pub trait SelectorExt: PackerExt {
     fn append_item(&self, text: &str);
     fn clear_items(&self);
-    fn current_item(&self) -> i32;
     fn set_current_item(&self, index: i32);
+    fn set_num_visible(&self, num_visible: i32);
+    fn current_item(&self) -> i32;
     fn num_items(&self) -> i32;
     fn item_text(&self, index: i32) -> String;
     fn append_items(&self, items: &[&str]) {
         for text in items {
             self.append_item(text);
         }
+    }
+    fn with_num_visible(self, num_visible: i32) -> Self {
+        self.set_num_visible(num_visible);
+        self
     }
     fn with_item(self, text: &str) -> Self {
         self.append_item(text);
@@ -602,6 +587,11 @@ impl SelectorExt for super::ComboBox {
 
     fn num_items(&self) -> i32 {
         unsafe { fx_combo_box_get_num_items(self.as_raw()) }
+    }
+    fn set_num_visible(&self, num_visible: i32) {
+        unsafe {
+            fx_combo_box_set_num_visible(self.as_raw(), num_visible);
+        }
     }
 }
 
@@ -792,11 +782,19 @@ pub trait CheckButtonExt: LabelExt {
     fn set_check(&self, check: bool) {
         unsafe { fx_check_button_set_check(self.as_raw(), check as u8) }
     }
+    fn with_check(self, check: bool) -> Self {
+        self.set_check(check);
+        self
+    }
 }
 
 pub trait MainWindowExt: CompositeExt {
     fn show(&self) {
         unsafe { fx_main_window_show(self.as_raw()) }
+    }
+    fn with_decor(self, decor: Decor) -> Self {
+        unsafe { fx_top_window_set_decorations(self.as_raw(), decor as u32) }
+        self
     }
 }
 
@@ -821,9 +819,9 @@ pub trait Component: Default + 'static {
             true
         });
     }
-    fn run(name: &str, vendor: &str, title: &str) -> i32 {
+    fn run(name: &str, vendor: &str, title: &str, width: i32, height: i32) -> i32 {
         let app = super::App::new(name, vendor);
-        let win = super::MainWindow::new(&app, title, 400, 640);
+        let win = super::MainWindow::new(&app, title, width, height);
         Self::mount(&win);
         win.show();
         app.run()

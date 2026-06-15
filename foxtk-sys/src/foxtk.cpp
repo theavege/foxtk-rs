@@ -535,6 +535,17 @@ extern "C" {
         static_cast<FXMainWindow*>(wgt)-> show(PLACEMENT_SCREEN);
     }
 
+//~ FXTopWindow.h
+    void fx_top_window_set_decorations(ObjectPtr* wgt, unsigned int decorations) {
+        static_cast<FXTopWindow*>(wgt)->setDecorations(decorations);
+    }
+    void fx_top_window_set_hspacing(ObjectPtr* wgt, int hspacing) {
+        static_cast<FXTopWindow*>(wgt)->setHSpacing(hspacing);
+    }
+    void fx_top_window_set_vspacing(ObjectPtr* wgt, int vspacing) {
+        static_cast<FXTopWindow*>(wgt)->setVSpacing(vspacing);
+    }
+
 //~ FXComboBox
     ObjectPtr* fx_combo_box_new(ObjectPtr* prt, int cols) {
         return new FXComboBox(static_cast<FXComposite*>(prt), cols);
@@ -550,6 +561,9 @@ extern "C" {
     }
     void fx_combo_box_set_current_item(ObjectPtr* wgt, int index) {
         static_cast<FXComboBox*>(wgt)->setCurrentItem(index);
+    }
+    void fx_combo_box_set_num_visible(ObjectPtr* wgt, int nvis) {
+        static_cast<FXComboBox*>(wgt)->setNumVisible(nvis);
     }
     const char* fx_combo_box_get_item_text(ObjectPtr* wgt, int index) {
         static thread_local FXString buffer;
@@ -570,16 +584,22 @@ extern "C" {
     void fx_list_clear_items(ObjectPtr* wgt) {
         static_cast<FXList*>(wgt)->clearItems();
     }
-    int fx_list_get_current_item(ObjectPtr* wgt) {
-        return static_cast<FXList*>(wgt)->getCurrentItem();
-    }
     void fx_list_set_current_item(ObjectPtr* wgt, int index) {
         static_cast<FXList*>(wgt)->setCurrentItem(index);
+    }
+    void fx_list_set_num_visible(ObjectPtr* wgt, int nvis) {
+        static_cast<FXList*>(wgt)->setNumVisible(nvis);
+    }
+    void fx_list_set_style(ObjectPtr* wgt, unsigned int style) {
+        static_cast<FXList*>(wgt)->setListStyle(style);
     }
     const char* fx_list_get_item_text(ObjectPtr* wgt, int index) {
         static thread_local FXString buffer;
         buffer = static_cast<FXList*>(wgt)->getItemText(index);
         return buffer.text();
+    }
+    int fx_list_get_current_item(ObjectPtr* wgt) {
+        return static_cast<FXList*>(wgt)->getCurrentItem();
     }
     int fx_list_get_num_items(ObjectPtr* wgt) {
         return static_cast<FXList*>(wgt)->getNumItems();

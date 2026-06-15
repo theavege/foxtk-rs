@@ -1,3 +1,4 @@
+#[repr(C)]
 #[derive(Default)]
 pub enum ButtonState {
     #[default]
@@ -6,6 +7,18 @@ pub enum ButtonState {
     Engaged,
 }
 
+#[repr(C)]
+#[derive(Default)]
+pub enum ListStyle {
+    #[default]
+    Extended = 0,
+    Single = 0x00100000,
+    Browse = 0x00200000,
+    Multiple = 0x00300000,
+    Auto = 0x00400000,
+}
+
+#[repr(C)]
 #[derive(Default)]
 pub enum ButtonStyle {
     #[default]
@@ -16,6 +29,16 @@ pub enum ButtonStyle {
     Initial = 0x08000000,
 }
 
+#[repr(C)]
+#[derive(Default)]
+pub enum GroupBoxStyle {
+    #[default]
+    Left = 0,
+    Center = 0x00020000,
+    Right = 0x00040000,
+}
+
+#[repr(C)]
 #[derive(Default)]
 pub enum Message {
     Error = 0,
@@ -25,6 +48,7 @@ pub enum Message {
     Information,
 }
 
+#[repr(C)]
 #[derive(Default)]
 pub enum MessageBox {
     #[default]
@@ -32,6 +56,7 @@ pub enum MessageBox {
     OkCancel = 0x20000000,
 }
 
+#[repr(C)]
 #[derive(Default)]
 pub enum Justify {
     #[default]
@@ -44,6 +69,31 @@ pub enum Justify {
     VtApart = 0x00020000 | 0x00040000,
 }
 
+#[repr(C)]
+#[derive(Default)]
+pub enum Decor {
+    #[default]
+    NONE = 0,
+    Title = 0x00020000,
+    Minimize = 0x00040000,
+    Maximize = 0x00080000,
+    Close = 0x00100000,
+    Border = 0x00200000,
+    Shrinkable = 0x00400000,
+    Stretchable = 0x00800000,
+    Resize = 0x00400000 | 0x00800000,
+    Menu = 0x01000000,
+    All = 0x00020000
+        | 0x00040000
+        | 0x00080000
+        | 0x00100000
+        | 0x00200000
+        | 0x00400000
+        | 0x00800000
+        | 0x01000000,
+}
+
+#[repr(C)]
 #[derive(Default)]
 pub enum Layout {
     #[default]
@@ -55,6 +105,7 @@ pub enum Layout {
     FixHeight = 0x00000200,
 }
 
+#[repr(C)]
 #[derive(Default)]
 pub enum FrameStyle {
     #[default]
@@ -67,6 +118,7 @@ pub enum FrameStyle {
     Normal = 0x00000800 | 0x00004000,
 }
 
+#[repr(C)]
 #[derive(Default)]
 pub enum Selector {
     #[default]
