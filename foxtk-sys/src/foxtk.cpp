@@ -363,6 +363,10 @@ extern "C" {
     void fx_text_set_tip_text(ObjectPtr* wgt, const char* text) {
         static_cast<FXText*>(wgt) -> setTipText(text);
     }
+    void fx_text_set_font(ObjectPtr* wgt, const char* family, int size) {
+        FXFont* font = new FXFont(static_cast<FXText*>(wgt)->getApp(), family, size, 0, 0);
+        static_cast<FXText*>(wgt)->setFont(font);
+    }
 
 //~ FXTextField
     ObjectPtr* fx_textfield_new(ObjectPtr* prt) {
@@ -665,12 +669,25 @@ extern "C" {
         return new FXCanvas(static_cast<FXComposite*>(prt));
     }
 
+//~ FXTabBar
+    ObjectPtr* fx_tab_bar_new(ObjectPtr* prt) {
+        return new FXTabBar(static_cast<FXComposite*>(prt));
+    }
+
 //~ FXTabBook
     ObjectPtr* fx_tab_book_new(ObjectPtr* prt) {
         return new FXTabBook(static_cast<FXComposite*>(prt));
     }
     ObjectPtr* fx_tab_item_new(ObjectPtr* prt, const char* text) {
         return new FXTabItem(static_cast<FXTabBar*>(prt), text);
+    }
+    void fx_tab_item_set_text(ObjectPtr* wgt, const char* text) {
+        static_cast<FXTabItem*>(wgt) -> setText(text);
+    }
+    const char* fx_tab_item_get_text(ObjectPtr* wgt) {
+        static thread_local FXString buffer;
+        buffer = static_cast<FXTabItem*>(wgt)->getText();
+        return buffer.text();
     }
 
 //~ FXScrollBar

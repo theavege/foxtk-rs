@@ -368,6 +368,15 @@ pub trait TextExt: ObjectExt {
         self.set_editable(val);
         self
     }
+    fn set_font(&self, family: &str, size: i32) {
+        unsafe {
+            fx_text_set_font(
+                self.as_raw(),
+                CString::new(family).unwrap().as_ptr(),
+                size,
+            );
+        }
+    }
 }
 
 pub trait TableExt: ObjectExt {
@@ -592,6 +601,24 @@ impl SelectorExt for super::ComboBox {
         unsafe {
             fx_combo_box_set_num_visible(self.as_raw(), num_visible);
         }
+    }
+}
+
+pub trait TabItemExt: WindowExt {
+    fn set_text(&self, text: &str) {
+        unsafe {
+            fx_tab_item_set_text(self.as_raw(), CString::new(text).unwrap().as_ptr());
+        }
+    }
+    fn text(&self) -> String {
+        unsafe {
+            let ptr = fx_tab_item_get_text(self.as_raw());
+            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+        }
+    }
+    fn with_text(self, text: &str) -> Self {
+        self.set_text(text);
+        self
     }
 }
 

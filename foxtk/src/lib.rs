@@ -524,6 +524,27 @@ impl DrawableExt for Spinner {}
 impl PackerExt for Spinner {}
 impl SpinnerExt for Spinner {}
 
+pub struct TabBar(Option<NonNull<ObjectPtr>>);
+impl TabBar {
+    pub fn new(parent: &impl WindowExt) -> Self {
+        unsafe { Self::from_raw(fx_tab_bar_new(parent.as_raw())) }
+    }
+}
+impl ObjectExt for TabBar {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for TabBar {}
+impl FrameExt for TabBar {}
+impl DrawableExt for TabBar {}
+impl WindowExt for TabBar {}
+impl CompositeExt for TabBar {}
+impl PackerExt for TabBar {}
+
 pub struct TabBook(Option<NonNull<ObjectPtr>>);
 impl TabBook {
     pub fn new(parent: &impl WindowExt) -> Self {
@@ -542,6 +563,8 @@ impl IdExt for TabBook {}
 impl FrameExt for TabBook {}
 impl DrawableExt for TabBook {}
 impl WindowExt for TabBook {}
+impl CompositeExt for TabBook {}
+impl PackerExt for TabBook {}
 
 pub struct TabItem(Option<NonNull<ObjectPtr>>);
 impl TabItem {
@@ -562,6 +585,9 @@ impl IdExt for TabItem {}
 impl FrameExt for TabItem {}
 impl DrawableExt for TabItem {}
 impl WindowExt for TabItem {}
+impl CompositeExt for TabItem {}
+impl PackerExt for TabItem {}
+impl TabItemExt for TabItem {}
 
 pub struct Table(Option<NonNull<ObjectPtr>>);
 impl Table {

@@ -112,6 +112,7 @@ extern "C" {
     void fx_text_set_help_text(ObjectPtr*  wgt, const char* text);
     void fx_text_set_tip_text(ObjectPtr*  wgt, const char* text);
     void fx_text_set_editable(ObjectPtr*  wgt, long editable);
+    void fx_text_set_font(ObjectPtr*  wgt, const char* family, int size);
 
 //~ FXTextField
     ObjectPtr* fx_textfield_new(ObjectPtr*  frm);
@@ -261,9 +262,16 @@ extern "C" {
 //~ FXCanvas
     ObjectPtr* fx_canvas_new(ObjectPtr*  prt);
 
+//~ FXTabBar
+    ObjectPtr* fx_tab_bar_new(ObjectPtr*  prt);
+
 //~ FXTabBook
     ObjectPtr* fx_tab_book_new(ObjectPtr*  prt);
     ObjectPtr* fx_tab_item_new(ObjectPtr*  prt, const char* text);
+
+//~ FXTabItem
+    void fx_tab_item_set_text(ObjectPtr*  wgt, const char* text);
+    const char* fx_tab_item_get_text(ObjectPtr*  wgt);
 
 //~ FXScrollBar
     ObjectPtr* fx_scroll_bar_new(ObjectPtr*  prt);
