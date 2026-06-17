@@ -278,6 +278,10 @@ pub trait TextFieldExt: FrameExt {
         let text = std::ffi::CString::new(text_).unwrap();
         unsafe { fx_textfield_set_text(self.as_raw(), text.as_ptr()) };
     }
+    fn with_text(self, text: &str) -> Self {
+        self.set_text(text);
+        self
+    }
     fn set_tip(&self, text: &str) {
         unsafe {
             fx_textfield_set_tip_text(self.as_raw(), CString::new(text).unwrap().as_ptr());
@@ -383,6 +387,10 @@ pub trait TextExt: ObjectExt {
         unsafe {
             fx_text_set_text(self.as_raw(), CString::new(text).unwrap().as_ptr());
         }
+    }
+    fn with_text(self, text: &str) -> Self {
+        self.set_text(text);
+        self
     }
     fn text(&self) -> String {
         unsafe {
