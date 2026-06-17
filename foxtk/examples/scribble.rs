@@ -55,22 +55,25 @@ impl Component for Scribble {
         // Wire mouse events to draw on the canvas
         let canvas = self.canvas.clone();
         // shared mutable state for last point and whether button is down
-        use std::rc::Rc;
         use std::cell::RefCell;
+        use std::rc::Rc;
         let state = Rc::new(RefCell::new((0i32, 0i32, false)));
         let s1 = state.clone();
         canvas.set_mouse_callback(move |c, code, x, y| {
             let mut st = s1.borrow_mut();
             match code {
-                1 => { // left button press
+                1 => {
+                    // left button press
                     st.0 = x;
                     st.1 = y;
                     st.2 = true;
                 }
-                2 => { // left button release
+                2 => {
+                    // left button release
                     st.2 = false;
                 }
-                3 => { // motion
+                3 => {
+                    // motion
                     if st.2 {
                         // draw line from previous to current
                         c.dc_set_foreground(Color::from_rgb(0, 0, 0));

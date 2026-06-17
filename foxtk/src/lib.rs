@@ -128,7 +128,6 @@ impl WindowExt for Canvas {}
 impl CanvasExt for Canvas {}
 impl DCWindowExt for Canvas {}
 
-
 #[derive(Default)]
 pub struct CheckButton(Option<NonNull<ObjectPtr>>);
 impl CheckButton {

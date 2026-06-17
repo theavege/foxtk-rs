@@ -77,7 +77,9 @@ impl Component for Adie {
                         }
                         *file_path.borrow_mut() = String::new();
                         *dirty.borrow_mut() = false;
-                        sender.send(Msg::SetStatus("New document".to_string())).unwrap();
+                        sender
+                            .send(Msg::SetStatus("New document".to_string()))
+                            .unwrap();
                         false
                     }
                 });
@@ -98,10 +100,14 @@ impl Component for Adie {
                                     }
                                     *file_path.borrow_mut() = file_name.clone();
                                     *dirty.borrow_mut() = false;
-                                    sender.send(Msg::SetStatus(format!("Opened {}", file_name))).unwrap();
+                                    sender
+                                        .send(Msg::SetStatus(format!("Opened {}", file_name)))
+                                        .unwrap();
                                 }
                                 Err(err) => {
-                                    sender.send(Msg::SetStatus(format!("Open failed: {}", err))).unwrap();
+                                    sender
+                                        .send(Msg::SetStatus(format!("Open failed: {}", err)))
+                                        .unwrap();
                                 }
                             }
                         }
@@ -128,10 +134,14 @@ impl Component for Adie {
                                     Ok(_) => {
                                         *file_path.borrow_mut() = target.clone();
                                         *dirty.borrow_mut() = false;
-                                        sender.send(Msg::SetStatus(format!("Saved {}", target))).unwrap();
+                                        sender
+                                            .send(Msg::SetStatus(format!("Saved {}", target)))
+                                            .unwrap();
                                     }
                                     Err(err) => {
-                                        sender.send(Msg::SetStatus(format!("Save failed: {}", err))).unwrap();
+                                        sender
+                                            .send(Msg::SetStatus(format!("Save failed: {}", err)))
+                                            .unwrap();
                                     }
                                 }
                             }
@@ -154,10 +164,14 @@ impl Component for Adie {
                                     Ok(_) => {
                                         *file_path.borrow_mut() = target.clone();
                                         *dirty.borrow_mut() = false;
-                                        sender.send(Msg::SetStatus(format!("Saved {}", target))).unwrap();
+                                        sender
+                                            .send(Msg::SetStatus(format!("Saved {}", target)))
+                                            .unwrap();
                                     }
                                     Err(err) => {
-                                        sender.send(Msg::SetStatus(format!("Save failed: {}", err))).unwrap();
+                                        sender
+                                            .send(Msg::SetStatus(format!("Save failed: {}", err)))
+                                            .unwrap();
                                     }
                                 }
                             }

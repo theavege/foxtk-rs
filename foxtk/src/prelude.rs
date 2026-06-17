@@ -7,9 +7,16 @@ use {
     },
 };
 
-unsafe extern "C" fn cmouse_callback<T: ObjectExt>(ptr: *mut ObjectPtr, selector: i32, x: i32, y: i32, context: *mut c_void) -> c_long {
+unsafe extern "C" fn cmouse_callback<T: ObjectExt>(
+    ptr: *mut ObjectPtr,
+    selector: i32,
+    x: i32,
+    y: i32,
+    context: *mut c_void,
+) -> c_long {
     unsafe {
-        let func: &mut Box<dyn FnMut(T, i32, i32, i32) -> bool> = &mut *(context as *mut Box<dyn FnMut(T, i32, i32, i32) -> bool>);
+        let func: &mut Box<dyn FnMut(T, i32, i32, i32) -> bool> =
+            &mut *(context as *mut Box<dyn FnMut(T, i32, i32, i32) -> bool>);
         func(T::from_raw(ptr), selector, x, y) as c_long
     }
 }
@@ -439,20 +446,21 @@ pub trait TextExt: ObjectExt {
     }
     fn set_font(&self, family: &str, size: i32) {
         unsafe {
-            fx_text_set_font(
-                self.as_raw(),
-                CString::new(family).unwrap().as_ptr(),
-                size,
-            );
+            fx_text_set_font(self.as_raw(), CString::new(family).unwrap().as_ptr(), size);
         }
     }
 }
 
 pub trait CanvasExt: WindowExt {
     fn set_mouse_callback<F: FnMut(Self, i32, i32, i32) -> bool + 'static>(&self, func: F) {
-        let raw_ptr: *mut Box<dyn FnMut(Self, i32, i32, i32) -> bool> = Box::into_raw(Box::new(Box::new(func)));
+        let raw_ptr: *mut Box<dyn FnMut(Self, i32, i32, i32) -> bool> =
+            Box::into_raw(Box::new(Box::new(func)));
         unsafe {
-            fx_canvas_set_mouse_callback(self.as_raw(), Some(cmouse_callback::<Self>), raw_ptr as *mut c_void);
+            fx_canvas_set_mouse_callback(
+                self.as_raw(),
+                Some(cmouse_callback::<Self>),
+                raw_ptr as *mut c_void,
+            );
         }
     }
 }
