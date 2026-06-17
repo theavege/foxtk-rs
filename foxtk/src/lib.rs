@@ -106,7 +106,7 @@ impl FrameExt for ArrowButton {}
 impl DrawableExt for ArrowButton {}
 impl WindowExt for ArrowButton {}
 
-#[derive(Default, Clone)]
+#[derive(Default)]
 pub struct Canvas(Option<NonNull<ObjectPtr>>);
 impl Canvas {
     pub fn new(parent: &impl WindowExt) -> Self {
@@ -612,7 +612,7 @@ impl WindowExt for Table {}
 impl DrawableExt for Table {}
 impl TableExt for Table {}
 
-#[derive(Default, Clone)]
+#[derive(Default)]
 pub struct Text(Option<NonNull<ObjectPtr>>);
 impl Text {
     pub fn new(parent: &impl WindowExt) -> Self {
@@ -635,7 +635,7 @@ impl DrawableExt for Text {}
 impl WindowExt for Text {}
 impl TextExt for Text {}
 
-#[derive(Default, Clone)]
+#[derive(Default)]
 pub struct TextField(Option<NonNull<ObjectPtr>>);
 impl TextField {
     pub fn new(parent: &impl ObjectExt) -> Self {
@@ -692,7 +692,7 @@ impl ObjectExt for TreeItem {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default)]
 pub struct MainWindow(Option<NonNull<ObjectPtr>>);
 impl MainWindow {
     pub fn new(app: &impl AppExt, title_: &str, w: i32, h: i32) -> Self {
