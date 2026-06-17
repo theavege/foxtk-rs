@@ -56,6 +56,17 @@ extern "C" {
     int fx_drawable_get_height(ObjectPtr* wgt);
     int fx_drawable_get_width(ObjectPtr* wgt);
 
+//~ FXDCWindow
+    ObjectPtr* fx_dc_window_new(ObjectPtr* drawable);
+
+//~ FXDC (drawing)
+    void fx_dc_set_foreground(ObjectPtr* dc, unsigned int color);
+    void fx_dc_set_line_width(ObjectPtr* dc, int width);
+    void fx_dc_draw_line(ObjectPtr* dc, int x1, int y1, int x2, int y2);
+    void fx_dc_draw_point(ObjectPtr* dc, int x, int y);
+    void fx_dc_draw_rect(ObjectPtr* dc, int x, int y, int w, int h);
+    void fx_dc_fill_rect(ObjectPtr* dc, int x, int y, int w, int h);
+
 //~ FXWindow
     ObjectPtr* fx_window_get_parent(ObjectPtr* wgt);
     ObjectPtr* fx_window_get_root(ObjectPtr* wgt);
@@ -261,6 +272,10 @@ extern "C" {
 
 //~ FXCanvas
     ObjectPtr* fx_canvas_new(ObjectPtr*  prt);
+
+//~ FXCanvas mouse callback
+    typedef long (*CMouseCb)(ObjectPtr* widget, int selector, int x, int y, void* context);
+    void fx_canvas_set_mouse_callback(ObjectPtr* wgt, CMouseCb cb, void* ctx);
 
 //~ FXTabBar
     ObjectPtr* fx_tab_bar_new(ObjectPtr*  prt);

@@ -106,6 +106,7 @@ impl FrameExt for ArrowButton {}
 impl DrawableExt for ArrowButton {}
 impl WindowExt for ArrowButton {}
 
+#[derive(Default, Clone)]
 pub struct Canvas(Option<NonNull<ObjectPtr>>);
 impl Canvas {
     pub fn new(parent: &impl WindowExt) -> Self {
@@ -124,6 +125,9 @@ impl IdExt for Canvas {}
 impl FrameExt for Canvas {}
 impl DrawableExt for Canvas {}
 impl WindowExt for Canvas {}
+impl CanvasExt for Canvas {}
+impl DCWindowExt for Canvas {}
+
 
 #[derive(Default)]
 pub struct CheckButton(Option<NonNull<ObjectPtr>>);

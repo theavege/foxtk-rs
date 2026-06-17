@@ -7,6 +7,13 @@ use {
     },
 };
 
+unsafe extern "C" fn cmouse_callback<T: ObjectExt>(ptr: *mut ObjectPtr, selector: i32, x: i32, y: i32, context: *mut c_void) -> c_long {
+    unsafe {
+        let func: &mut Box<dyn FnMut(T, i32, i32, i32) -> bool> = &mut *(context as *mut Box<dyn FnMut(T, i32, i32, i32) -> bool>);
+        func(T::from_raw(ptr), selector, x, y) as c_long
+    }
+}
+
 unsafe extern "C" fn ccallback<T: ObjectExt>(ptr: *mut ObjectPtr, context: *mut c_void) -> c_long {
     unsafe {
         let func: &mut Box<dyn FnMut(T) -> bool> =
@@ -177,6 +184,30 @@ pub trait WindowExt: DrawableExt {
                 ),
             }
         }
+    }
+}
+
+pub trait DCWindowExt: ObjectExt {
+    fn new_dc(&self) -> super::Canvas {
+        unsafe { super::Canvas::from_raw(fx_dc_window_new(self.as_raw())) }
+    }
+    fn dc_set_foreground(&self, color: Color) {
+        unsafe { fx_dc_set_foreground(self.as_raw(), color.bits()) }
+    }
+    fn dc_set_line_width(&self, width: i32) {
+        unsafe { fx_dc_set_line_width(self.as_raw(), width) }
+    }
+    fn dc_draw_line(&self, x1: i32, y1: i32, x2: i32, y2: i32) {
+        unsafe { fx_dc_draw_line(self.as_raw(), x1, y1, x2, y2) }
+    }
+    fn dc_draw_point(&self, x: i32, y: i32) {
+        unsafe { fx_dc_draw_point(self.as_raw(), x, y) }
+    }
+    fn dc_draw_rect(&self, x: i32, y: i32, w: i32, h: i32) {
+        unsafe { fx_dc_draw_rect(self.as_raw(), x, y, w, h) }
+    }
+    fn dc_fill_rect(&self, x: i32, y: i32, w: i32, h: i32) {
+        unsafe { fx_dc_fill_rect(self.as_raw(), x, y, w, h) }
     }
 }
 
@@ -375,6 +406,15 @@ pub trait TextExt: ObjectExt {
                 CString::new(family).unwrap().as_ptr(),
                 size,
             );
+        }
+    }
+}
+
+pub trait CanvasExt: WindowExt {
+    fn set_mouse_callback<F: FnMut(Self, i32, i32, i32) -> bool + 'static>(&self, func: F) {
+        let raw_ptr: *mut Box<dyn FnMut(Self, i32, i32, i32) -> bool> = Box::into_raw(Box::new(Box::new(func)));
+        unsafe {
+            fx_canvas_set_mouse_callback(self.as_raw(), Some(cmouse_callback::<Self>), raw_ptr as *mut c_void);
         }
     }
 }

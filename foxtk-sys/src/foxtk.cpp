@@ -67,6 +67,48 @@ FXDEFMAP(CTimeout) CTimeoutMap[] = {
 };
 FXIMPLEMENT(CTimeout, FXObject, CTimeoutMap, ARRAYNUMBER(CTimeoutMap))
 
+// CMouseTarget bridge (defined outside extern "C")
+class CMouseTarget : public FXObject {
+    FXDECLARE(CMouseTarget)
+protected:
+    CMouseTarget() {}
+private:
+    long (*callback)(ObjectPtr*, int, int, int, void*);
+    void* context;
+public:
+    enum { SEL_LBP = SEL_LEFTBUTTONPRESS, SEL_LBR = SEL_LEFTBUTTONRELEASE, SEL_MOT = SEL_MOTION, SEL_RBP = SEL_RIGHTBUTTONPRESS, SEL_RBR = SEL_RIGHTBUTTONRELEASE };
+    CMouseTarget(long (*cb)(ObjectPtr*, int, int, int, void*), void* ctx) : callback(cb), context(ctx) {}
+    long callBack(FXObject* wgt, FXSelector sel, void* ptr) {
+        long result = 0;
+        if (this->callback) {
+                int x = 0;
+                int y = 0;
+                FXEvent* ev = static_cast<FXEvent*>(ptr);
+                if (ev) {
+                    x = ev->win_x;
+                    y = ev->win_y;
+                }
+                int code = 0;
+                if (sel == SEL_LEFTBUTTONPRESS) code = 1;
+                else if (sel == SEL_LEFTBUTTONRELEASE) code = 2;
+                else if (sel == SEL_MOTION) code = 3;
+                else if (sel == SEL_RIGHTBUTTONPRESS) code = 4;
+                else if (sel == SEL_RIGHTBUTTONRELEASE) code = 5;
+                result = this->callback(wgt, code, x, y, this->context);
+        }
+        return result;
+    }
+};
+
+FXDEFMAP(CMouseTarget) CMouseTargetMap[] = {
+    FXMAPFUNC(SEL_LEFTBUTTONPRESS, CMouseTarget::SEL_LBP, CMouseTarget::callBack),
+    FXMAPFUNC(SEL_LEFTBUTTONRELEASE, CMouseTarget::SEL_LBR, CMouseTarget::callBack),
+    FXMAPFUNC(SEL_MOTION, CMouseTarget::SEL_MOT, CMouseTarget::callBack),
+    FXMAPFUNC(SEL_RIGHTBUTTONPRESS, CMouseTarget::SEL_RBP, CMouseTarget::callBack),
+    FXMAPFUNC(SEL_RIGHTBUTTONRELEASE, CMouseTarget::SEL_RBR, CMouseTarget::callBack),
+};
+FXIMPLEMENT(CMouseTarget, FXObject, CMouseTargetMap, ARRAYNUMBER(CMouseTargetMap))
+
 extern "C" {
     unsigned int fx_rgb(unsigned int r, unsigned int g, unsigned int b) {
         return FXRGB(r,g,b);
@@ -529,6 +571,30 @@ extern "C" {
 //~ FXDCWindow
     ObjectPtr* fx_dc_window_new(ObjectPtr* drawable) {
         return new FXDCWindow(static_cast<FXDrawable*>(drawable));
+    }
+
+        void fx_canvas_set_mouse_callback(ObjectPtr* wgt, long (*cb)(ObjectPtr*, int, int, int, void*), void* ctx) {
+                static_cast<FXCanvas*>(wgt)->setTarget(static_cast<FXObject*>(new CMouseTarget(cb, ctx)));
+        }
+
+//~ FXDC (drawing)
+    void fx_dc_set_foreground(ObjectPtr* dc, unsigned int color) {
+        static_cast<FXDCWindow*>(dc)->setForeground(color);
+    }
+    void fx_dc_set_line_width(ObjectPtr* dc, int width) {
+        static_cast<FXDCWindow*>(dc)->setLineWidth(width);
+    }
+    void fx_dc_draw_line(ObjectPtr* dc, int x1, int y1, int x2, int y2) {
+        static_cast<FXDCWindow*>(dc)->drawLine(x1, y1, x2, y2);
+    }
+    void fx_dc_draw_point(ObjectPtr* dc, int x, int y) {
+        static_cast<FXDCWindow*>(dc)->drawPoint(x, y);
+    }
+    void fx_dc_draw_rect(ObjectPtr* dc, int x, int y, int w, int h) {
+        static_cast<FXDCWindow*>(dc)->drawRectangle(x, y, w, h);
+    }
+    void fx_dc_fill_rect(ObjectPtr* dc, int x, int y, int w, int h) {
+        static_cast<FXDCWindow*>(dc)->fillRectangle(x, y, w, h);
     }
 
 //~ FXMainWindow
