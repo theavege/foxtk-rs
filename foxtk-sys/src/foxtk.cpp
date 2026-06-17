@@ -1,4 +1,5 @@
 #include <fx.h>
+#include <FXFileDialog.h>
 
 //~ OPAQUE HANDLES
 
@@ -344,6 +345,18 @@ extern "C" {
 //~ FXDialogBox.h
     ObjectPtr* fx_dialog_box_new(ObjectPtr* owner, const char* title) {
         return new FXDialogBox(static_cast<FXWindow*>(owner), title);
+    }
+
+//~ FXFileDialog.h
+    const char* fx_file_dialog_get_open_filename(ObjectPtr* owner, const char* caption, const char* path, const char* patterns, int initial) {
+        static thread_local FXString buffer;
+        buffer = FXFileDialog::getOpenFilename(static_cast<FXWindow*>(owner), caption, path, patterns, initial);
+        return buffer.text();
+    }
+    const char* fx_file_dialog_get_save_filename(ObjectPtr* owner, const char* caption, const char* path, const char* patterns, int initial) {
+        static thread_local FXString buffer;
+        buffer = FXFileDialog::getSaveFilename(static_cast<FXWindow*>(owner), caption, path, patterns, initial);
+        return buffer.text();
     }
 
 //~ FXButton.h

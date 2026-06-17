@@ -111,6 +111,36 @@ pub trait WindowExt: DrawableExt {
     fn has_focus(&self) -> bool {
         unsafe { fx_window_has_focus(self.as_raw()) != 0 }
     }
+    fn open_file_dialog(&self, caption: &str, path: &str, patterns: &str, initial: i32) -> String {
+        unsafe {
+            let caption = CString::new(caption).unwrap();
+            let path = CString::new(path).unwrap();
+            let patterns = CString::new(patterns).unwrap();
+            let ptr = fx_file_dialog_get_open_filename(
+                self.as_raw(),
+                caption.as_ptr(),
+                path.as_ptr(),
+                patterns.as_ptr(),
+                initial,
+            );
+            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+        }
+    }
+    fn save_file_dialog(&self, caption: &str, path: &str, patterns: &str, initial: i32) -> String {
+        unsafe {
+            let caption = CString::new(caption).unwrap();
+            let path = CString::new(path).unwrap();
+            let patterns = CString::new(patterns).unwrap();
+            let ptr = fx_file_dialog_get_save_filename(
+                self.as_raw(),
+                caption.as_ptr(),
+                path.as_ptr(),
+                patterns.as_ptr(),
+                initial,
+            );
+            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+        }
+    }
     fn set_width(&self, width: i32) {
         unsafe {
             fx_window_set_width(self.as_raw(), width);

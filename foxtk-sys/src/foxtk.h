@@ -52,6 +52,10 @@ extern "C" {
 //~ FXDialogBox.h
     ObjectPtr* fx_dialog_box_new(ObjectPtr*  owner, const char* title);
 
+//~ FXFileDialog.h
+    const char* fx_file_dialog_get_open_filename(ObjectPtr* owner, const char* caption, const char* path, const char* patterns, int initial);
+    const char* fx_file_dialog_get_save_filename(ObjectPtr* owner, const char* caption, const char* path, const char* patterns, int initial);
+
 //~ FXDrawable.h
     int fx_drawable_get_height(ObjectPtr* wgt);
     int fx_drawable_get_width(ObjectPtr* wgt);
