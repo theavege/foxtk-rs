@@ -63,8 +63,8 @@ Considerable importance has been placed on making FOX one of the fastest toolkit
     - [x] [FXList](docs/fx_selectors.md#FXList) - Simple item list
     - [x] [FXListBox](docs/fx_selectors.md#FXListBox) - Choise
 
-# [Scrot](https://github.com/resurrecting-open-source-projects/scrot)
+## Screenshots
 
-- ![PathFinder](assets/scrot_fox_pathfinder.png)
-- ![Calculator](assets/scrot_fox_calculator.png)
-- ![Calculator](assets/scrot_adie.png)
+![Adie](assets/scrot_adie.png)
+![PathFinder](assets/scrot_fox_pathfinder.png)
+![Calculator](assets/scrot_fox_calculator.png)
