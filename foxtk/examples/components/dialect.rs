@@ -164,7 +164,7 @@ impl Component for Dialect {
                         false
                     }
                 });
-                foxtk::Button::new(prt, "Switch").set_callback({
+                foxtk::Button::new(prt, "Switch").with_callback({
                     let sender = sender.clone();
                     move |_| {
                         sender.send(Msg::Switch).unwrap();
@@ -178,7 +178,7 @@ impl Component for Dialect {
                         false
                     }
                 });
-                foxtk::Button::new(prt, "Translate").set_callback({
+                foxtk::Button::new(prt, "Translate").with_callback({
                     let sender = sender.clone();
                     move |_| {
                         sender.send(Msg::Run).unwrap();

@@ -66,16 +66,6 @@ pub trait DrawableExt: IdExt {
 }
 
 pub trait WindowExt: DrawableExt {
-    fn set_callback<F: FnMut(Self) -> bool + 'static>(&self, func: F) {
-        let raw_ptr: *mut Box<dyn FnMut(Self) -> bool> = Box::into_raw(Box::new(Box::new(func)));
-        unsafe {
-            fx_window_set_target(
-                self.as_raw(),
-                Some(ccallback::<Self>),
-                raw_ptr as *mut c_void,
-            );
-        }
-    }
     fn set_layout(&self, layout: Layout) {
         unsafe {
             fx_window_set_layout_hints(self.as_raw(), layout as u32);
@@ -120,14 +110,11 @@ pub trait WindowExt: DrawableExt {
     }
     fn open_file_dialog(&self, caption: &str, path: &str, patterns: &str, initial: i32) -> String {
         unsafe {
-            let caption = CString::new(caption).unwrap();
-            let path = CString::new(path).unwrap();
-            let patterns = CString::new(patterns).unwrap();
             let ptr = fx_file_dialog_get_open_filename(
-                self.as_raw(),
-                caption.as_ptr(),
-                path.as_ptr(),
-                patterns.as_ptr(),
+                self.root().as_raw(),
+                CString::new(caption).unwrap().as_ptr(),
+                CString::new(path).unwrap().as_ptr(),
+                CString::new(patterns).unwrap().as_ptr(),
                 initial,
             );
             std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
@@ -135,14 +122,11 @@ pub trait WindowExt: DrawableExt {
     }
     fn save_file_dialog(&self, caption: &str, path: &str, patterns: &str, initial: i32) -> String {
         unsafe {
-            let caption = CString::new(caption).unwrap();
-            let path = CString::new(path).unwrap();
-            let patterns = CString::new(patterns).unwrap();
             let ptr = fx_file_dialog_get_save_filename(
-                self.as_raw(),
-                caption.as_ptr(),
-                path.as_ptr(),
-                patterns.as_ptr(),
+                self.root().as_raw(),
+                CString::new(caption).unwrap().as_ptr(),
+                CString::new(path).unwrap().as_ptr(),
+                CString::new(patterns).unwrap().as_ptr(),
                 initial,
             );
             std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
@@ -183,7 +167,14 @@ pub trait WindowExt: DrawableExt {
         self
     }
     fn with_callback<F: FnMut(Self) -> bool + 'static>(self, func: F) -> Self {
-        self.set_callback(func);
+        let raw_ptr: *mut Box<dyn FnMut(Self) -> bool> = Box::into_raw(Box::new(Box::new(func)));
+        unsafe {
+            fx_window_set_target(
+                self.as_raw(),
+                Some(ccallback::<Self>),
+                raw_ptr as *mut c_void,
+            );
+        }
         self
     }
     fn parent(&self) -> Self {
@@ -448,6 +439,10 @@ pub trait TextExt: ObjectExt {
         unsafe {
             fx_text_set_font(self.as_raw(), CString::new(family).unwrap().as_ptr(), size);
         }
+    }
+    fn with_font(self, family: &str, size: i32) -> Self {
+        self.set_font(family, size);
+        self
     }
 }
 

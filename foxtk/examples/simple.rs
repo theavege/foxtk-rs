@@ -26,11 +26,18 @@ impl Component for Simple {
         foxtk::MenuBar::new(prt).inside(|prt| {
             foxtk::MenuPane::new(prt).inside(|mpaine| {
                 foxtk::MenuTitle::new(prt, "Nav", mpaine);
-                for (idx, item) in ["Widgets", "Counter", "NicCalc", "Dialect"]
-                    .iter()
-                    .enumerate()
+                for (idx, item) in [
+                    "Widgets",
+                    "FOX Calculator",
+                    "Adie",
+                    "Timer",
+                    "Dialect",
+                    "NicCalc",
+                ]
+                .iter()
+                .enumerate()
                 {
-                    foxtk::MenuCommand::new(mpaine, item).set_callback({
+                    foxtk::MenuCommand::new(mpaine, item).with_callback({
                         let sender = sender.clone();
                         move |_| {
                             sender.send(Msg::SetVal(idx as i32)).unwrap();
@@ -57,16 +64,24 @@ impl Component for Simple {
         });
         self.0 = foxtk::Switcher::new(prt);
         self.0.inside(|prt| {
-            foxtk::VerticalFrame::new(prt)
-                .with_frame(FrameStyle::Thick)
-                .inside(|prt| {
-                    components::Converter::mount(prt);
-                    components::Rangers::mount(prt);
-                    components::Selectors::mount(prt);
+            foxtk::VerticalFrame::new(prt).inside(|prt| {
+                foxtk::TabBar::new(prt).inside(|prt| {
+                    foxtk::TabItem::new(prt, "Tab 1");
+                    foxtk::TabItem::new(prt, "Tab 2");
+                    foxtk::TabItem::new(prt, "Tab 3");
                 });
+                foxtk::GroupBox::new(prt, "Inputs").inside(|prt| {
+                    components::Converter::mount(prt);
+                    components::Nmap::mount(prt);
+                });
+                components::Rangers::mount(prt);
+                components::Selectors::mount(prt);
+            });
             components::Calc::mount(prt);
-            components::NicCalc::mount(prt);
+            components::Adie::mount(prt);
+            components::Timer::mount(prt);
             components::Dialect::mount(prt);
+            components::NicCalc::mount(prt);
         });
     }
 }

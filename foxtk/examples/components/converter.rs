@@ -50,28 +50,26 @@ impl Component for Converter {
         }
     }
     fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
-        foxtk::GroupBox::new(prt, "Inputs").inside(|prt| {
-            foxtk::HorizontalFrame::new(prt).inside(|prt| {
-                self.cel = foxtk::TextField::new(prt).with_callback({
-                    let sender = sender.clone();
-                    move |wgt| {
-                        if wgt.has_focus() {
-                            let value = wgt.text().parse::<f64>().unwrap_or_default();
-                            sender.send(Msg::Cel(value)).unwrap();
-                        }
-                        false
+        foxtk::HorizontalFrame::new(prt).inside(|prt| {
+            self.cel = foxtk::TextField::new(prt).with_callback({
+                let sender = sender.clone();
+                move |wgt| {
+                    if wgt.has_focus() {
+                        let value = wgt.text().parse::<f64>().unwrap_or_default();
+                        sender.send(Msg::Cel(value)).unwrap();
                     }
-                });
-                self.far = foxtk::TextField::new(prt).with_callback({
-                    let sender = sender.clone();
-                    move |wgt| {
-                        if wgt.has_focus() {
-                            let value = wgt.text().parse::<f64>().unwrap_or_default();
-                            sender.send(Msg::Far(value)).unwrap();
-                        }
-                        false
+                    false
+                }
+            });
+            self.far = foxtk::TextField::new(prt).with_callback({
+                let sender = sender.clone();
+                move |wgt| {
+                    if wgt.has_focus() {
+                        let value = wgt.text().parse::<f64>().unwrap_or_default();
+                        sender.send(Msg::Far(value)).unwrap();
                     }
-                });
+                    false
+                }
             });
         });
     }
