@@ -1,5 +1,4 @@
 #include <fx.h>
-#include <FXFileDialog.h>
 
 //~ OPAQUE HANDLES
 
