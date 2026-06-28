@@ -65,6 +65,16 @@ Considerable importance has been placed on making FOX one of the fastest toolkit
 
 ## Screenshots
 
-![Adie](assets/scrot_adie.png)
-![PathFinder](assets/scrot_fox_pathfinder.png)
-![Calculator](assets/scrot_fox_calculator.png)
+![Calculator](assets/scrot_fox_calculator_main.png)
+
+---
+
+![Calculator](assets/scrot_fox_calculator_edit.png)
+
+---
+
+![Calculator](assets/scrot_fox_calculator_color.png)
+
+---
+
+![Calculator](assets/scrot_fox_calculator_about.png)

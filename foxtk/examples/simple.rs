@@ -87,5 +87,5 @@ impl Component for Simple {
 }
 
 fn main() {
-    Simple::run("Name", "Vendor", "Title", 400, 640);
+    Simple::run("Name", "Vendor", "Title", 640, 400);
 }
