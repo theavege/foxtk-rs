@@ -14,35 +14,35 @@ Considerable importance has been placed on making FOX one of the fastest toolkit
 
 If you're choosing a GUI toolkit for a Rust project, here's what sets FOX apart:
 
-**🚀 Speed and low memory usage**
+**Speed and low memory usage**
 FOX was designed from the ground up to be fast. It uses efficient drawing techniques
 and spatial layout algorithms, and lets you create and destroy GUI elements on the
 fly to keep memory usage minimal. This makes it a strong choice for tools and
 utilities where responsiveness matters.
 
-**📦 Minimal dependencies**
+**Minimal dependencies**
 Unlike GTK (which requires a full GObject/GLib runtime) or Qt (which requires
 a large SDK), FOX is largely self-contained. On Linux you need X11 or Wayland
 libraries; on Windows it works out of the box. No heavy runtimes to install or
 distribute.
 
-**🖥️ Truly cross-platform**
+**Truly cross-platform**
 FOX runs on Linux, Windows, FreeBSD, and macOS using a single codebase. Your
 application looks and behaves consistently across all platforms.
 
-**🎮 Built-in OpenGL support**
+**Built-in OpenGL support**
 FOX includes OpenGL widget support out of the box, making it a natural fit for
 scientific visualisation, 3D tools, and games — without needing a separate
 integration layer.
 
-**🔒 Mature and stable**
+**Mature and stable**
 FOX has been in active development since the late 1990s. It is used in serious
 production software like [SUMO](https://github.com/eclipse-sumo/sumo) (a
 large-scale traffic simulator used by researchers worldwide) and
 [XFE](https://github.com/roland65/xfe) (a popular lightweight file manager).
 You can rely on it.
 
-**⚖️ LGPL license**
+**LGPL license**
 FOX is licensed under the LGPL, which means you can use it in both open-source
 and commercial applications without being required to open-source your own code.
 
@@ -51,7 +51,8 @@ and commercial applications without being required to open-source your own code.
 - [Linux](.github/workflows/make.sh)
 - [Windows](.github/workflows/make.ps1)
 
-## [Other](https://rubydoc.info/gems/fxruby/frames) bindings for [fox-toolkit](http://www.fox-toolkit.org)
+## Other bindings for [fox-toolkit](http://www.fox-toolkit.org)
+- [fxruby](https://rubydoc.info/gems/fxruby)
 
 ## Software using [fox-toolkit](http://www.fox-toolkit.org)
 
@@ -72,9 +73,9 @@ and commercial applications without being required to open-source your own code.
 | | FOX | FLTK | GTK |
 |---|---|---|---|
 | Dependencies | Minimal | Minimal | Heavy (GLib, GObject, …) |
-| OpenGL support | ✅ Built-in | ✅ Built-in | ⚠️ Via external crate |
+| OpenGL support | Built-in | Built-in | ⚠️ Via external crate |
 | Widget variety | Rich | Basic | Very rich |
-| Cross-platform | ✅ | ✅ | ⚠️ (Linux-native feel) |
+| Cross-platform | V | V | X️ (Linux-native feel) |
 | License | LGPL | LGPL | LGPL |
 | Maturity | Since ~1997 | Since ~1998 | Since ~1998 |
 
