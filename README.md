@@ -57,10 +57,8 @@ and commercial applications without being required to open-source your own code.
 ## Software using [fox-toolkit](http://www.fox-toolkit.org)
 
 - [Simulation of Urban MObility](https://github.com/eclipse-sumo/sumo) ![sumo](https://raw.githubusercontent.com/eclipse/sumo/main/docs/web/docs/images/multiple-screenshots.png)
-- [X File Explorer](https://github.com/roland65/xfe) ![xfe](http://roland65.free.fr/xfe/images/screenshot-s2.png)
+- [X File Explorer](https://github.com/roland65/xfe) ![xfe](http://roland65.free.fr/xfe/images/screenshot-s9.png)
 - [ReZound](https://sourceforge.net/projects/rezound) ![rezound](https://rezound.sourceforge.net/ss/ss1.gif)
-- [FOX Calculator](http://fox-toolkit.org/calc.html) ![foxcalc](http://fox-toolkit.org/screenshots/foxcalc.jpg)
-- [Adie](http://fox-toolkit.org/adie.html) ![adie](http://fox-toolkit.org/screenshots/adie.gif)
 
 ## Alternatives
 
