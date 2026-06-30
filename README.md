@@ -110,16 +110,20 @@ and commercial applications without being required to open-source your own code.
 
 ## Screenshots
 
-![Calculator](assets/scrot_fox_calculator_main.png)
+![main](assets/scrot_fox_calculator_main.png)
 
 ---
 
-![Calculator](assets/scrot_fox_calculator_edit.png)
+![edit](assets/scrot_fox_calculator_edit.png)
 
 ---
 
-![Calculator](assets/scrot_fox_calculator_color.png)
+![font](assets/scrot_fox_calculator_font.png)
 
 ---
 
-![Calculator](assets/scrot_fox_calculator_about.png)
+![color](assets/scrot_fox_calculator_color.png)
+
+---
+
+![about](assets/scrot_fox_calculator_about.png)
