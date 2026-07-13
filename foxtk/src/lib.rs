@@ -123,7 +123,12 @@ pub struct TopWindow(Option<NonNull<ObjectPtr>>);
 impl TopWindow {
     pub fn new(app: &impl AppExt, title: &str, width: i32, height: i32) -> Self {
         Self::from_raw(unsafe {
-            fx_top_window_new(app.as_raw(), CString::new(title).unwrap().as_ptr(), width, height)
+            fx_top_window_new(
+                app.as_raw(),
+                CString::new(title).unwrap().as_ptr(),
+                width,
+                height,
+            )
         })
     }
 }
@@ -500,8 +505,10 @@ impl WindowExt for Splitter {}
 pub struct FourSplitter(Option<NonNull<ObjectPtr>>);
 impl FourSplitter {
     pub fn new(parent: &impl ObjectExt) -> Self {
-        Self::from_raw(unsafe { fx_four_splitter_new(parent.as_raw(), SplitterStyle::Normal as u32) })
-            .with_layout(Layout::Fill)
+        Self::from_raw(unsafe {
+            fx_four_splitter_new(parent.as_raw(), SplitterStyle::Normal as u32)
+        })
+        .with_layout(Layout::Fill)
     }
 }
 impl ObjectExt for FourSplitter {
@@ -801,7 +808,9 @@ impl FrameExt for GradientBar {}
 pub struct SevenSegment(Option<NonNull<ObjectPtr>>);
 impl SevenSegment {
     pub fn new(parent: &impl ObjectExt, text: &str) -> Self {
-        Self::from_raw(unsafe { fx_7segment_new(parent.as_raw(), CString::new(text).unwrap().as_ptr()) })
+        Self::from_raw(unsafe {
+            fx_7segment_new(parent.as_raw(), CString::new(text).unwrap().as_ptr())
+        })
     }
 }
 impl ObjectExt for SevenSegment {
@@ -821,7 +830,9 @@ impl FrameExt for SevenSegment {}
 pub struct ColorDialog(Option<NonNull<ObjectPtr>>);
 impl ColorDialog {
     pub fn new(owner: &impl ObjectExt, title: &str) -> Self {
-        Self::from_raw(unsafe { fx_color_dialog_new(owner.as_raw(), CString::new(title).unwrap().as_ptr()) })
+        Self::from_raw(unsafe {
+            fx_color_dialog_new(owner.as_raw(), CString::new(title).unwrap().as_ptr())
+        })
     }
 }
 impl ObjectExt for ColorDialog {

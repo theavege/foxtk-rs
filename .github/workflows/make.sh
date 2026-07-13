@@ -7,6 +7,7 @@ case ${ID:?} in
     ';;
     fedora | alma) sudo apt-get install -y fox-devel ;;
 esac 1> /dev/null
+clang-tidy 'foxtk-sys/src/foxtk.cpp' -- "$(pkg-config --cflags fox)"
 cargo clippy --quiet --features="all" --examples
 cargo build --release --features="all" --examples
 cargo fmt --check --all
