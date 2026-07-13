@@ -40,14 +40,29 @@ extern "C" {
 //~ FXChoiceBox.h
     int fx_choice_box_ask(ObjectPtr*  app, unsigned int opts, const char* caption, const char* text, ObjectPtr* icon, const char** choices);
 
+//~ FXTriStateButton.h
+    ObjectPtr* fx_tri_state_button_new(ObjectPtr* prt, const char* text1, const char* text2, const char* text3);
+
 //~ FXTreeListBox.h
-    ObjectPtr* fx_tree_list_box_box_new(ObjectPtr*  prt);
+    ObjectPtr* fx_tree_list_box_new(ObjectPtr* prt);
 
 //~ FXDriveBox.h
     ObjectPtr* fx_drive_box_new(ObjectPtr*  prt);
 
 //~ FXDirBox.h
     ObjectPtr* fx_dir_box_new(ObjectPtr*  prt);
+    ObjectPtr* fx_dir_list_new(ObjectPtr* prt);
+    ObjectPtr* fx_dir_selector_new(ObjectPtr* prt);
+
+//~ FXFileSelector.h
+    ObjectPtr* fx_file_selector_new(ObjectPtr* prt);
+    ObjectPtr* fx_file_list_new(ObjectPtr* prt);
+
+//~ FXFontSelector.h
+    ObjectPtr* fx_font_selector_new(ObjectPtr* prt);
+
+//~ FXColorSelector.h
+    ObjectPtr* fx_color_selector_new(ObjectPtr* prt);
 
 //~ FXDialogBox.h
     ObjectPtr* fx_dialog_box_new(ObjectPtr*  owner, const char* title);

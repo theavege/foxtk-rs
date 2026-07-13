@@ -339,8 +339,13 @@ extern "C" {
         return FXChoiceBox::ask(static_cast<FXApp*>(app), opts, caption, text, static_cast<FXIcon*>(icon), choices);
     }
 
+//~ FXTriStateButton.h
+    ObjectPtr* fx_tri_state_button_new(ObjectPtr* prt, const char* text1, const char* text2, const char* text3) {
+        return new FXTriStateButton(static_cast<FXComposite*>(prt), text1, text2, text3);
+    }
+
 //~ FXTreeListBox.h
-    ObjectPtr* fx_tree_list_box_box_new(ObjectPtr* prt) {
+    ObjectPtr* fx_tree_list_box_new(ObjectPtr* prt) {
         return new FXTreeListBox(static_cast<FXComposite*>(prt));
     }
 
@@ -352,6 +357,30 @@ extern "C" {
 //~ FXDirBox.h
     ObjectPtr* fx_dir_box_new(ObjectPtr* prt) {
         return new FXDirBox(static_cast<FXComposite*>(prt));
+    }
+    ObjectPtr* fx_dir_list_new(ObjectPtr* prt) {
+        return new FXDirList(static_cast<FXComposite*>(prt));
+    }
+    ObjectPtr* fx_dir_selector_new(ObjectPtr* prt) {
+        return new FXDirSelector(static_cast<FXComposite*>(prt));
+    }
+
+//~ FXFileSelector.h
+    ObjectPtr* fx_file_selector_new(ObjectPtr* prt) {
+        return new FXFileSelector(static_cast<FXComposite*>(prt));
+    }
+    ObjectPtr* fx_file_list_new(ObjectPtr* prt) {
+        return new FXFileList(static_cast<FXComposite*>(prt));
+    }
+
+//~ FXFontSelector.h
+    ObjectPtr* fx_font_selector_new(ObjectPtr* prt) {
+        return new FXFontSelector(static_cast<FXComposite*>(prt));
+    }
+
+//~ FXColorSelector.h
+    ObjectPtr* fx_color_selector_new(ObjectPtr* prt) {
+        return new FXColorSelector(static_cast<FXComposite*>(prt));
     }
 
 //~ FXDial.h

@@ -705,6 +705,35 @@ impl DrawableExt for ProgressBar {}
 impl ProgressBarExt for ProgressBar {}
 
 #[derive(Default)]
+pub struct TriStateButton(Option<NonNull<ObjectPtr>>);
+impl TriStateButton {
+    pub fn new(parent: &impl ObjectExt, text1: &str, text2: &str, text3: &str) -> Self {
+        Self::from_raw(unsafe {
+            fx_tri_state_button_new(
+                parent.as_raw(),
+                CString::new(text1).unwrap().as_ptr(),
+                CString::new(text2).unwrap().as_ptr(),
+                CString::new(text3).unwrap().as_ptr(),
+            )
+        })
+        .with_layout(Layout::FillX)
+    }
+}
+impl ObjectExt for TriStateButton {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for TriStateButton {}
+impl FrameExt for TriStateButton {}
+impl DrawableExt for TriStateButton {}
+impl WindowExt for TriStateButton {}
+impl LabelExt for TriStateButton {}
+
+#[derive(Default)]
 pub struct ToggleButton(Option<NonNull<ObjectPtr>>);
 impl ToggleButton {
     pub fn new(parent: &impl ObjectExt, title: &str, title_: &str) -> Self {
@@ -1018,6 +1047,26 @@ impl DrawableExt for OptionMenu {}
 impl WindowExt for OptionMenu {}
 
 #[derive(Default)]
+pub struct DriveBox(std::option::Option<NonNull<ObjectPtr>>);
+impl DriveBox {
+    pub fn new(parent: &impl ObjectExt) -> Self {
+        Self::from_raw(unsafe { fx_drive_box_new(parent.as_raw()) }).with_layout(Layout::Fill)
+    }
+}
+impl ObjectExt for DriveBox {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for DriveBox {}
+impl FrameExt for DriveBox {}
+impl DrawableExt for DriveBox {}
+impl WindowExt for DriveBox {}
+
+#[derive(Default)]
 pub struct DirBox(std::option::Option<NonNull<ObjectPtr>>);
 impl DirBox {
     pub fn new(parent: &impl ObjectExt) -> Self {
@@ -1036,6 +1085,158 @@ impl IdExt for DirBox {}
 impl FrameExt for DirBox {}
 impl DrawableExt for DirBox {}
 impl WindowExt for DirBox {}
+
+#[derive(Default)]
+pub struct DirList(std::option::Option<NonNull<ObjectPtr>>);
+impl DirList {
+    pub fn new(parent: &impl ObjectExt) -> Self {
+        Self::from_raw(unsafe { fx_dir_list_new(parent.as_raw()) }).with_layout(Layout::Fill)
+    }
+}
+impl ObjectExt for DirList {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for DirList {}
+impl FrameExt for DirList {}
+impl DrawableExt for DirList {}
+impl WindowExt for DirList {}
+impl CompositeExt for DirList {}
+
+#[derive(Default)]
+pub struct DirSelector(std::option::Option<NonNull<ObjectPtr>>);
+impl DirSelector {
+    pub fn new(parent: &impl ObjectExt) -> Self {
+        Self::from_raw(unsafe { fx_dir_selector_new(parent.as_raw()) }).with_layout(Layout::Fill)
+    }
+}
+impl ObjectExt for DirSelector {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for DirSelector {}
+impl FrameExt for DirSelector {}
+impl DrawableExt for DirSelector {}
+impl WindowExt for DirSelector {}
+impl CompositeExt for DirSelector {}
+impl PackerExt for DirSelector {}
+
+#[derive(Default)]
+pub struct FileSelector(std::option::Option<NonNull<ObjectPtr>>);
+impl FileSelector {
+    pub fn new(parent: &impl ObjectExt) -> Self {
+        Self::from_raw(unsafe { fx_file_selector_new(parent.as_raw()) }).with_layout(Layout::Fill)
+    }
+}
+impl ObjectExt for FileSelector {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for FileSelector {}
+impl FrameExt for FileSelector {}
+impl DrawableExt for FileSelector {}
+impl WindowExt for FileSelector {}
+impl CompositeExt for FileSelector {}
+impl PackerExt for FileSelector {}
+
+#[derive(Default)]
+pub struct FileList(std::option::Option<NonNull<ObjectPtr>>);
+impl FileList {
+    pub fn new(parent: &impl ObjectExt) -> Self {
+        Self::from_raw(unsafe { fx_file_list_new(parent.as_raw()) }).with_layout(Layout::Fill)
+    }
+}
+impl ObjectExt for FileList {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for FileList {}
+impl FrameExt for FileList {}
+impl DrawableExt for FileList {}
+impl WindowExt for FileList {}
+impl CompositeExt for FileList {}
+
+#[derive(Default)]
+pub struct TreeListBox(std::option::Option<NonNull<ObjectPtr>>);
+impl TreeListBox {
+    pub fn new(parent: &impl ObjectExt) -> Self {
+        Self::from_raw(unsafe { fx_tree_list_box_new(parent.as_raw()) }).with_layout(Layout::Fill)
+    }
+}
+impl ObjectExt for TreeListBox {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for TreeListBox {}
+impl FrameExt for TreeListBox {}
+impl DrawableExt for TreeListBox {}
+impl WindowExt for TreeListBox {}
+impl CompositeExt for TreeListBox {}
+impl PackerExt for TreeListBox {}
+
+#[derive(Default)]
+pub struct FontSelector(std::option::Option<NonNull<ObjectPtr>>);
+impl FontSelector {
+    pub fn new(parent: &impl ObjectExt) -> Self {
+        Self::from_raw(unsafe { fx_font_selector_new(parent.as_raw()) }).with_layout(Layout::Fill)
+    }
+}
+impl ObjectExt for FontSelector {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for FontSelector {}
+impl FrameExt for FontSelector {}
+impl DrawableExt for FontSelector {}
+impl WindowExt for FontSelector {}
+impl CompositeExt for FontSelector {}
+impl PackerExt for FontSelector {}
+
+#[derive(Default)]
+pub struct ColorSelector(std::option::Option<NonNull<ObjectPtr>>);
+impl ColorSelector {
+    pub fn new(parent: &impl ObjectExt) -> Self {
+        Self::from_raw(unsafe { fx_color_selector_new(parent.as_raw()) }).with_layout(Layout::Fill)
+    }
+}
+impl ObjectExt for ColorSelector {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for ColorSelector {}
+impl FrameExt for ColorSelector {}
+impl DrawableExt for ColorSelector {}
+impl WindowExt for ColorSelector {}
+impl CompositeExt for ColorSelector {}
+impl PackerExt for ColorSelector {}
 
 pub struct TreeList(Option<NonNull<ObjectPtr>>);
 impl TreeList {
