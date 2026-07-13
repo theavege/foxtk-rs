@@ -104,118 +104,90 @@ impl Component for NicCalc {
     }
     fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
         const WIDTH: i32 = 200;
-        const PAD: i32 = 10;
-        foxtk::VerticalFrame::new(prt)
-            .with_pad(0)
-            .with_spacing(PAD)
-            .inside(|prt| {
-                foxtk::HorizontalFrame::new(prt)
-                    .with_pad(0)
-                    .with_spacing(0)
-                    .inside(|prt| {
-                        foxtk::Label::new(prt, "Nicotine base strength (mg/ml):").with_width(WIDTH);
-                        foxtk::TextField::new(prt).with_callback({
-                            let sender = sender.clone();
-                            move |wgt| {
-                                if wgt.has_focus() {
-                                    let value = wgt.text().parse::<f64>().unwrap_or_default();
-                                    sender.send(Msg::Shotstr(value)).unwrap();
-                                }
-                                false
-                            }
-                        });
-                    });
-                foxtk::HorizontalFrame::new(prt)
-                    .with_pad(0)
-                    .with_spacing(0)
-                    .inside(|prt| {
-                        foxtk::Label::new(prt, "Nicotine strength wanted (mg/ml):")
-                            .with_width(WIDTH)
-                            .set_justify(Justify::Right);
-                        foxtk::TextField::new(prt).with_callback({
-                            let sender = sender.clone();
-                            move |wgt| {
-                                if wgt.has_focus() {
-                                    let value = wgt.text().parse::<f64>().unwrap_or_default();
-                                    sender.send(Msg::Targstr(value)).unwrap();
-                                }
-                                false
-                            }
-                        });
-                    });
-                foxtk::HorizontalFrame::new(prt)
-                    .with_pad(0)
-                    .with_spacing(0)
-                    .inside(|prt| {
-                        foxtk::Label::new(prt, "Amount wanted (ml):")
-                            .with_width(WIDTH)
-                            .set_justify(Justify::Right);
-                        foxtk::TextField::new(prt).with_callback({
-                            let sender = sender.clone();
-                            move |wgt| {
-                                if wgt.has_focus() {
-                                    let value = wgt.text().parse::<f64>().unwrap_or_default();
-                                    sender.send(Msg::Targvol(value)).unwrap();
-                                }
-                                false
-                            }
-                        });
-                    });
-                foxtk::HorizontalFrame::new(prt)
-                    .with_pad(0)
-                    .with_spacing(0)
-                    .inside(|prt| {
-                        foxtk::Label::new(prt, "Flavour amount (ml):")
-                            .with_width(WIDTH)
-                            .set_justify(Justify::Right);
-                        foxtk::TextField::new(prt).with_callback({
-                            let sender = sender.clone();
-                            move |wgt| {
-                                if wgt.has_focus() {
-                                    let value = wgt.text().parse::<f64>().unwrap_or_default();
-                                    sender.send(Msg::Aromavol(value)).unwrap();
-                                }
-                                false
-                            }
-                        });
-                    });
-                foxtk::HorizontalFrame::new(prt)
-                    .with_pad(0)
-                    .with_spacing(0)
-                    .inside(|prt| {
-                        foxtk::Label::new(prt, "Nicotin base")
-                            .with_width(WIDTH)
-                            .set_justify(Justify::Right);
-                        self.nicotine_base = foxtk::ProgressBar::new(prt).with_total(100);
-                    });
-                foxtk::HorizontalFrame::new(prt)
-                    .with_pad(0)
-                    .with_spacing(0)
-                    .inside(|prt| {
-                        foxtk::Label::new(prt, "Base")
-                            .with_width(WIDTH)
-                            .set_justify(Justify::Right);
-                        self.base = foxtk::ProgressBar::new(prt).with_total(100);
-                    });
-                foxtk::HorizontalFrame::new(prt)
-                    .with_pad(0)
-                    .with_spacing(0)
-                    .inside(|prt| {
-                        foxtk::Label::new(prt, "Flavour")
-                            .with_width(WIDTH)
-                            .set_justify(Justify::Right);
-                        self.flavour = foxtk::ProgressBar::new(prt).with_total(100);
-                    });
-                foxtk::HorizontalFrame::new(prt)
-                    .with_pad(0)
-                    .with_spacing(0)
-                    .inside(|prt| {
-                        foxtk::Label::new(prt, "Total")
-                            .with_width(WIDTH)
-                            .set_justify(Justify::Right);
-                        self.total = foxtk::ProgressBar::new(prt).with_total(100);
-                    });
-                self.list = foxtk::List::new(prt).with_layout(Layout::Fill);
+        foxtk::VerticalFrame::new(prt).inside(|prt| {
+            foxtk::HorizontalFrame::new(prt).inside(|prt| {
+                foxtk::Label::new(prt, "Nicotine base strength (mg/ml):").with_width(WIDTH);
+                foxtk::TextField::new(prt).with_callback({
+                    let sender = sender.clone();
+                    move |wgt| {
+                        if wgt.has_focus() {
+                            let value = wgt.text().parse::<f64>().unwrap_or_default();
+                            sender.send(Msg::Shotstr(value)).unwrap();
+                        }
+                        false
+                    }
+                });
             });
+            foxtk::HorizontalFrame::new(prt).inside(|prt| {
+                foxtk::Label::new(prt, "Nicotine strength wanted (mg/ml):")
+                    .with_width(WIDTH)
+                    .with_justify(Justify::Right);
+                foxtk::TextField::new(prt).with_callback({
+                    let sender = sender.clone();
+                    move |wgt| {
+                        if wgt.has_focus() {
+                            let value = wgt.text().parse::<f64>().unwrap_or_default();
+                            sender.send(Msg::Targstr(value)).unwrap();
+                        }
+                        false
+                    }
+                });
+            });
+            foxtk::HorizontalFrame::new(prt).inside(|prt| {
+                foxtk::Label::new(prt, "Amount wanted (ml):")
+                    .with_width(WIDTH)
+                    .with_justify(Justify::Right);
+                foxtk::TextField::new(prt).with_callback({
+                    let sender = sender.clone();
+                    move |wgt| {
+                        if wgt.has_focus() {
+                            let value = wgt.text().parse::<f64>().unwrap_or_default();
+                            sender.send(Msg::Targvol(value)).unwrap();
+                        }
+                        false
+                    }
+                });
+            });
+            foxtk::HorizontalFrame::new(prt).inside(|prt| {
+                foxtk::Label::new(prt, "Flavour amount (ml):")
+                    .with_width(WIDTH)
+                    .with_justify(Justify::Right);
+                foxtk::TextField::new(prt).with_callback({
+                    let sender = sender.clone();
+                    move |wgt| {
+                        if wgt.has_focus() {
+                            let value = wgt.text().parse::<f64>().unwrap_or_default();
+                            sender.send(Msg::Aromavol(value)).unwrap();
+                        }
+                        false
+                    }
+                });
+            });
+            foxtk::HorizontalFrame::new(prt).inside(|prt| {
+                foxtk::Label::new(prt, "Nicotin base")
+                    .with_width(WIDTH)
+                    .with_justify(Justify::Right);
+                self.nicotine_base = foxtk::ProgressBar::new(prt).with_total(100);
+            });
+            foxtk::HorizontalFrame::new(prt).inside(|prt| {
+                foxtk::Label::new(prt, "Base")
+                    .with_width(WIDTH)
+                    .with_justify(Justify::Right);
+                self.base = foxtk::ProgressBar::new(prt).with_total(100);
+            });
+            foxtk::HorizontalFrame::new(prt).inside(|prt| {
+                foxtk::Label::new(prt, "Flavour")
+                    .with_width(WIDTH)
+                    .with_justify(Justify::Right);
+                self.flavour = foxtk::ProgressBar::new(prt).with_total(100);
+            });
+            foxtk::HorizontalFrame::new(prt).inside(|prt| {
+                foxtk::Label::new(prt, "Total")
+                    .with_width(WIDTH)
+                    .with_justify(Justify::Right);
+                self.total = foxtk::ProgressBar::new(prt).with_total(100);
+            });
+            self.list = foxtk::List::new(prt).with_layout(Layout::Fill);
+        });
     }
 }

@@ -9,7 +9,7 @@ mod models {
     }
 
     impl Model {
-        const SERVICE: &str = r#"https://lingva.ml/api/v1"#;
+        const SERVICE: &str = r#"https://lingva.lunar.icu/api/v1"#;
         const NAME: &str = "Dialect";
         pub fn read(&mut self, value: Vec<(String, String)>) {
             self.lang = value;
@@ -164,7 +164,7 @@ impl Component for Dialect {
                         false
                     }
                 });
-                foxtk::Button::new(prt, "Switch").set_callback({
+                foxtk::Button::new(prt, "Switch").with_callback({
                     let sender = sender.clone();
                     move |_| {
                         sender.send(Msg::Switch).unwrap();
@@ -178,7 +178,7 @@ impl Component for Dialect {
                         false
                     }
                 });
-                foxtk::Button::new(prt, "Translate").set_callback({
+                foxtk::Button::new(prt, "Translate").with_callback({
                     let sender = sender.clone();
                     move |_| {
                         sender.send(Msg::Run).unwrap();
@@ -187,6 +187,7 @@ impl Component for Dialect {
                 });
             });
             foxtk::HorizontalFrame::new(prt)
+                .with_layout(Layout::Fill)
                 .inside(|prt| {
                     self.source = foxtk::Text::new(prt)
                         .with_callback({
@@ -202,11 +203,10 @@ impl Component for Dialect {
                     self.target = foxtk::Text::new(prt)
                         .with_layout(Layout::Fill)
                         .with_editable(false);
-                })
-                .set_layout(Layout::Fill);
+                });
         });
         std::thread::spawn(move || {
-            if let Ok(get) = reqwest::blocking::get("https://lingva.ml/api/v1/languages") {
+            if let Ok(get) = reqwest::blocking::get("https://lingva.lunar.icu/api/v1/languages") {
                 let value = get
                     .json::<HashMap<String, Vec<HashMap<String, String>>>>()
                     .unwrap()

@@ -1,10 +1,14 @@
 [package]
 name = "foxtk-sys"
-version = "0.0.1"
+version = "0.0.3"
 authors = ["Artem V. Ageev <artem.v.ageev@gmail.com>"]
-license = "LGPL"
+license = "LGPL-2.1-only"
 repository = "https://github.com/theavege/foxtk-rs"
+description = "Rust bindings for the FOX Toolkit"
+keywords = ["FOX", "foxtk"]
+categories = ["external-ffi-bindings"]
 edition = "2024"
+exclude = ["use"]
 
 [build-dependencies]
 bindgen = { version = "0.72" }

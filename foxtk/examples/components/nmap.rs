@@ -73,10 +73,11 @@ impl Component for Nmap {
         self.status.set_text(&model.status);
     }
     fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
-        foxtk::HorizontalFrame::new(prt).with_pad(0).inside(|prt| {
-            foxtk::Label::new(prt, "IP");
+        const WIDTH: i32 = 45;
+        foxtk::HorizontalFrame::new(prt).inside(|prt| {
+            foxtk::Label::new(prt, "IP").set_width(WIDTH);
             for idx in 0..4 {
-                foxtk::TextField::new(prt).set_callback({
+                foxtk::TextField::new(prt).with_width(WIDTH).with_callback({
                     let sender = sender.clone();
                     move |wgt| {
                         if wgt.has_focus() {
@@ -88,7 +89,7 @@ impl Component for Nmap {
                 });
             }
             foxtk::Label::new(prt, ":");
-            foxtk::TextField::new(prt).set_callback({
+            foxtk::TextField::new(prt).with_callback({
                 let sender = sender.clone();
                 move |wgt| {
                     if wgt.has_focus() {
@@ -99,8 +100,8 @@ impl Component for Nmap {
                 }
             });
             foxtk::Button::new(prt, "Run")
-                .with_layout(Layout::Fill)
-                .set_callback({
+                .with_width(WIDTH)
+                .with_callback({
                     let sender = sender.clone();
                     move |_| {
                         sender.send(Msg::Run).unwrap();

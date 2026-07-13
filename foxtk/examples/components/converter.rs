@@ -50,7 +50,7 @@ impl Component for Converter {
         }
     }
     fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
-        foxtk::GroupBox::new(prt, "Converter").inside(|prt| {
+        foxtk::HorizontalFrame::new(prt).inside(|prt| {
             self.cel = foxtk::TextField::new(prt).with_callback({
                 let sender = sender.clone();
                 move |wgt| {

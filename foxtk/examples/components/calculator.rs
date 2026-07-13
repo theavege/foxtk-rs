@@ -57,7 +57,7 @@ mod models {
             };
         }
         fn equil(&mut self) {
-            self.output.push_str(&format!(" {}<br>", self.current));
+            self.output.push_str(&format!(" {}\n", self.current));
             let current: f64 = self.current.parse().unwrap();
             self.prev = match self.operation.as_str() {
                 "/" => self.prev / current,
@@ -66,7 +66,7 @@ mod models {
                 "-" => self.prev - current,
                 _ => self.prev / 100.0 * current,
             };
-            self.output.push_str(&format!("    = {}<br>", self.prev));
+            self.output.push_str(&format!("    = {}\n", self.prev));
             self.current = String::from("0");
         }
     }
@@ -96,19 +96,20 @@ impl Component for Calc {
         true
     }
     fn update(&self, model: &Self::State) {
-        self.outp.update(&model.output.clone());
+        self.outp.update(&model.output);
         self.prev.update(&model.prev.to_string());
-        self.oper.update(&model.operation.clone());
-        self.curr.update(&model.current.clone());
+        self.oper.update(&model.operation);
+        self.curr.update(&model.current);
     }
     fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
         foxtk::VerticalFrame::new(prt).inside(|prt| {
             self.outp = foxtk::Text::new(prt)
-                .with_layout(Layout::Fill)
+                .with_font("cascadia mono", 12)
                 .with_editable(false);
             foxtk::HorizontalFrame::new(prt).inside(|prt| {
                 self.oper = foxtk::TextField::new(prt)
-                    .with_layout(Layout::Fill)
+                    .with_width(60)
+                    .with_layout(Layout::FillY)
                     .with_editable(false);
                 foxtk::VerticalFrame::new(prt).inside(|prt| {
                     self.prev = foxtk::TextField::new(prt).with_editable(false);
@@ -126,7 +127,7 @@ impl Component for Calc {
                     for cell in row {
                         foxtk::Button::new(prt, cell)
                             .with_layout(Layout::Fill)
-                            .set_callback({
+                            .with_callback({
                                 let sender = sender.clone();
                                 move |wgt| {
                                     sender.send(Msg::Push(wgt.text())).unwrap();
