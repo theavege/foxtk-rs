@@ -121,6 +121,12 @@ public:
         : FXShell(owner, opts, x, y, w, h) {}
 };
 
+class FXScrollAreaEx : public FXScrollArea {
+public:
+    FXScrollAreaEx(FXComposite* parent, FXuint opts, FXint x, FXint y, FXint w, FXint h)
+        : FXScrollArea(parent, opts, x, y, w, h) {}
+};
+
 extern "C" {
     unsigned int fx_rgb(unsigned int r, unsigned int g, unsigned int b) {
         return FXRGB(r,g,b);
@@ -589,6 +595,24 @@ extern "C" {
     }
     int fx_splitter_get_split(ObjectPtr* wgt, int index) {
         return static_cast<FXSplitter*>(wgt)->getSplit(index);
+    }
+
+//~ FX4Splitter
+    ObjectPtr* fx_four_splitter_new(ObjectPtr* prt, unsigned int opts) {
+        return new FX4Splitter(static_cast<FXComposite*>(prt), opts);
+    }
+    ObjectPtr* fx_four_splitter_new_with_target(ObjectPtr* prt, ObjectPtr* target, int selector, unsigned int opts) {
+        return new FX4Splitter(static_cast<FXComposite*>(prt), static_cast<FXObject*>(target), selector, opts);
+    }
+
+//~ FXScrollArea
+    ObjectPtr* fx_scroll_area_new(ObjectPtr* prt, unsigned int opts, int x, int y, int w, int h) {
+        return new FXScrollAreaEx(static_cast<FXComposite*>(prt), opts, x, y, w, h);
+    }
+
+//~ FXScrollWindow
+    ObjectPtr* fx_scroll_window_new(ObjectPtr* prt, unsigned int opts, int x, int y, int w, int h) {
+        return new FXScrollWindow(static_cast<FXComposite*>(prt), opts, x, y, w, h);
     }
     void fx_splitter_set_split(ObjectPtr* wgt, int index, int size) {
         static_cast<FXSplitter*>(wgt)->setSplit(index, size);

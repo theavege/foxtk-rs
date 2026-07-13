@@ -497,6 +497,75 @@ impl DrawableExt for Splitter {}
 impl WindowExt for Splitter {}
 
 #[derive(Default)]
+pub struct FourSplitter(Option<NonNull<ObjectPtr>>);
+impl FourSplitter {
+    pub fn new(parent: &impl ObjectExt) -> Self {
+        Self::from_raw(unsafe { fx_four_splitter_new(parent.as_raw(), SplitterStyle::Normal as u32) })
+            .with_layout(Layout::Fill)
+    }
+}
+impl ObjectExt for FourSplitter {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl CompositeExt for FourSplitter {}
+impl PackerExt for FourSplitter {}
+impl IdExt for FourSplitter {}
+impl FrameExt for FourSplitter {}
+impl DrawableExt for FourSplitter {}
+impl WindowExt for FourSplitter {}
+
+#[derive(Default)]
+pub struct ScrollArea(Option<NonNull<ObjectPtr>>);
+impl ScrollArea {
+    pub fn new(parent: &impl ObjectExt, opts: u32, x: i32, y: i32, w: i32, h: i32) -> Self {
+        Self::from_raw(unsafe { fx_scroll_area_new(parent.as_raw(), opts, x, y, w, h) })
+            .with_layout(Layout::Fill)
+    }
+}
+impl ObjectExt for ScrollArea {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl CompositeExt for ScrollArea {}
+impl PackerExt for ScrollArea {}
+impl IdExt for ScrollArea {}
+impl FrameExt for ScrollArea {}
+impl DrawableExt for ScrollArea {}
+impl WindowExt for ScrollArea {}
+
+#[derive(Default)]
+pub struct ScrollWindow(Option<NonNull<ObjectPtr>>);
+impl ScrollWindow {
+    pub fn new(parent: &impl ObjectExt, opts: u32, x: i32, y: i32, w: i32, h: i32) -> Self {
+        Self::from_raw(unsafe { fx_scroll_window_new(parent.as_raw(), opts, x, y, w, h) })
+            .with_layout(Layout::Fill)
+    }
+}
+impl ObjectExt for ScrollWindow {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl CompositeExt for ScrollWindow {}
+impl PackerExt for ScrollWindow {}
+impl IdExt for ScrollWindow {}
+impl FrameExt for ScrollWindow {}
+impl DrawableExt for ScrollWindow {}
+impl WindowExt for ScrollWindow {}
+
+#[derive(Default)]
 pub struct Switcher(Option<NonNull<ObjectPtr>>);
 impl Switcher {
     pub fn new(parent: &impl ObjectExt) -> Self {

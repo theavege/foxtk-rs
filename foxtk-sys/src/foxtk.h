@@ -241,6 +241,16 @@ extern "C" {
     void fx_splitter_set_bar_size(ObjectPtr* wgt, int size);
     int fx_splitter_get_bar_size(ObjectPtr* wgt);
 
+//~ FX4Splitter.h
+    ObjectPtr* fx_four_splitter_new(ObjectPtr* prt, unsigned int opts);
+    ObjectPtr* fx_four_splitter_new_with_target(ObjectPtr* prt, ObjectPtr* target, int selector, unsigned int opts);
+
+//~ FXScrollArea.h
+    ObjectPtr* fx_scroll_area_new(ObjectPtr* prt, unsigned int opts, int x, int y, int w, int h);
+
+//~ FXScrollWindow.h
+    ObjectPtr* fx_scroll_window_new(ObjectPtr* prt, unsigned int opts, int x, int y, int w, int h);
+
 //~ FXGroupBox.h
     ObjectPtr* fx_groupbox_new(ObjectPtr*  prt, const char* title);
     void fx_groupbox_set_style(ObjectPtr*  wgt, unsigned int val);
