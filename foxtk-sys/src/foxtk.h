@@ -107,6 +107,33 @@ extern "C" {
 //~ FXDial.h
     ObjectPtr* fx_dial_new(ObjectPtr*  prt);
 
+//~ FXRealSpinner.h
+    ObjectPtr* fx_real_spinner_new(ObjectPtr* prt, int cols);
+
+//~ FXRealSlider.h
+    ObjectPtr* fx_real_slider_new(ObjectPtr* prt);
+
+//~ FXColorWell.h
+    ObjectPtr* fx_color_well_new(ObjectPtr* prt);
+
+//~ FXColorWheel.h
+    ObjectPtr* fx_color_wheel_new(ObjectPtr* prt);
+
+//~ FXColorRing.h
+    ObjectPtr* fx_color_ring_new(ObjectPtr* prt);
+
+//~ FXColorBar.h
+    ObjectPtr* fx_color_bar_new(ObjectPtr* prt);
+
+//~ FXGradientBar.h
+    ObjectPtr* fx_gradient_bar_new(ObjectPtr* prt);
+
+//~ FX7Segment.h
+    ObjectPtr* fx_7segment_new(ObjectPtr* prt, const char* text);
+
+//~ FXColorDialog.h
+    ObjectPtr* fx_color_dialog_new(ObjectPtr* owner, const char* title);
+
 //~ FXFrame
     void fx_frame_set_frame_style(ObjectPtr*  wgt, unsigned int val);
     void fx_frame_set_pad_bottom(ObjectPtr*  wgt, int pad);

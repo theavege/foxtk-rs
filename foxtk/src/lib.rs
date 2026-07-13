@@ -618,6 +618,26 @@ impl FrameExt for Label {}
 impl LabelExt for Label {}
 
 #[derive(Default)]
+pub struct Dial(Option<NonNull<ObjectPtr>>);
+impl Dial {
+    pub fn new(parent: &impl ObjectExt) -> Self {
+        Self::from_raw(unsafe { fx_dial_new(parent.as_raw()) })
+    }
+}
+impl ObjectExt for Dial {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for Dial {}
+impl DrawableExt for Dial {}
+impl WindowExt for Dial {}
+impl FrameExt for Dial {}
+
+#[derive(Default)]
 pub struct Knob(Option<NonNull<ObjectPtr>>);
 impl Knob {
     pub fn new(parent: &impl ObjectExt) -> Self {
@@ -636,6 +656,186 @@ impl IdExt for Knob {}
 impl DrawableExt for Knob {}
 impl WindowExt for Knob {}
 impl FrameExt for Knob {}
+
+#[derive(Default)]
+pub struct RealSpinner(Option<NonNull<ObjectPtr>>);
+impl RealSpinner {
+    pub fn new(parent: &impl ObjectExt, cols: i32) -> Self {
+        Self::from_raw(unsafe { fx_real_spinner_new(parent.as_raw(), cols) })
+    }
+}
+impl ObjectExt for RealSpinner {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for RealSpinner {}
+impl DrawableExt for RealSpinner {}
+impl WindowExt for RealSpinner {}
+impl FrameExt for RealSpinner {}
+
+#[derive(Default)]
+pub struct RealSlider(Option<NonNull<ObjectPtr>>);
+impl RealSlider {
+    pub fn new(parent: &impl ObjectExt) -> Self {
+        Self::from_raw(unsafe { fx_real_slider_new(parent.as_raw()) })
+    }
+}
+impl ObjectExt for RealSlider {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for RealSlider {}
+impl DrawableExt for RealSlider {}
+impl WindowExt for RealSlider {}
+impl FrameExt for RealSlider {}
+
+#[derive(Default)]
+pub struct ColorWell(Option<NonNull<ObjectPtr>>);
+impl ColorWell {
+    pub fn new(parent: &impl ObjectExt) -> Self {
+        Self::from_raw(unsafe { fx_color_well_new(parent.as_raw()) })
+    }
+}
+impl ObjectExt for ColorWell {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for ColorWell {}
+impl DrawableExt for ColorWell {}
+impl WindowExt for ColorWell {}
+impl FrameExt for ColorWell {}
+
+#[derive(Default)]
+pub struct ColorWheel(Option<NonNull<ObjectPtr>>);
+impl ColorWheel {
+    pub fn new(parent: &impl ObjectExt) -> Self {
+        Self::from_raw(unsafe { fx_color_wheel_new(parent.as_raw()) })
+    }
+}
+impl ObjectExt for ColorWheel {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for ColorWheel {}
+impl DrawableExt for ColorWheel {}
+impl WindowExt for ColorWheel {}
+impl FrameExt for ColorWheel {}
+
+#[derive(Default)]
+pub struct ColorRing(Option<NonNull<ObjectPtr>>);
+impl ColorRing {
+    pub fn new(parent: &impl ObjectExt) -> Self {
+        Self::from_raw(unsafe { fx_color_ring_new(parent.as_raw()) })
+    }
+}
+impl ObjectExt for ColorRing {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for ColorRing {}
+impl DrawableExt for ColorRing {}
+impl WindowExt for ColorRing {}
+impl FrameExt for ColorRing {}
+
+#[derive(Default)]
+pub struct ColorBar(Option<NonNull<ObjectPtr>>);
+impl ColorBar {
+    pub fn new(parent: &impl ObjectExt) -> Self {
+        Self::from_raw(unsafe { fx_color_bar_new(parent.as_raw()) })
+    }
+}
+impl ObjectExt for ColorBar {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for ColorBar {}
+impl DrawableExt for ColorBar {}
+impl WindowExt for ColorBar {}
+impl FrameExt for ColorBar {}
+
+#[derive(Default)]
+pub struct GradientBar(Option<NonNull<ObjectPtr>>);
+impl GradientBar {
+    pub fn new(parent: &impl ObjectExt) -> Self {
+        Self::from_raw(unsafe { fx_gradient_bar_new(parent.as_raw()) })
+    }
+}
+impl ObjectExt for GradientBar {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for GradientBar {}
+impl DrawableExt for GradientBar {}
+impl WindowExt for GradientBar {}
+impl FrameExt for GradientBar {}
+
+#[derive(Default)]
+pub struct SevenSegment(Option<NonNull<ObjectPtr>>);
+impl SevenSegment {
+    pub fn new(parent: &impl ObjectExt, text: &str) -> Self {
+        Self::from_raw(unsafe { fx_7segment_new(parent.as_raw(), CString::new(text).unwrap().as_ptr()) })
+    }
+}
+impl ObjectExt for SevenSegment {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for SevenSegment {}
+impl DrawableExt for SevenSegment {}
+impl WindowExt for SevenSegment {}
+impl FrameExt for SevenSegment {}
+
+#[derive(Default)]
+pub struct ColorDialog(Option<NonNull<ObjectPtr>>);
+impl ColorDialog {
+    pub fn new(owner: &impl ObjectExt, title: &str) -> Self {
+        Self::from_raw(unsafe { fx_color_dialog_new(owner.as_raw(), CString::new(title).unwrap().as_ptr()) })
+    }
+}
+impl ObjectExt for ColorDialog {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for ColorDialog {}
+impl DrawableExt for ColorDialog {}
+impl WindowExt for ColorDialog {}
+impl FrameExt for ColorDialog {}
 
 #[derive(Default)]
 pub struct ListBox(Option<NonNull<ObjectPtr>>);

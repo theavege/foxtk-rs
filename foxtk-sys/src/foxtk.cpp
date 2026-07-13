@@ -388,6 +388,51 @@ extern "C" {
         return new FXDial(static_cast<FXComposite*>(prt));
     }
 
+//~ FXRealSpinner.h
+    ObjectPtr* fx_real_spinner_new(ObjectPtr* prt, int cols) {
+        return new FXRealSpinner(static_cast<FXComposite*>(prt), cols);
+    }
+
+//~ FXRealSlider.h
+    ObjectPtr* fx_real_slider_new(ObjectPtr* prt) {
+        return new FXRealSlider(static_cast<FXComposite*>(prt));
+    }
+
+//~ FXColorWell.h
+    ObjectPtr* fx_color_well_new(ObjectPtr* prt) {
+        return new FXColorWell(static_cast<FXComposite*>(prt));
+    }
+
+//~ FXColorWheel.h
+    ObjectPtr* fx_color_wheel_new(ObjectPtr* prt) {
+        return new FXColorWheel(static_cast<FXComposite*>(prt));
+    }
+
+//~ FXColorRing.h
+    ObjectPtr* fx_color_ring_new(ObjectPtr* prt) {
+        return new FXColorRing(static_cast<FXComposite*>(prt));
+    }
+
+//~ FXColorBar.h
+    ObjectPtr* fx_color_bar_new(ObjectPtr* prt) {
+        return new FXColorBar(static_cast<FXComposite*>(prt));
+    }
+
+//~ FXGradientBar.h
+    ObjectPtr* fx_gradient_bar_new(ObjectPtr* prt) {
+        return new FXGradientBar(static_cast<FXComposite*>(prt));
+    }
+
+//~ FX7Segment.h
+    ObjectPtr* fx_7segment_new(ObjectPtr* prt, const char* text) {
+        return new FX7Segment(static_cast<FXComposite*>(prt), text);
+    }
+
+//~ FXColorDialog.h
+    ObjectPtr* fx_color_dialog_new(ObjectPtr* owner, const char* title) {
+        return new FXColorDialog(static_cast<FXWindow*>(owner), title);
+    }
+
 //~ FXDialogBox.h
     ObjectPtr* fx_dialog_box_new(ObjectPtr* owner, const char* title) {
         return new FXDialogBox(static_cast<FXWindow*>(owner), title);
