@@ -703,6 +703,39 @@ pub trait TabItemExt: WindowExt {
     }
 }
 
+pub trait TopWindowExt: WindowExt {
+    fn set_decorations(&self, decorations: Decor) {
+        unsafe {
+            fx_top_window_set_decorations(self.as_raw(), decorations as u32);
+        }
+    }
+    fn set_hspacing(&self, spacing: i32) {
+        unsafe {
+            fx_top_window_set_hspacing(self.as_raw(), spacing);
+        }
+    }
+    fn set_vspacing(&self, spacing: i32) {
+        unsafe {
+            fx_top_window_set_vspacing(self.as_raw(), spacing);
+        }
+    }
+    fn with_decorations(self, decorations: Decor) -> Self {
+        self.set_decorations(decorations);
+        self
+    }
+    fn with_hspacing(self, spacing: i32) -> Self {
+        self.set_hspacing(spacing);
+        self
+    }
+    fn with_vspacing(self, spacing: i32) -> Self {
+        self.set_vspacing(spacing);
+        self
+    }
+}
+
+impl TopWindowExt for super::TopWindow {}
+impl TopWindowExt for super::MainWindow {}
+
 pub trait AppExt: ObjectExt {
     fn add_timeout<F: FnMut(Self) -> bool + 'static>(&self, ms: u32, func: F) {
         let raw_ptr: *mut Box<dyn FnMut(Self) -> bool> = Box::into_raw(Box::new(Box::new(func)));
