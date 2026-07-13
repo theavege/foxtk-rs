@@ -6,6 +6,8 @@ extern "C" {
 #endif
 
 //~ OPAQUE HANDLES
+// ABI note: widget constructor entry points return owned ObjectPtr handles (or nullptr
+// when the parent/owner argument is missing). Getter functions return borrowed data.
     typedef unsigned int FXuint;
     typedef void        ObjectPtr;
     typedef long         (*CWidgetCb)(ObjectPtr*  widget, void* context);

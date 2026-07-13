@@ -1,4 +1,5 @@
 #include <fx.h>
+#include <FXGradientBar.h>
 
 //~ OPAQUE HANDLES
 
@@ -126,6 +127,26 @@ public:
     FXScrollAreaEx(FXComposite* parent, FXuint opts, FXint x, FXint y, FXint w, FXint h)
         : FXScrollArea(parent, opts, x, y, w, h) {}
 };
+
+template <typename Widget, typename Parent, typename... Args>
+inline ObjectPtr* make_widget(ObjectPtr* parent, Args&&... args) {
+    if (!parent) {
+        return nullptr;
+    }
+    return new Widget(static_cast<Parent*>(parent), std::forward<Args>(args)...);
+}
+
+template <typename Widget, typename... Args>
+inline ObjectPtr* make_widget(Args&&... args) {
+    return new Widget(std::forward<Args>(args)...);
+}
+
+template <typename Value>
+inline const char* string_result(const Value& value) {
+    static thread_local FXString buffer;
+    buffer = value;
+    return buffer.text();
+}
 
 extern "C" {
     unsigned int fx_rgb(unsigned int r, unsigned int g, unsigned int b) {
@@ -286,12 +307,10 @@ extern "C" {
 
 //~ FXLabel
     ObjectPtr* fx_label_new(ObjectPtr* prt, const char* title) {
-        return new FXLabel(static_cast<FXComposite*>(prt), title);
+        return make_widget<FXLabel, FXComposite>(prt, title);
     }
     const char* fx_label_get_text(ObjectPtr* wgt) {
-        static thread_local FXString buffer;
-        buffer = static_cast<FXLabel*>(wgt)->getText();
-        return buffer.text();
+        return string_result(static_cast<FXLabel*>(wgt)->getText());
     }
     void fx_label_set_text(ObjectPtr* wgt, const char* text) {
         static_cast<FXLabel*>(wgt) -> setText(text);
@@ -311,7 +330,7 @@ extern "C" {
 
 //~ FXArrowButton.h
     ObjectPtr* fx_arrow_button_new(ObjectPtr* prt) {
-        return new FXArrowButton(static_cast<FXComposite*>(prt));
+        return make_widget<FXArrowButton, FXComposite>(prt);
     }
     void fx_arrow_button_set_arrow_size(ObjectPtr* wgt, int size) {
         static_cast<FXArrowButton*>(wgt) -> setArrowSize(size);
@@ -341,118 +360,114 @@ extern "C" {
 
 //~ FXTriStateButton.h
     ObjectPtr* fx_tri_state_button_new(ObjectPtr* prt, const char* text1, const char* text2, const char* text3) {
-        return new FXTriStateButton(static_cast<FXComposite*>(prt), text1, text2, text3);
+        return make_widget<FXTriStateButton, FXComposite>(prt, text1, text2, text3);
     }
 
 //~ FXTreeListBox.h
     ObjectPtr* fx_tree_list_box_new(ObjectPtr* prt) {
-        return new FXTreeListBox(static_cast<FXComposite*>(prt));
+        return make_widget<FXTreeListBox, FXComposite>(prt);
     }
 
 //~ FXDriveBox.h
     ObjectPtr* fx_drive_box_new(ObjectPtr* prt) {
-        return new FXDriveBox(static_cast<FXComposite*>(prt));
+        return make_widget<FXDriveBox, FXComposite>(prt);
     }
 
 //~ FXDirBox.h
     ObjectPtr* fx_dir_box_new(ObjectPtr* prt) {
-        return new FXDirBox(static_cast<FXComposite*>(prt));
+        return make_widget<FXDirBox, FXComposite>(prt);
     }
     ObjectPtr* fx_dir_list_new(ObjectPtr* prt) {
-        return new FXDirList(static_cast<FXComposite*>(prt));
+        return make_widget<FXDirList, FXComposite>(prt);
     }
     ObjectPtr* fx_dir_selector_new(ObjectPtr* prt) {
-        return new FXDirSelector(static_cast<FXComposite*>(prt));
+        return make_widget<FXDirSelector, FXComposite>(prt);
     }
 
 //~ FXFileSelector.h
     ObjectPtr* fx_file_selector_new(ObjectPtr* prt) {
-        return new FXFileSelector(static_cast<FXComposite*>(prt));
+        return make_widget<FXFileSelector, FXComposite>(prt);
     }
     ObjectPtr* fx_file_list_new(ObjectPtr* prt) {
-        return new FXFileList(static_cast<FXComposite*>(prt));
+        return make_widget<FXFileList, FXComposite>(prt);
     }
 
 //~ FXFontSelector.h
     ObjectPtr* fx_font_selector_new(ObjectPtr* prt) {
-        return new FXFontSelector(static_cast<FXComposite*>(prt));
+        return make_widget<FXFontSelector, FXComposite>(prt);
     }
 
 //~ FXColorSelector.h
     ObjectPtr* fx_color_selector_new(ObjectPtr* prt) {
-        return new FXColorSelector(static_cast<FXComposite*>(prt));
+        return make_widget<FXColorSelector, FXComposite>(prt);
     }
 
 //~ FXDial.h
     ObjectPtr* fx_dial_new(ObjectPtr* prt) {
-        return new FXDial(static_cast<FXComposite*>(prt));
+        return make_widget<FXDial, FXComposite>(prt);
     }
 
 //~ FXRealSpinner.h
     ObjectPtr* fx_real_spinner_new(ObjectPtr* prt, int cols) {
-        return new FXRealSpinner(static_cast<FXComposite*>(prt), cols);
+        return make_widget<FXRealSpinner, FXComposite>(prt, cols);
     }
 
 //~ FXRealSlider.h
     ObjectPtr* fx_real_slider_new(ObjectPtr* prt) {
-        return new FXRealSlider(static_cast<FXComposite*>(prt));
+        return make_widget<FXRealSlider, FXComposite>(prt);
     }
 
 //~ FXColorWell.h
     ObjectPtr* fx_color_well_new(ObjectPtr* prt) {
-        return new FXColorWell(static_cast<FXComposite*>(prt));
+        return make_widget<FXColorWell, FXComposite>(prt);
     }
 
 //~ FXColorWheel.h
     ObjectPtr* fx_color_wheel_new(ObjectPtr* prt) {
-        return new FXColorWheel(static_cast<FXComposite*>(prt));
+        return make_widget<FXColorWheel, FXComposite>(prt);
     }
 
 //~ FXColorRing.h
     ObjectPtr* fx_color_ring_new(ObjectPtr* prt) {
-        return new FXColorRing(static_cast<FXComposite*>(prt));
+        return make_widget<FXColorRing, FXComposite>(prt);
     }
 
 //~ FXColorBar.h
     ObjectPtr* fx_color_bar_new(ObjectPtr* prt) {
-        return new FXColorBar(static_cast<FXComposite*>(prt));
+        return make_widget<FXColorBar, FXComposite>(prt);
     }
 
 //~ FXGradientBar.h
     ObjectPtr* fx_gradient_bar_new(ObjectPtr* prt) {
-        return new FXGradientBar(static_cast<FXComposite*>(prt));
+        return make_widget<FX::FXGradientBar, FXComposite>(prt);
     }
 
 //~ FX7Segment.h
     ObjectPtr* fx_7segment_new(ObjectPtr* prt, const char* text) {
-        return new FX7Segment(static_cast<FXComposite*>(prt), text);
+        return make_widget<FX7Segment, FXComposite>(prt, text);
     }
 
 //~ FXColorDialog.h
     ObjectPtr* fx_color_dialog_new(ObjectPtr* owner, const char* title) {
-        return new FXColorDialog(static_cast<FXWindow*>(owner), title);
+        return make_widget<FXColorDialog, FXWindow>(owner, title);
     }
 
 //~ FXDialogBox.h
     ObjectPtr* fx_dialog_box_new(ObjectPtr* owner, const char* title) {
-        return new FXDialogBox(static_cast<FXWindow*>(owner), title);
+        return make_widget<FXDialogBox, FXWindow>(owner, title);
     }
 
 //~ FXFileDialog.h
     const char* fx_file_dialog_get_open_filename(ObjectPtr* owner, const char* caption, const char* path, const char* patterns, int initial) {
-        static thread_local FXString buffer;
-        buffer = FXFileDialog::getOpenFilename(static_cast<FXWindow*>(owner), caption, path, patterns, initial);
-        return buffer.text();
+        return string_result(FXFileDialog::getOpenFilename(static_cast<FXWindow*>(owner), caption, path, patterns, initial));
     }
     const char* fx_file_dialog_get_save_filename(ObjectPtr* owner, const char* caption, const char* path, const char* patterns, int initial) {
-        static thread_local FXString buffer;
-        buffer = FXFileDialog::getSaveFilename(static_cast<FXWindow*>(owner), caption, path, patterns, initial);
-        return buffer.text();
+        return string_result(FXFileDialog::getSaveFilename(static_cast<FXWindow*>(owner), caption, path, patterns, initial));
     }
 
 //~ FXButton.h
     ObjectPtr* fx_button_new(ObjectPtr* prt, const char* title) {
-        return new FXButton(static_cast<FXComposite*>(prt), title);
+        return make_widget<FXButton, FXComposite>(prt, title);
     }
     void fx_button_set_state(ObjectPtr* wgt, unsigned int state) {
         static_cast<FXButton*>(wgt) -> setState(state);
@@ -463,7 +478,7 @@ extern "C" {
 
 //~ FXCheckButton.h
     ObjectPtr* fx_check_button_new(ObjectPtr* prt, const char* title) {
-        return new FXCheckButton(static_cast<FXComposite*>(prt), title);
+        return make_widget<FXCheckButton, FXComposite>(prt, title);
     }
     unsigned char fx_check_button_get_check(ObjectPtr* wgt) {
         return static_cast<FXCheckButton*>(wgt)->getCheck();
@@ -474,7 +489,7 @@ extern "C" {
 
 //~ FXRadioButton.h
     ObjectPtr* fx_radio_button_new(ObjectPtr* prt, const char* title) {
-        return new FXRadioButton(static_cast<FXComposite*>(prt), title);
+        return make_widget<FXRadioButton, FXComposite>(prt, title);
     }
     unsigned char fx_radio_button_get_check(ObjectPtr* wgt) {
         return static_cast<FXRadioButton*>(wgt)->getCheck();
@@ -485,7 +500,7 @@ extern "C" {
 
 //~ FXToggleButton.h
     ObjectPtr* fx_toggle_button_new(ObjectPtr* prt, const char* text1, const char* text2) {
-        return new FXToggleButton(static_cast<FXComposite*>(prt), text1, text2);
+        return make_widget<FXToggleButton, FXComposite>(prt, text1, text2);
     }
 
 //~ FXText.h
