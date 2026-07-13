@@ -120,6 +120,25 @@ pub enum FrameStyle {
 
 #[repr(C)]
 #[derive(Default)]
+pub enum MatrixStyle {
+    #[default]
+    ByRows = 0,
+    ByColumns = 0x00020000,
+}
+
+#[repr(C)]
+#[derive(Default)]
+pub enum SplitterStyle {
+    #[default]
+    Horizontal = 0,
+    Vertical = 0x00008000,
+    Reversed = 0x00010000,
+    Tracking = 0x00020000,
+    Normal = 0x00040000,
+}
+
+#[repr(C)]
+#[derive(Default)]
 pub enum Selector {
     #[default]
     COMMAND = 0,

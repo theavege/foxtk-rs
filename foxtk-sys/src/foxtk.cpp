@@ -109,6 +109,18 @@ FXDEFMAP(CMouseTarget) CMouseTargetMap[] = {
 };
 FXIMPLEMENT(CMouseTarget, FXObject, CMouseTargetMap, ARRAYNUMBER(CMouseTargetMap))
 
+class FXTopWindowEx : public FXTopWindow {
+public:
+    FXTopWindowEx(FXApp* app, const FXString& name, FXIcon* ic, FXIcon* mi, FXuint opts, FXint x, FXint y, FXint w, FXint h, FXint pl, FXint pr, FXint pt, FXint pb, FXint hs, FXint vs)
+        : FXTopWindow(app, name, ic, mi, opts, x, y, w, h, pl, pr, pt, pb, hs, vs) {}
+};
+
+class FXShellEx : public FXShell {
+public:
+    FXShellEx(FXWindow* owner, FXuint opts, FXint x, FXint y, FXint w, FXint h)
+        : FXShell(owner, opts, x, y, w, h) {}
+};
+
 extern "C" {
     unsigned int fx_rgb(unsigned int r, unsigned int g, unsigned int b) {
         return FXRGB(r,g,b);
@@ -545,6 +557,55 @@ extern "C" {
         static_cast<FXPacker*>(wgt)->setVSpacing(val);
     }
 
+//~ FXMatrix
+    ObjectPtr* fx_matrix_new(ObjectPtr* prt, int rows, unsigned int opts) {
+        return new FXMatrix(static_cast<FXComposite*>(prt), rows, opts);
+    }
+    void fx_matrix_set_matrix_style(ObjectPtr* wgt, unsigned int style) {
+        static_cast<FXMatrix*>(wgt)->setMatrixStyle(style);
+    }
+    void fx_matrix_set_num_rows(ObjectPtr* wgt, int rows) {
+        static_cast<FXMatrix*>(wgt)->setNumRows(rows);
+    }
+    void fx_matrix_set_num_columns(ObjectPtr* wgt, int cols) {
+        static_cast<FXMatrix*>(wgt)->setNumColumns(cols);
+    }
+    unsigned int fx_matrix_get_matrix_style(ObjectPtr* wgt) {
+        return static_cast<FXMatrix*>(wgt)->getMatrixStyle();
+    }
+    int fx_matrix_get_num_rows(ObjectPtr* wgt) {
+        return static_cast<FXMatrix*>(wgt)->getNumRows();
+    }
+    int fx_matrix_get_num_columns(ObjectPtr* wgt) {
+        return static_cast<FXMatrix*>(wgt)->getNumColumns();
+    }
+
+//~ FXSplitter
+    ObjectPtr* fx_splitter_new(ObjectPtr* prt, unsigned int opts) {
+        return new FXSplitter(static_cast<FXComposite*>(prt), opts);
+    }
+    ObjectPtr* fx_splitter_new_with_target(ObjectPtr* prt, ObjectPtr* target, int selector, unsigned int opts) {
+        return new FXSplitter(static_cast<FXComposite*>(prt), static_cast<FXObject*>(target), selector, opts);
+    }
+    int fx_splitter_get_split(ObjectPtr* wgt, int index) {
+        return static_cast<FXSplitter*>(wgt)->getSplit(index);
+    }
+    void fx_splitter_set_split(ObjectPtr* wgt, int index, int size) {
+        static_cast<FXSplitter*>(wgt)->setSplit(index, size);
+    }
+    void fx_splitter_set_splitter_style(ObjectPtr* wgt, unsigned int style) {
+        static_cast<FXSplitter*>(wgt)->setSplitterStyle(style);
+    }
+    unsigned int fx_splitter_get_splitter_style(ObjectPtr* wgt) {
+        return static_cast<FXSplitter*>(wgt)->getSplitterStyle();
+    }
+    void fx_splitter_set_bar_size(ObjectPtr* wgt, int size) {
+        static_cast<FXSplitter*>(wgt)->setBarSize(size);
+    }
+    int fx_splitter_get_bar_size(ObjectPtr* wgt) {
+        return static_cast<FXSplitter*>(wgt)->getBarSize();
+    }
+
 //~ FXGroupBox
     ObjectPtr* fx_groupbox_new(ObjectPtr* prt, const char* title) {
         return new FXGroupBox(static_cast<FXComposite*>(prt), title);
@@ -607,6 +668,47 @@ extern "C" {
     }
     void fx_dc_fill_rect(ObjectPtr* dc, int x, int y, int w, int h) {
         static_cast<FXDCWindow*>(dc)->fillRectangle(x, y, w, h);
+    }
+
+//~ FXTopWindow
+    ObjectPtr* fx_top_window_new(ObjectPtr* app, const char* title, int width, int height) {
+        return new FXTopWindowEx(
+            static_cast<FXApp*>(app),
+            title,
+            nullptr,
+            nullptr,
+            DECOR_ALL,
+            0,
+            0,
+            width,
+            height,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+        );
+    }
+
+//~ FXSplashWindow
+    ObjectPtr* fx_splash_window_new(ObjectPtr* app) {
+        return new FXSplashWindow(static_cast<FXApp*>(app), nullptr);
+    }
+
+//~ FXToolBarShell
+    ObjectPtr* fx_tool_bar_shell_new(ObjectPtr* owner) {
+        return new FXToolBarShell(static_cast<FXWindow*>(owner));
+    }
+
+//~ FXRootWindow
+    ObjectPtr* fx_root_window_new(ObjectPtr* app) {
+        return new FXRootWindow(static_cast<FXApp*>(app), nullptr);
+    }
+
+//~ FXShell
+    ObjectPtr* fx_shell_new(ObjectPtr* owner, unsigned int opts, int x, int y, int w, int h) {
+        return new FXShellEx(static_cast<FXWindow*>(owner), opts, x, y, w, h);
     }
 
 //~ FXMainWindow
@@ -863,5 +965,33 @@ extern "C" {
         static thread_local FXString buffer;
         buffer = static_cast<FXMenuCommand*>(wgt)->getAccelText();
         return buffer.text();
+    }
+
+//~ FXStatusLine
+    ObjectPtr* fx_status_line_new(ObjectPtr* prt) {
+        return new FXStatusLine(static_cast<FXComposite*>(prt));
+    }
+    const char* fx_status_line_get_text(ObjectPtr* wgt) {
+        static thread_local FXString buffer;
+        buffer = static_cast<FXStatusLine*>(wgt)->getText();
+        return buffer.text();
+    }
+    void fx_status_line_set_text(ObjectPtr* wgt, const char* text) {
+        static_cast<FXStatusLine*>(wgt)->setText(text);
+    }
+
+//~ FXStatusBar
+    ObjectPtr* fx_status_bar_new(ObjectPtr* prt) {
+        return new FXStatusBar(static_cast<FXComposite*>(prt));
+    }
+
+//~ FXOption
+    ObjectPtr* fx_option_new(ObjectPtr* prt, const char* text) {
+        return new FXOption(static_cast<FXComposite*>(prt), text);
+    }
+
+//~ FXOptionMenu
+    ObjectPtr* fx_option_menu_new(ObjectPtr* prt) {
+        return new FXOptionMenu(static_cast<FXComposite*>(prt));
     }
 }

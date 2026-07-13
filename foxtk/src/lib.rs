@@ -39,6 +39,128 @@ impl ObjectExt for App {
 impl AppExt for App {}
 
 #[derive(Default)]
+pub struct Window(Option<NonNull<ObjectPtr>>);
+impl Window {
+    pub fn new(parent: &impl ObjectExt, opts: u32, x: i32, y: i32, w: i32, h: i32) -> Self {
+        Self::from_raw(unsafe { fx_shell_new(parent.as_raw(), opts, x, y, w, h) })
+    }
+}
+impl ObjectExt for Window {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for Window {}
+impl FrameExt for Window {}
+impl DrawableExt for Window {}
+impl WindowExt for Window {}
+
+#[derive(Default)]
+pub struct Shell(Option<NonNull<ObjectPtr>>);
+impl Shell {
+    pub fn new(parent: &impl ObjectExt, opts: u32, x: i32, y: i32, w: i32, h: i32) -> Self {
+        Self::from_raw(unsafe { fx_shell_new(parent.as_raw(), opts, x, y, w, h) })
+    }
+}
+impl ObjectExt for Shell {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for Shell {}
+impl FrameExt for Shell {}
+impl DrawableExt for Shell {}
+impl WindowExt for Shell {}
+
+#[derive(Default)]
+pub struct RootWindow(Option<NonNull<ObjectPtr>>);
+impl RootWindow {
+    pub fn new(app: &impl AppExt) -> Self {
+        Self::from_raw(unsafe { fx_root_window_new(app.as_raw()) })
+    }
+}
+impl ObjectExt for RootWindow {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for RootWindow {}
+impl FrameExt for RootWindow {}
+impl DrawableExt for RootWindow {}
+impl WindowExt for RootWindow {}
+
+#[derive(Default)]
+pub struct ToolBarShell(Option<NonNull<ObjectPtr>>);
+impl ToolBarShell {
+    pub fn new(owner: &impl ObjectExt) -> Self {
+        Self::from_raw(unsafe { fx_tool_bar_shell_new(owner.as_raw()) })
+    }
+}
+impl ObjectExt for ToolBarShell {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for ToolBarShell {}
+impl FrameExt for ToolBarShell {}
+impl DrawableExt for ToolBarShell {}
+impl WindowExt for ToolBarShell {}
+
+#[derive(Default)]
+pub struct TopWindow(Option<NonNull<ObjectPtr>>);
+impl TopWindow {
+    pub fn new(app: &impl AppExt, title: &str, width: i32, height: i32) -> Self {
+        Self::from_raw(unsafe {
+            fx_top_window_new(app.as_raw(), CString::new(title).unwrap().as_ptr(), width, height)
+        })
+    }
+}
+impl ObjectExt for TopWindow {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for TopWindow {}
+impl FrameExt for TopWindow {}
+impl DrawableExt for TopWindow {}
+impl WindowExt for TopWindow {}
+
+#[derive(Default)]
+pub struct SplashWindow(Option<NonNull<ObjectPtr>>);
+impl SplashWindow {
+    pub fn new(app: &impl AppExt) -> Self {
+        Self::from_raw(unsafe { fx_splash_window_new(app.as_raw()) })
+    }
+}
+impl ObjectExt for SplashWindow {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for SplashWindow {}
+impl FrameExt for SplashWindow {}
+impl DrawableExt for SplashWindow {}
+impl WindowExt for SplashWindow {}
+
+#[derive(Default)]
 pub struct Button(Option<NonNull<ObjectPtr>>);
 impl Button {
     pub fn new(parent: &impl ObjectExt, title: &str) -> Self {
@@ -268,6 +390,111 @@ impl IdExt for HorizontalFrame {}
 impl FrameExt for HorizontalFrame {}
 impl DrawableExt for HorizontalFrame {}
 impl WindowExt for HorizontalFrame {}
+
+#[derive(Default)]
+pub struct Matrix(Option<NonNull<ObjectPtr>>);
+impl Matrix {
+    pub fn new(parent: &impl ObjectExt, rows: i32) -> Self {
+        Self::from_raw(unsafe { fx_matrix_new(parent.as_raw(), rows, MatrixStyle::ByRows as u32) })
+            .with_layout(Layout::Fill)
+    }
+    pub fn set_style(&self, style: MatrixStyle) {
+        unsafe {
+            fx_matrix_set_matrix_style(self.as_raw(), style as u32);
+        }
+    }
+    pub fn set_num_rows(&self, rows: i32) {
+        unsafe {
+            fx_matrix_set_num_rows(self.as_raw(), rows);
+        }
+    }
+    pub fn set_num_columns(&self, cols: i32) {
+        unsafe {
+            fx_matrix_set_num_columns(self.as_raw(), cols);
+        }
+    }
+    pub fn style(&self) -> MatrixStyle {
+        unsafe {
+            std::mem::transmute::<u32, MatrixStyle>(fx_matrix_get_matrix_style(self.as_raw()) as u32)
+        }
+    }
+    pub fn num_rows(&self) -> i32 {
+        unsafe { fx_matrix_get_num_rows(self.as_raw()) }
+    }
+    pub fn num_columns(&self) -> i32 {
+        unsafe { fx_matrix_get_num_columns(self.as_raw()) }
+    }
+}
+impl ObjectExt for Matrix {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl CompositeExt for Matrix {}
+impl PackerExt for Matrix {}
+impl IdExt for Matrix {}
+impl FrameExt for Matrix {}
+impl DrawableExt for Matrix {}
+impl WindowExt for Matrix {}
+
+#[derive(Default)]
+pub struct Splitter(Option<NonNull<ObjectPtr>>);
+impl Splitter {
+    pub fn new(parent: &impl ObjectExt) -> Self {
+        Self::from_raw(unsafe { fx_splitter_new(parent.as_raw(), SplitterStyle::Normal as u32) })
+            .with_layout(Layout::Fill)
+    }
+    pub fn with_style(self, style: SplitterStyle) -> Self {
+        unsafe {
+            fx_splitter_set_splitter_style(self.as_raw(), style as u32);
+        }
+        self
+    }
+    pub fn set_style(&self, style: SplitterStyle) {
+        unsafe {
+            fx_splitter_set_splitter_style(self.as_raw(), style as u32);
+        }
+    }
+    pub fn style(&self) -> SplitterStyle {
+        unsafe {
+            std::mem::transmute::<u32, SplitterStyle>(
+                fx_splitter_get_splitter_style(self.as_raw()) as u32
+            )
+        }
+    }
+    pub fn set_split(&self, index: i32, size: i32) {
+        unsafe {
+            fx_splitter_set_split(self.as_raw(), index, size);
+        }
+    }
+    pub fn split(&self, index: i32) -> i32 {
+        unsafe { fx_splitter_get_split(self.as_raw(), index) }
+    }
+    pub fn set_bar_size(&self, size: i32) {
+        unsafe {
+            fx_splitter_set_bar_size(self.as_raw(), size);
+        }
+    }
+    pub fn bar_size(&self) -> i32 {
+        unsafe { fx_splitter_get_bar_size(self.as_raw()) }
+    }
+}
+impl ObjectExt for Splitter {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl CompositeExt for Splitter {}
+impl IdExt for Splitter {}
+impl FrameExt for Splitter {}
+impl DrawableExt for Splitter {}
+impl WindowExt for Splitter {}
 
 #[derive(Default)]
 pub struct Switcher(Option<NonNull<ObjectPtr>>);
@@ -658,6 +885,89 @@ impl FrameExt for TextField {}
 impl DrawableExt for TextField {}
 impl TextFieldExt for TextField {}
 
+#[derive(Default)]
+pub struct StatusBar(std::option::Option<NonNull<ObjectPtr>>);
+impl StatusBar {
+    pub fn new(parent: &impl ObjectExt) -> Self {
+        Self::from_raw(unsafe { fx_status_bar_new(parent.as_raw()) })
+    }
+}
+impl ObjectExt for StatusBar {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for StatusBar {}
+impl FrameExt for StatusBar {}
+impl DrawableExt for StatusBar {}
+impl WindowExt for StatusBar {}
+
+#[derive(Default)]
+pub struct OptionWidget(std::option::Option<NonNull<ObjectPtr>>);
+impl OptionWidget {
+    pub fn new(parent: &impl ObjectExt, title: &str) -> Self {
+        Self::from_raw(unsafe {
+            fx_option_new(parent.as_raw(), CString::new(title).unwrap().as_ptr())
+        })
+        .with_layout(Layout::FillX)
+    }
+}
+impl ObjectExt for OptionWidget {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for OptionWidget {}
+impl FrameExt for OptionWidget {}
+impl DrawableExt for OptionWidget {}
+impl WindowExt for OptionWidget {}
+
+#[derive(Default)]
+pub struct OptionMenu(std::option::Option<NonNull<ObjectPtr>>);
+impl OptionMenu {
+    pub fn new(parent: &impl ObjectExt) -> Self {
+        Self::from_raw(unsafe { fx_option_menu_new(parent.as_raw()) }).with_layout(Layout::FillX)
+    }
+}
+impl ObjectExt for OptionMenu {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for OptionMenu {}
+impl FrameExt for OptionMenu {}
+impl DrawableExt for OptionMenu {}
+impl WindowExt for OptionMenu {}
+
+#[derive(Default)]
+pub struct DirBox(std::option::Option<NonNull<ObjectPtr>>);
+impl DirBox {
+    pub fn new(parent: &impl ObjectExt) -> Self {
+        Self::from_raw(unsafe { fx_dir_box_new(parent.as_raw()) }).with_layout(Layout::Fill)
+    }
+}
+impl ObjectExt for DirBox {
+    fn as_raw(&self) -> *mut ObjectPtr {
+        self.0.expect("Empty ObjectPtr!").as_ptr()
+    }
+    fn from_raw(ptr: *mut ObjectPtr) -> Self {
+        Self(NonNull::new(ptr))
+    }
+}
+impl IdExt for DirBox {}
+impl FrameExt for DirBox {}
+impl DrawableExt for DirBox {}
+impl WindowExt for DirBox {}
+
 pub struct TreeList(Option<NonNull<ObjectPtr>>);
 impl TreeList {
     pub fn new(parent: &impl WindowExt) -> Self {
@@ -700,6 +1010,11 @@ impl MainWindow {
             fx_main_window_new(app.as_raw(), CString::new(title_).unwrap().as_ptr(), w, h)
         })
         .with_pad(0)
+    }
+    pub fn show(&self) {
+        unsafe {
+            fx_main_window_show(self.as_raw());
+        }
     }
 }
 impl ObjectExt for MainWindow {
