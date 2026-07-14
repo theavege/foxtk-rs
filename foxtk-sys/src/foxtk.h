@@ -31,7 +31,6 @@ extern "C" {
     ObjectPtr* fx_app_new(const char* name, const char* vendor, int argc, char** argv);
     int fx_app_run(ObjectPtr*  app);
     void fx_app_add_timeout(ObjectPtr*  app, CTimerCb cb, unsigned int ns, void* ctx);
-    // void fx_app_add_chore(ObjectPtr*  app, CTimerCb cb, void* ctx);
 
 //~ FXMessageBox.h
     unsigned int fx_message_box_error(ObjectPtr*  owner, unsigned int opts, const char* caption, const char* message);

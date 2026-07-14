@@ -748,12 +748,6 @@ pub trait AppExt: ObjectExt {
             );
         }
     }
-    fn add_chore<F: FnMut(Self) -> bool + 'static>(&self, func: F) {
-        let raw_ptr: *mut Box<dyn FnMut(Self) -> bool> = Box::into_raw(Box::new(Box::new(func)));
-        unsafe {
-            fx_app_add_chore(self.as_raw(), Some(ctimer::<Self>), raw_ptr as *mut c_void);
-        }
-    }
     fn run(&self) -> i32 {
         unsafe { fx_app_run(self.as_raw()) }
     }

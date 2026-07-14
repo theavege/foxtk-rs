@@ -110,6 +110,9 @@ FXDEFMAP(CMouseTarget) CMouseTargetMap[] = {
 };
 FXIMPLEMENT(CMouseTarget, FXObject, CMouseTargetMap, ARRAYNUMBER(CMouseTargetMap))
 
+// FOX marks these constructors protected to discourage direct instantiation,
+// but we need them for the C bridge. These thin subclasses expose them safely.
+
 class FXTopWindowEx : public FXTopWindow {
 public:
     FXTopWindowEx(FXApp* app, const FXString& name, FXIcon* ic, FXIcon* mi, FXuint opts, FXint x, FXint y, FXint w, FXint h, FXint pl, FXint pr, FXint pt, FXint pb, FXint hs, FXint vs)
@@ -207,7 +210,8 @@ extern "C" {
     }
     void fx_window_set_target(ObjectPtr* wgt, CWidgetCb cb, void* ctx) {
         auto win = static_cast<FXWindow*>(wgt);
-        delete win->getTarget(); // free previous target if any
+        auto old = win->getTarget();
+        if (dynamic_cast<CTarget*>(old)) delete old;
         win->setTarget(new CTarget(cb, ctx));
     }
     void fx_window_set_selector(ObjectPtr* wgt_, int val) {
@@ -216,6 +220,7 @@ extern "C" {
         else if (val == 1) wgt->setSelector(CTarget::SEL_CHANGED);
     }
     void fx_window_set_width(ObjectPtr* wgt, int width) {
+        ASSERT_NOT_NULL(wgt);
         static_cast<FXWindow*>(wgt) -> setWidth(width);
     }
     void fx_window_set_x(ObjectPtr* wgt, int x) {
@@ -231,6 +236,7 @@ extern "C" {
         static_cast<FXWindow*>(wgt) -> setLayoutHints(val);
     }
     void fx_window_disable(ObjectPtr* wgt) {
+        ASSERT_NOT_NULL(wgt);
         static_cast<FXWindow*>(wgt) -> disable();
     }
     void fx_window_enable(ObjectPtr* wgt) {
@@ -260,9 +266,6 @@ extern "C" {
     void fx_app_add_timeout(ObjectPtr* app, CTimerCb cb, unsigned int ns, void* ctx) {
         static_cast<FXApp*>(app) -> addTimeout(new CTimeout(cb, ns), CTimeout::SEL_TIMEOUT, ns, ctx);
     }
-    // void fx_app_add_chore(ObjectPtr* app, CTimerCb cb, void* ctx) {
-    //    static_cast<FXApp*>(app) -> addChore(new CTimeout(cb, 0), CTimeout::SEL_CHORE, ctx);
-    //}
 
 //~ FXFrame
     void fx_frame_set_frame_style(ObjectPtr* wgt, unsigned int style) {
@@ -535,8 +538,13 @@ extern "C" {
     }
     void fx_text_set_font(ObjectPtr* wgt, const char* family, int size) {
         auto text = static_cast<FXText*>(wgt);
-        delete text->getFont(); // free old font
-        text->setFont(new FXFont(text->getApp(), family, size, 0, 0));
+        auto old_font = text->getFont();
+        auto new_font = new FXFont(text->getApp(), family, size, 0, 0);
+        text->setFont(new_font);
+        // Only delete if it's not the app's default font
+        if (old_font && old_font != text->getApp()->getNormalFont()) {
+            delete old_font;
+        }
     }
 
 //~ FXTextField
@@ -969,7 +977,8 @@ extern "C" {
     }
     void fx_canvas_set_mouse_callback(ObjectPtr* wgt, long (*cb)(ObjectPtr*, int, int, int, void*), void* ctx) {
         auto canvas = static_cast<FXCanvas*>(wgt);
-        delete canvas->getTarget(); // free previous target if any
+        auto old = canvas->getTarget();
+        if (dynamic_cast<CTarget*>(old)) delete old;
         canvas->setTarget(static_cast<FXObject*>(new CMouseTarget(cb, ctx)));
     }
 
