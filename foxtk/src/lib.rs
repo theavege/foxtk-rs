@@ -120,18 +120,6 @@ impl WindowExt for ToolBarShell {}
 
 #[derive(Default)]
 pub struct TopWindow(Option<NonNull<ObjectPtr>>);
-impl TopWindow {
-    pub fn new(app: &impl AppExt, title: &str, width: i32, height: i32) -> Self {
-        Self::from_raw(unsafe {
-            fx_top_window_new(
-                app.as_raw(),
-                CString::new(title).unwrap().as_ptr(),
-                width,
-                height,
-            )
-        })
-    }
-}
 impl ObjectExt for TopWindow {
     fn as_raw(&self) -> *mut ObjectPtr {
         self.0.expect("Empty ObjectPtr!").as_ptr()

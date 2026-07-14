@@ -239,7 +239,6 @@ extern "C" {
     void fx_radio_button_set_check(ObjectPtr*  wgt);
 
 //~ FXTopWindow.h
-    ObjectPtr* fx_top_window_new(ObjectPtr*  app, const char* title, int width, int height);
     void fx_top_window_set_decorations(ObjectPtr* wgt, unsigned int decorations);
     void fx_top_window_set_hspacing(ObjectPtr* wgt, int hspacing);
     void fx_top_window_set_vspacing(ObjectPtr* wgt, int vspacing);
@@ -276,7 +275,6 @@ extern "C" {
 
 //~ FXSplitter.h
     ObjectPtr* fx_splitter_new(ObjectPtr* prt, unsigned int opts);
-    ObjectPtr* fx_splitter_new_with_target(ObjectPtr* prt, ObjectPtr* target, int selector, unsigned int opts);
     int fx_splitter_get_split(ObjectPtr* wgt, int index);
     void fx_splitter_set_split(ObjectPtr* wgt, int index, int size);
     void fx_splitter_set_splitter_style(ObjectPtr* wgt, unsigned int style);
@@ -286,7 +284,6 @@ extern "C" {
 
 //~ FX4Splitter.h
     ObjectPtr* fx_four_splitter_new(ObjectPtr* prt, unsigned int opts);
-    ObjectPtr* fx_four_splitter_new_with_target(ObjectPtr* prt, ObjectPtr* target, int selector, unsigned int opts);
 
 //~ FXScrollArea.h
     ObjectPtr* fx_scroll_area_new(ObjectPtr* prt, unsigned int opts, int x, int y, int w, int h);
