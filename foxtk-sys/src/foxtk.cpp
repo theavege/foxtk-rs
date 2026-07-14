@@ -1006,7 +1006,7 @@ extern "C" {
     ObjectPtr* fx_menu_button_new(ObjectPtr* prt, const char* title, ObjectPtr* pop) {
         auto wgt = make_widget<FXMenuButton, FXComposite>(prt, title);
         ASSERT_NOT_NULL(wgt);
-        wgt -> setMenu(static_cast<FXPopup*>(pop));
+        static_cast<FXMenuButton*>(wgt) -> setMenu(static_cast<FXPopup*>(pop));
         return wgt;
     }
     void fx_menu_button_style(ObjectPtr* wgt, FXuint style) {
@@ -1023,7 +1023,7 @@ extern "C" {
     ObjectPtr* fx_menu_title_new(ObjectPtr* prt, const char* text, ObjectPtr* pop) {
         auto wgt = make_widget<FXMenuTitle, FXComposite>(prt, text);
         ASSERT_NOT_NULL(wgt);
-        wgt -> setMenu(static_cast<FXPopup*>(pop));
+        static_cast<FXMenuTitle*>(wgt) -> setMenu(static_cast<FXPopup*>(pop));
         return wgt;
     }
 
