@@ -47,7 +47,7 @@ pub trait IdExt: ObjectExt {
         super::App::from_raw(unsafe { fx_id_get_app(self.as_raw()) })
     }
     #[cfg(target_os = "windows")]
-    fn id(&self) -> u32 {
+    fn id(&self) -> *mut c_void {
         unsafe { fx_id_get_id(self.as_raw()) }
     }
     #[cfg(target_os = "linux")]
@@ -746,12 +746,6 @@ pub trait AppExt: ObjectExt {
                 ms,
                 raw_ptr as *mut c_void,
             );
-        }
-    }
-    fn add_chore<F: FnMut(Self) -> bool + 'static>(&self, func: F) {
-        let raw_ptr: *mut Box<dyn FnMut(Self) -> bool> = Box::into_raw(Box::new(Box::new(func)));
-        unsafe {
-            fx_app_add_chore(self.as_raw(), Some(ctimer::<Self>), raw_ptr as *mut c_void);
         }
     }
     fn run(&self) -> i32 {

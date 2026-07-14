@@ -8,14 +8,10 @@ on:
     branches:
       - main
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   make:
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 120
+    timeout-minutes: 15
     strategy:
       matrix:
         os:
