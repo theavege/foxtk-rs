@@ -700,21 +700,6 @@ extern "C" {
     int fx_splitter_get_split(ObjectPtr* wgt, int index) {
         return static_cast<FXSplitter*>(wgt) -> getSplit(index);
     }
-
-//~ FX4Splitter
-    ObjectPtr* fx_four_splitter_new(ObjectPtr* prt, unsigned int opts) {
-        return make_widget<FX4Splitter, FXComposite>(prt, opts);
-    }
-
-//~ FXScrollArea
-    ObjectPtr* fx_scroll_area_new(ObjectPtr* prt, unsigned int opts, int x, int y, int w, int h) {
-        return make_widget<FXScrollAreaEx, FXComposite>(prt, opts, x, y, w, h);
-    }
-
-//~ FXScrollWindow
-    ObjectPtr* fx_scroll_window_new(ObjectPtr* prt, unsigned int opts, int x, int y, int w, int h) {
-        return make_widget<FXScrollWindow, FXComposite>(prt, opts, x, y, w, h);
-    }
     void fx_splitter_set_split(ObjectPtr* wgt, int index, int size) {
         static_cast<FXSplitter*>(wgt) -> setSplit(index, size);
     }
@@ -729,6 +714,21 @@ extern "C" {
     }
     int fx_splitter_get_bar_size(ObjectPtr* wgt) {
         return static_cast<FXSplitter*>(wgt) -> getBarSize();
+    }
+
+//~ FX4Splitter
+    ObjectPtr* fx_four_splitter_new(ObjectPtr* prt, unsigned int opts) {
+        return make_widget<FX4Splitter, FXComposite>(prt, opts);
+    }
+
+//~ FXScrollArea
+    ObjectPtr* fx_scroll_area_new(ObjectPtr* prt, unsigned int opts, int x, int y, int w, int h) {
+        return make_widget<FXScrollAreaEx, FXComposite>(prt, opts, x, y, w, h);
+    }
+
+//~ FXScrollWindow
+    ObjectPtr* fx_scroll_window_new(ObjectPtr* prt, unsigned int opts, int x, int y, int w, int h) {
+        return make_widget<FXScrollWindow, FXComposite>(prt, opts, x, y, w, h);
     }
 
 //~ FXGroupBox
@@ -1005,7 +1005,9 @@ extern "C" {
 //~ FXMenuButton.h
     ObjectPtr* fx_menu_button_new(ObjectPtr* prt, const char* title, ObjectPtr* pop) {
         auto wgt = make_widget<FXMenuButton, FXComposite>(prt, title);
-        wgt -> setMenu(static_cast<FXPopup*>(pop));
+        if (wgt) {
+            wgt -> setMenu(static_cast<FXPopup*>(pop));
+        }
         return wgt;
     }
     void fx_menu_button_style(ObjectPtr* wgt, FXuint style) {
@@ -1021,7 +1023,9 @@ extern "C" {
 //~ FXMenuTitle
     ObjectPtr* fx_menu_title_new(ObjectPtr* prt, const char* text, ObjectPtr* pop) {
         auto wgt = make_widget<FXMenuTitle, FXComposite>(prt, text);
-        wgt -> setMenu(static_cast<FXPopup*>(pop));
+        if (wgt) {
+            wgt -> setMenu(static_cast<FXPopup*>(pop));
+        }
         return wgt;
     }
 
