@@ -9,9 +9,6 @@ if(NOT DEFINED ENV{FOX_PATH} OR "$ENV{FOX_PATH}" STREQUAL "")
     message(FATAL_ERROR "FOX_PATH environment variable is not set")
 endif()
 
-target_compile_definitions(cfoxtk PRIVATE WIN32)
-target_compile_definitions(fox PRIVATE WIN32)
-
 cmake_path(SET FOX_PATH NORMALIZE "$ENV{FOX_PATH}")
 file(GLOB FOX_SOURCE ${FOX_PATH}/lib/*.cpp)
 
@@ -24,6 +21,9 @@ endforeach()
 
 add_library(fox OBJECT ${FOX_SOURCE} )
 add_library(cfoxtk STATIC ${OBJS} )
+
+target_compile_definitions(cfoxtk PRIVATE WIN32)
+target_compile_definitions(fox PRIVATE WIN32)
 
 target_include_directories(fox PRIVATE ${FOX_PATH}/include)
 target_include_directories(cfoxtk PRIVATE ${FOX_PATH}/include ${SDK_DIR}/Include)
