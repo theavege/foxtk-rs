@@ -74,8 +74,8 @@ class CMouseTarget : public FXObject {
 protected:
     CMouseTarget() {}
 private:
-    long (*callback)(ObjectPtr*, int, int, int, void*);
-    void* context;
+    long (*callback)(ObjectPtr*, int, int, int, void*) = nullptr;
+    void* context = nullptr;
 public:
     enum { SEL_LBP = SEL_LEFTBUTTONPRESS, SEL_LBR = SEL_LEFTBUTTONRELEASE, SEL_MOT = SEL_MOTION, SEL_RBP = SEL_RIGHTBUTTONPRESS, SEL_RBR = SEL_RIGHTBUTTONRELEASE };
     CMouseTarget(long (*cb)(ObjectPtr*, int, int, int, void*), void* ctx) : callback(cb), context(ctx) {}
@@ -148,6 +148,12 @@ inline const char* string_result(const Value& value) {
     return buffer.text();
 }
 
+#ifdef DEBUG
+#define ASSERT_NOT_NULL(ptr) assert((ptr) != nullptr)
+#else
+#define ASSERT_NOT_NULL(ptr) ((void)0)
+#endif
+
 extern "C" {
     unsigned int fx_rgb(unsigned int r, unsigned int g, unsigned int b) {
         return FXRGB(r,g,b);
@@ -200,12 +206,14 @@ extern "C" {
         return static_cast<FXWindow*>(wgt)->hasFocus();
     }
     void fx_window_set_target(ObjectPtr* wgt, CWidgetCb cb, void* ctx) {
-        static_cast<FXWindow*>(wgt)->setTarget(static_cast<FXObject*>(new CTarget(cb, ctx)));
+        auto win = static_cast<FXWindow*>(wgt);
+        delete win->getTarget(); // free previous target if any
+        win->setTarget(new CTarget(cb, ctx));
     }
     void fx_window_set_selector(ObjectPtr* wgt_, int val) {
         auto wgt = static_cast<FXWindow*>(wgt_);
         if (val == 0) wgt->setSelector(CTarget::SEL_COMMAND);
-        if (val == 1) wgt->setSelector(CTarget::SEL_CHANGED);
+        else if (val == 1) wgt->setSelector(CTarget::SEL_CHANGED);
     }
     void fx_window_set_width(ObjectPtr* wgt, int width) {
         static_cast<FXWindow*>(wgt)->setWidth(width);
@@ -226,6 +234,7 @@ extern "C" {
         static_cast<FXWindow*>(wgt)->disable();
     }
     void fx_window_enable(ObjectPtr* wgt) {
+        ASSERT_NOT_NULL(wgt);
         static_cast<FXWindow*>(wgt)->enable();
     }
 
@@ -525,8 +534,9 @@ extern "C" {
         static_cast<FXText*>(wgt) -> setTipText(text);
     }
     void fx_text_set_font(ObjectPtr* wgt, const char* family, int size) {
-        FXFont* font = new FXFont(static_cast<FXText*>(wgt)->getApp(), family, size, 0, 0);
-        static_cast<FXText*>(wgt)->setFont(font);
+        auto text = static_cast<FXText*>(wgt);
+        delete text->getFont(); // free old font
+        text->setFont(new FXFont(text->getApp(), family, size, 0, 0));
     }
 
 //~ FXTextField
@@ -759,10 +769,6 @@ extern "C" {
         return new FXDCWindow(static_cast<FXDrawable*>(drawable));
     }
 
-        void fx_canvas_set_mouse_callback(ObjectPtr* wgt, long (*cb)(ObjectPtr*, int, int, int, void*), void* ctx) {
-                static_cast<FXCanvas*>(wgt)->setTarget(static_cast<FXObject*>(new CMouseTarget(cb, ctx)));
-        }
-
 //~ FXDC (drawing)
     void fx_dc_set_foreground(ObjectPtr* dc, unsigned int color) {
         static_cast<FXDCWindow*>(dc)->setForeground(color);
@@ -957,12 +963,15 @@ extern "C" {
         return buffer.text();
     }
 
-//~ FXCanvas
+//~ FXCanvas.h
     ObjectPtr* fx_canvas_new(ObjectPtr* prt) {
         return new FXCanvas(static_cast<FXComposite*>(prt));
     }
+    void fx_canvas_set_mouse_callback(ObjectPtr* wgt, long (*cb)(ObjectPtr*, int, int, int, void*), void* ctx) {
+         static_cast<FXCanvas*>(wgt)->setTarget(static_cast<FXObject*>(new CMouseTarget(cb, ctx)));
+    }
 
-//~ FXTabBar
+//~ FXTabBar.h
     ObjectPtr* fx_tab_bar_new(ObjectPtr* prt) {
         return new FXTabBar(static_cast<FXComposite*>(prt));
     }
