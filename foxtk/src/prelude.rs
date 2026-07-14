@@ -47,7 +47,7 @@ pub trait IdExt: ObjectExt {
         super::App::from_raw(unsafe { fx_id_get_app(self.as_raw()) })
     }
     #[cfg(target_os = "windows")]
-    fn id(&self) -> u32 {
+    fn id(&self) -> *mut c_void {
         unsafe { fx_id_get_id(self.as_raw()) }
     }
     #[cfg(target_os = "linux")]
