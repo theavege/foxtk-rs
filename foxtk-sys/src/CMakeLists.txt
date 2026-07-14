@@ -21,6 +21,7 @@ target_include_directories(cfoxtk PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../use/winsdk-7/v7.1A/Include
 )
 
+target_compile_definitions(fox PRIVATE WIN32)
 target_compile_definitions(cfoxtk PRIVATE WIN32)
 
 set(SDK_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../use/winsdk-7/v7.1A/Lib/x64)
