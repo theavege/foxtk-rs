@@ -2,8 +2,8 @@
 
 //~ OPAQUE HANDLES
 
-typedef long (*CWidgetCb)(FXObject* wgt, void* ctx);
-typedef long (*CTimerCb)(FXApp* app, void* c);
+typedef long (*CbWidget)(FXObject* wgt, void* ctx);
+typedef long (*CbTimer)(FXApp* app, void* c);
 
 //~ CALLBACK BRIDGE
 
@@ -12,11 +12,11 @@ class CTarget : public FXObject {
 protected:
     CTarget() {}
 private:
-  CWidgetCb callback = nullptr;
+  CbWidget callback = nullptr;
   void*      context = nullptr;
 public:
   enum { SEL_COMMAND, SEL_CHANGED };
-  CTarget(CWidgetCb cb, void* ctx) : callback(cb) , context(ctx) {}
+  CTarget(CbWidget cb, void* ctx) : callback(cb) , context(ctx) {}
   long callBack(FXObject* wgt, FXSelector, void*) {
     long result = 0;
     if (this -> callback) result = this -> callback(wgt, this -> context);
@@ -35,11 +35,11 @@ class CTimeout : public FXObject {
 protected:
     CTimeout() {}
 private:
-  CTimerCb    callback = nullptr;
+  CbTimer    callback = nullptr;
   unsigned int nanosec = 0;
 public:
     enum { SEL_TIMEOUT, SEL_CHORE };
-    CTimeout(CTimerCb cb, unsigned int ns): callback(cb), nanosec(ns) {}
+    CTimeout(CbTimer cb, unsigned int ns): callback(cb), nanosec(ns) {}
     long onTimeout(FXObject* app, FXSelector, void* ctx) {
         long result = 0;
         if (this -> callback) {
@@ -172,7 +172,7 @@ extern "C" {
     long FXWindow_has_focus(const FXWindow* self) {
         return self -> hasFocus();
     }
-    void FXWindow_set_target(FXWindow* self, CWidgetCb cb, void* ctx) {
+    void FXWindow_set_target(FXWindow* self, CbWidget cb, void* ctx) {
         if (auto old = dynamic_cast<CTarget*>(self->getTarget())) delete old;
         self -> setTarget(new CTarget(cb, ctx));
     }
@@ -220,7 +220,7 @@ extern "C" {
         self -> create();
         return self -> run();
     }
-    void FXApp_add_timeout(FXApp* self, CTimerCb cb, unsigned int ns, void* ctx) {
+    void FXApp_add_timeout(FXApp* self, CbTimer cb, unsigned int ns, void* ctx) {
         self -> addTimeout(new CTimeout(cb, ns), CTimeout::SEL_TIMEOUT, ns, ctx);
     }
 
@@ -274,37 +274,39 @@ extern "C" {
         self -> setIncrement(inc);
     }
 
+#define TextExt(widget)                                                        \
+    const char* widget##_get_text(const widget* self) {                        \
+        return string_result(self -> getText());                               \
+    }                                                                          \
+    void widget##_set_text(widget* self, const char* text) {                   \
+        self -> setText(text);                                                 \
+    }                                                                          \
+    void widget##_set_help_text(widget* self, const char* text) {              \
+        self -> setHelpText(text);                                             \
+    }                                                                          \
+    void widget##_set_tip_text(widget* self, const char* text) {               \
+        self -> setTipText(text);                                              \
+    }                                                                          \
+    void widget##_set_text_color(widget* self, unsigned int color) {           \
+        self -> setTextColor(color);                                           \
+    }                                                                          \
+    void widget##_set_font(widget* self, const char* family, int size) {       \
+        auto old_font = self -> getFont();                                     \
+        auto new_font = new FXFont(self -> getApp(), family, size, 0, 0);      \
+        self -> setFont(new_font);                                             \
+        if (old_font && old_font != self -> getApp() -> getNormalFont()) {     \
+            delete old_font;                                                   \
+        }                                                                      \
+    }
+
 //~ FXLabel.h
+    TextExt(FXLabel)
     FXLabel* FXLabel_new(FXComposite* parent, const char* title) {
         ASSERT_NOT_NULL(parent, nullptr);
         return make_widget<FXLabel, FXComposite>(parent, title);
     }
-    const char* FXLabel_get_text(const FXLabel* self) {
-        return string_result(self -> getText());
-    }
-    void FXLabel_set_text(FXLabel* self, const char* text) {
-        self -> setText(text);
-    }
-    void FXLabel_set_help_text(FXLabel* self, const char* text) {
-        self -> setHelpText(text);
-    }
-    void FXLabel_set_tip_text(FXLabel* self, const char* text) {
-        self -> setTipText(text);
-    }
     void FXLabel_set_justify(FXLabel* self, unsigned int justify) {
         self -> setJustify(justify);
-    }
-    void FXLabel_set_text_color(FXLabel* self, unsigned int color) {
-        self -> setTextColor(color);
-    }
-    void FXLabel_set_font(FXLabel* self, const char* family, int size) {
-        auto old_font = self -> getFont();
-        auto new_font = new FXFont(self -> getApp(), family, size, 0, 0);
-        self -> setFont(new_font);
-        // Only delete if it's not the app's default font
-        if (old_font && old_font != self -> getApp() -> getNormalFont()) {
-            delete old_font;
-        }
     }
 
 //~ FXArrowButton.h
@@ -431,6 +433,7 @@ extern "C" {
     }
 
 //~ FXButton.h
+    TextExt(FXButton)
     FXButton* FXButton_new(FXComposite *prt, const char* title) {
         return make_widget<FXButton, FXComposite>(prt, title);
     }
@@ -469,67 +472,21 @@ extern "C" {
     }
 
 //~ FXText.h
+    TextExt(FXText)
     FXText* FXText_new(FXComposite* prt) {
         return make_widget<FXText, FXComposite>(prt);
-    }
-    const char* FXText_get_text(const FXText* self) {
-        return string_result(self -> getText());
-    }
-    void FXText_set_text(FXText* self, const char* text) {
-        self -> setText(text);
     }
     void FXText_set_editable(FXText* self, long editable) {
         self -> setEditable(editable != 0);
     }
-    void FXText_set_help_text(FXText* self, const char* text) {
-        self -> setHelpText(text);
-    }
-    void FXText_set_tip_text(FXText* self, const char* text) {
-        self -> setTipText(text);
-    }
-    void FXText_set_font(FXText* self, const char* family, int size) {
-        auto old_font = self -> getFont();
-        auto new_font = new FXFont(self -> getApp(), family, size, 0, 0);
-        self -> setFont(new_font);
-        // Only delete if it's not the app's default font
-        if (old_font && old_font != self -> getApp() -> getNormalFont()) {
-            delete old_font;
-        }
-    }
-    void FXText_set_text_color(FXText* self, unsigned int color) {
-        self -> setTextColor(color);
-    }
 
 //~ FXTextField
+    TextExt(FXTextField)
     FXTextField* FXTextField_new(FXComposite* prt) {
         return make_widget<FXTextField, FXComposite>(prt, 8);
     }
-    const char* FXTextField_get_text(const FXTextField* self) {
-        return string_result(self -> getText());
-    }
-    void FXTextField_set_text(FXTextField* self, const char* text) {
-        self -> setText(text);
-    }
-    void FXTextField_set_help_text(FXTextField* self, const char* text) {
-        self -> setHelpText(text);
-    }
-    void FXTextField_set_tip_text(FXTextField* self, const char* text) {
-        self -> setTipText(text);
-    }
     void FXTextField_set_editable(FXTextField* self, long val) {
         self -> setEditable(val != 0);
-    }
-    void FXTextField_set_text_color(FXTextField* self, unsigned int color) {
-        self -> setTextColor(color);
-    }
-    void FXTextField_set_font(FXTextField* self, const char* family, int size) {
-        auto old_font = self -> getFont();
-        auto new_font = new FXFont(self -> getApp(), family, size, 0, 0);
-        self -> setFont(new_font);
-        // Only delete if it's not the app's default font
-        if (old_font && old_font != self -> getApp() -> getNormalFont()) {
-            delete old_font;
-        }
     }
 
 #define RangerExt(widget)                                                      \

@@ -205,13 +205,13 @@ impl App {
         })
     }
     pub fn add_timeout<F: FnMut(Self) -> bool + 'static>(&self, ms: u32, func: F) {
-        let raw_ptr: *mut Box<dyn FnMut(Self) -> bool> = Box::into_raw(Box::new(Box::new(func)));
+        let context: *mut Box<dyn FnMut(Self) -> bool> = Box::into_raw(Box::new(Box::new(func)));
         unsafe {
             FXApp_add_timeout(
                 self.as_raw(),
                 Some(ctimer_callback::<Self>),
                 ms,
-                raw_ptr as *mut std::ffi::c_void,
+                context as *mut c_void,
             );
         }
     }
@@ -285,17 +285,17 @@ impl Canvas {
     pub fn new(parent: &impl CompositeExt) -> Self {
         Self::from_raw(unsafe { FXCanvas_new(parent.as_raw() as *mut FXComposite) })
     }
-    //~ pub fn set_mouse_callback<F: FnMut(Self, i32, i32, i32) -> bool + 'static>(&self, func: F) {
-    //~ let raw_ptr: *mut Box<dyn FnMut(Self, i32, i32, i32) -> bool> =
-    //~ Box::into_raw(Box::new(Box::new(func)));
-    //~ unsafe {
-    //~ FXCanvas_set_mouse_callback(
-    //~ self.as_raw(),
-    //~ Some(cmouse_callback::<Self>),
-    //~ raw_ptr as *mut c_void,
-    //~ );
-    //~ }
-    //~ }
+    pub fn set_mouse_callback<F: FnMut(Self, i32, i32, i32) -> bool + 'static>(&self, func: F) {
+        let context: *mut Box<dyn FnMut(Self, i32, i32, i32) -> bool> =
+            Box::into_raw(Box::new(Box::new(func)));
+        unsafe {
+            FXCanvas_set_mouse_callback(
+                self.as_raw(),
+                Some(cmouse_callback::<Self>),
+                context as *mut c_void,
+            );
+        }
+    }
 }
 
 impl_widget!(
@@ -1021,7 +1021,7 @@ impl MenuCommand {
     }
 }
 
-impl_textable!(Label, TextField, Text);
+impl_textable!(Label, TextField, Text, Button);
 impl_ranger!(Slider, Spinner);
 impl_selector!(ComboBox, ListBox, List);
 impl_editable!(TextField, Text);

@@ -23,10 +23,10 @@ extern "C" {
 
 //~ FXApp
     typedef struct FXApp FXApp;
-    typedef long (*CTimerCb)(FXApp* app, void* ctx);
+    typedef long (*CbTimer)(FXApp* app, void* ctx);
     FXApp * FXApp_new(const char* name, const char* vendor, int argc, char** argv);
     int FXApp_run(FXApp*  self);
-    void FXApp_add_timeout(FXApp*  self, CTimerCb cb, unsigned int ns, void* ctx);
+    void FXApp_add_timeout(FXApp*  self, CbTimer cb, unsigned int ns, void* ctx);
 
 //~ FXId.h
     typedef struct FXId FXId;
@@ -90,11 +90,11 @@ extern "C" {
 
 //~ FXWindow.h
     typedef struct FXWindow FXWindow;
-    typedef long (*CWidgetCb)(FXWindow* wgt, void* ctx);
+    typedef long (*CbWidget)(FXWindow* wgt, void* ctx);
     FXWindow* FXWindow_get_parent(const FXWindow* self);
     FXWindow* FXWindow_get_root(const FXWindow* self);
     long FXWindow_has_focus(const FXWindow* self);
-    void FXWindow_set_target(FXWindow* self, CWidgetCb callback, void* context);
+    void FXWindow_set_target(FXWindow* self, CbWidget callback, void* context);
     void FXWindow_set_selector(FXWindow* self, int val);
     void FXWindow_set_width(FXWindow* self, int val);
     void FXWindow_set_height(FXWindow* self, int val);
@@ -146,38 +146,30 @@ extern "C" {
     void FXKnob_set_range(FXKnob* wgt, int lo, int hi);
     void FXKnob_set_increment(FXKnob* wgt, int inc);
 
+#define TextExt(widget)                                                        \
+    typedef struct widget widget;                                              \
+    const char* widget##_get_text(const widget* self);                         \
+    const char* widget##_get_text(const widget* self);                         \
+    void widget##_set_text(widget* self, const char* text);                    \
+    void widget##_set_help_text(widget* self, const char* text);               \
+    void widget##_set_tip_text(widget* self, const char* text);                \
+    void widget##_set_text_color(widget* self, unsigned int color);            \
+    void widget##_set_font(widget* self, const char* family, int size);        \
+
 //~ FXLabel.h
-    typedef struct FXLabel FXLabel;
+    TextExt(FXLabel)
     FXLabel* FXLabel_new(FXComposite* prt, const char* title);
-    const char* FXLabel_get_text(const FXLabel* wgt);
-    void FXLabel_set_text(FXLabel* wgt, const char* text);
-    void FXLabel_set_help_text(FXLabel* wgt, const char* text);
-    void FXLabel_set_tip_text(FXLabel* wgt, const char* text);
-    void FXLabel_set_justify(FXLabel* wgt, unsigned int justify);
-    void FXLabel_set_text_color(FXLabel* wgt, unsigned int color);
-    void FXLabel_set_font(FXLabel* self, const char* family, int size);
+    void FXLabel_set_justify(FXLabel* self, unsigned int justify);
 
 //~ FXText.h
-    typedef struct FXText FXText;
+    TextExt(FXText)
     FXText* FXText_new(FXComposite* prt);
-    const char* FXText_get_text(const FXText* wgt);
-    void FXText_set_text(FXText* wgt, const char* text);
-    void FXText_set_help_text(FXText* wgt, const char* text);
-    void FXText_set_tip_text(FXText* wgt, const char* text);
     void FXText_set_editable(FXText* wgt, long editable);
-    void FXText_set_font(FXText* wgt, const char* family, int size);
-    void FXText_set_text_color(FXText* wgt, unsigned int color);
 
 //~ FXTextField.h
-    typedef struct FXTextField FXTextField;
+    TextExt(FXTextField)
     FXTextField* FXTextField_new(FXComposite*  frm);
-    const char* FXTextField_get_text(const FXTextField* wgt);
-    void FXTextField_set_text(FXTextField* wgt, const char* text);
-    void FXTextField_set_help_text(FXTextField* wgt, const char* text);
-    void FXTextField_set_tip_text(FXTextField* wgt, const char* text);
     void FXTextField_set_editable(FXTextField* wgt, long val);
-    void FXTextField_set_text_color(FXTextField* wgt, unsigned int color);
-    void FXTextField_set_font(FXTextField* self, const char* family, int size);
 
 #define RangerExt(widget)                                                      \
     typedef struct widget widget;                                              \
@@ -217,7 +209,7 @@ extern "C" {
     void FXArrowButton_set_arrow_color(FXArrowButton* self, unsigned int color);
 
 //~ FXButton.h
-    typedef struct FXButton FXButton;
+    TextExt(FXButton)
     FXButton* FXButton_new(FXComposite*  parent, const char* title);
     void FXButton_set_state(FXButton* self, unsigned int state);
     void FXButton_set_style(FXButton* self, unsigned int style);
@@ -342,10 +334,10 @@ extern "C" {
     void FXTable_set_item_text(FXTable* self, int r, int c, const char* text);
 
 //~ FXCanvas.h
-    typedef long (*CMouseCb)(FXObject* widget, int event_code, int x, int y, void* context);
     typedef struct FXCanvas FXCanvas;
+    typedef long (*CbMouse)(FXCanvas* widget, int event_code, int x, int y, void* context);
     FXCanvas* FXCanvas_new(FXComposite* prt);
-    void FXCanvas_set_mouse_callback(FXCanvas* self, CMouseCb cb, void* ctx);
+    void FXCanvas_set_mouse_callback(FXCanvas* self, CbMouse cb, void* ctx);
 
 //~ FXTabBar.h
     typedef struct FXTabBar FXTabBar;
