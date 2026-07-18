@@ -22,7 +22,7 @@ impl Component for Rangers {
     }
     fn update(&self, model: &Self::State) {
         self.progress.set_value(*model as u32);
-        self.spinner.update(*model);
+        //~ self.spinner.update(*model);
         self.slider.update(*model);
     }
     fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
@@ -46,8 +46,8 @@ impl Component for Rangers {
                 foxtk::HorizontalFrame::new(prt).inside(|prt| {
                     self.progress = foxtk::ProgressBar::new(prt).with_total(8);
                     self.slider = foxtk::Slider::new(prt)
-                        .with_range(0, 8)
                         .with_width(WIDTH)
+                        .with_range(0, 8)
                         .with_increment(1)
                         .with_callback({
                             let sender = sender.clone();

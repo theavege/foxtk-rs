@@ -81,32 +81,32 @@ and commercial applications without being required to open-source your own code.
 
 ## Work in process
 
-- [x] [FXApp](docs/fx_app.md)
-- [x] [Composite](docs/fx_composite.md)
-  - [x] [FXGroupBox](docs/fx_composite.md#FXGroupBox) - Framed container with title
-  - [x] [FXHorizontalFrame](docs/fx_composite.md#FXHorizontalFrame) - Basic horizontal packing
-  - [x] [FXVerticalFrame](docs/fx_composite.md#FXVerticalFrame) - Basic vertical packing
-  - [x] [FXSwitcher](docs/fx_composite.md#FXSwitcher)
+- [x] [FXApp](docs/FXApp.md)
+- [x] [Composite](docs/FXComposite.md)
+  - [x] [FXGroupBox](docs/FXComposite.md#FXGroupBox) - Framed container with title
+  - [x] [FXHorizontalFrame](docs/FXComposite.md#FXHorizontalFrame) - Basic horizontal packing
+  - [x] [FXVerticalFrame](docs/FXComposite.md#FXVerticalFrame) - Basic vertical packing
+  - [x] [FXSwitcher](docs/FXComposite.md#FXSwitcher)
 - [x] Widgets
-  - [x] [Outputs](docs/fx_outputs.md)
-    - [x] [FXLabel](docs/fx_outputs.md#FXLabel) - Text and icon display
-    - [x] [FXProgressBar](docs/fx_outputs.md#FXProgressBar)
+  - [x] [Outputs](docs/FXOutputExt.md)
+    - [x] [FXLabel](docs/FXOutputExt.md#FXLabel) - Text and icon display
+    - [x] [FXProgressBar](docs/FXOutputExt.md#FXProgressBar)
   - [x] [Triggers](docs/fx_triggers.md)
     - [x] [FXButton](docs/fx_triggers.md#FXButton) - Standart push button
     - [x] [FXMenuBar](docs/fx_triggers.md#FXMenuBar) - Top menu bar
       - [x] [FXMenuPane](docs/fx_triggers.md#FXMenuPane) - Popup menus
         - [x] [FXMenuCommand](docs/fx_triggers.md#FXMenuCommand) - Menu items
-  - [x] [Inputs](docs/fx_inputs.md)
+  - [x] [Inputs](docs/FXInputExt.md)
     - [x] String
-      - [x] [FXText](docs/fx_inputs.md#FXText) - Multi-line text editor
-      - [x] [FXTextField](docs/fx_inputs.md#FXTextField) - Single-line text input
-    - [x] [Rangers](docs/fx_rangers.md)
+      - [x] [FXText](docs/FXInputExt.md#FXText) - Multi-line text editor
+      - [x] [FXTextField](docs/FXInputExt.md#FXTextField) - Single-line text input
+    - [x] [Rangers](docs/FXRangerExt.md)
       - [x] Numeric
-        - [x] [FXSpinner](docs/fx_rangers.md#FXSpinner) - Numeric input with arrows
-        - [x] [FXSlider](docs/fx_rangers.md#FXSlider) - Value slider
-  - [x] [Selectors](docs/fx_selectors.md)
-    - [x] [FXList](docs/fx_selectors.md#FXList) - Simple item list
-    - [x] [FXListBox](docs/fx_selectors.md#FXListBox) - Choise
+        - [x] [FXSpinner](docs/FXRangerExt.md#FXSpinner) - Numeric input with arrows
+        - [x] [FXSlider](docs/FXRangerExt.md#FXSlider) - Value slider
+  - [x] [Selectors](docs/FXSelectorExt.md)
+    - [x] [FXList](docs/FXSelectorExt.md#FXList) - Simple item list
+    - [x] [FXListBox](docs/FXSelectorExt.md#FXListBox) - Choise
 
 ## Screenshots
 

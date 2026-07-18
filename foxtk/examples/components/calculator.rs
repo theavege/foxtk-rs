@@ -130,7 +130,7 @@ impl Component for Calc {
                             .with_callback({
                                 let sender = sender.clone();
                                 move |wgt| {
-                                    sender.send(Msg::Push(wgt.text())).unwrap();
+                                    //~ sender.send(Msg::Push(wgt.text())).unwrap();
                                     false
                                 }
                             });
