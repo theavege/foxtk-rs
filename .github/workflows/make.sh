@@ -10,9 +10,9 @@ if ! (pkg-config --cflags 'fox'); then
     case ${ID:?} in
         debian | ubuntu) sudo bash -c '
             apt-get update
-            apt-get install -y libfox-1.6-dev
+            apt-get install -y shfmt libfox-1.6-dev
         ' ;;
-        fedora | alma) sudo dnf install -y fox-devel ;;
+        fedora | alma) sudo dnf install -y shfmt fox-devel ;;
     esac 1>/dev/null
 fi
 
