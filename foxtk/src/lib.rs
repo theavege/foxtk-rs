@@ -252,12 +252,12 @@ impl Button {
     }
     pub fn set_state(&self, state: ButtonState) {
         unsafe {
-            FXButton_set_state(self.as_raw() as *mut FXButton, state as u32);
+            FXButton_set_state(self.as_raw(), state as u32);
         }
     }
     pub fn with_style(self, style: ButtonStyle) -> Self {
         unsafe {
-            FXButton_set_style(self.as_raw() as *mut FXButton, style as u32);
+            FXButton_set_style(self.as_raw(), style as u32);
         }
         self
     }
@@ -964,7 +964,7 @@ impl MenuButton {
             foxtk_sys::FXMenuButton_new(
                 prt.as_raw() as *mut FXComposite,
                 CString::new(text_).unwrap().as_ptr(),
-                pane.as_raw() as *mut FXObject,
+                pane.as_raw() as *mut FXPopup,
             )
         })
         .with_layout(Layout::FillX)
@@ -978,7 +978,7 @@ impl MenuTitle {
             foxtk_sys::FXMenuTitle_new(
                 prt.as_raw() as *mut FXComposite,
                 CString::new(text_).unwrap().as_ptr(),
-                pane.as_raw() as *mut FXObject,
+                pane.as_raw() as *mut FXPopup,
             )
         })
         .with_layout(Layout::FillX)

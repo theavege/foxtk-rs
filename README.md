@@ -1,5 +1,7 @@
 # FoxTK-rs
 
+![CI](https://github.com/theavege/foxtk-rs/actions/workflows/main.yml/badge.svg)
+
 ![FOX-toolkit](http://www.fox-toolkit.org/art/foxlogo_small.jpg)
 
 Rust bindings for the [fox-toolkit](http://www.fox-toolkit.org).
@@ -91,12 +93,20 @@ and commercial applications without being required to open-source your own code.
   - [x] [Outputs](docs/FXOutputExt.md)
     - [x] [FXLabel](docs/FXOutputExt.md#FXLabel) - Text and icon display
     - [x] [FXProgressBar](docs/FXOutputExt.md#FXProgressBar)
-  - [x] [Triggers](docs/fx_triggers.md)
-    - [x] [FXButton](docs/fx_triggers.md#FXButton) - Standart push button
-    - [x] [FXMenuBar](docs/fx_triggers.md#FXMenuBar) - Top menu bar
-      - [x] [FXMenuPane](docs/fx_triggers.md#FXMenuPane) - Popup menus
-        - [x] [FXMenuCommand](docs/fx_triggers.md#FXMenuCommand) - Menu items
   - [x] [Inputs](docs/FXInputExt.md)
+    - [x] Triggers
+      - [x] [FXArrowButton](docs/FXInputExt.md#FXArrowButton) - Standart push button
+      - [x] [FXButton](docs/FXInputExt.md#FXButton) - Standart push button
+      - [x] [FXCheckButton](docs/FXInputExt.md#FXCheckButton)
+      - [x] [FXMDIButton](docs/FXInputExt.md#FXMDIButton)
+      - [x] [FXMDIButton](docs/FXInputExt.md#FXMDIButton)
+      - [x] [FXMenuButton](docs/FXInputExt.md#FXMenuButton)
+      - [x] [FXMenuBar](docs/FXInputExt.md#FXMenuBar) - Top menu bar
+        - [x] [FXMenuPane](docs/FXInputExt.md#FXMenuPane) - Popup menus
+          - [x] [FXMenuCommand](docs/FXInputExt.md#FXMenuCommand) - Menu items
+      - [x] [FXRadioButton](docs/FXInputExt.md#FXRadioButton)
+      - [x] [FXToggleButton](docs/FXInputExt.md#FXToggleButton)
+      - [x] [FXTriStateButton](docs/FXInputExt.md#FXTriStateButton)
     - [x] String
       - [x] [FXText](docs/FXInputExt.md#FXText) - Multi-line text editor
       - [x] [FXTextField](docs/FXInputExt.md#FXTextField) - Single-line text input

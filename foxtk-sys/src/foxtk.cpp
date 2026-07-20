@@ -7,923 +7,1250 @@ typedef long (*CbTimer)(FXApp* app, void* c);
 
 //~ CALLBACK BRIDGE
 
-class CTarget : public FXObject {
+class CTarget : public FXObject
+{
   FXDECLARE(CTarget)
 protected:
-    CTarget() {}
+  CTarget() {}
+
 private:
   CbWidget callback = nullptr;
-  void*      context = nullptr;
+  void* context = nullptr;
+
 public:
-  enum { SEL_COMMAND, SEL_CHANGED };
-  CTarget(CbWidget cb, void* ctx) : callback(cb) , context(ctx) {}
-  long callBack(FXObject* wgt, FXSelector, void*) {
+  enum
+  {
+    SEL_COMMAND,
+    SEL_CHANGED
+  };
+  CTarget(CbWidget cb, void* ctx)
+    : callback(cb)
+    , context(ctx)
+  {
+  }
+  long callBack(FXObject* wgt, FXSelector, void*)
+  {
     long result = 0;
-    if (this -> callback) result = this -> callback(wgt, this -> context);
+    if (this->callback)
+      result = this->callback(wgt, this->context);
     return result;
   }
 };
 
-FXDEFMAP(CTarget) CTargetMap[] = {
-    FXMAPFUNC(SEL_COMMAND, CTarget::SEL_COMMAND, CTarget::callBack),
-    FXMAPFUNC(SEL_CHANGED, CTarget::SEL_CHANGED, CTarget::callBack),
+FXDEFMAP(CTarget)
+CTargetMap[] = {
+  FXMAPFUNC(SEL_COMMAND, CTarget::SEL_COMMAND, CTarget::callBack),
+  FXMAPFUNC(SEL_CHANGED, CTarget::SEL_CHANGED, CTarget::callBack),
 };
 FXIMPLEMENT(CTarget, FXObject, CTargetMap, ARRAYNUMBER(CTargetMap))
 
-class CTimeout : public FXObject {
+class CTimeout : public FXObject
+{
   FXDECLARE(CTimeout)
 protected:
-    CTimeout() {}
+  CTimeout() {}
+
 private:
-  CbTimer    callback = nullptr;
-  unsigned int nanosec = 0;
+  CbTimer callback = nullptr;
+  unsigned nanosec = 0;
+
 public:
-    enum { SEL_TIMEOUT, SEL_CHORE };
-    CTimeout(CbTimer cb, unsigned int ns): callback(cb), nanosec(ns) {}
-    long onTimeout(FXObject* app, FXSelector, void* ctx) {
-        long result = 0;
-        if (this -> callback) {
-            result = this -> callback(static_cast<FXApp*>(app), ctx);
-            static_cast<FXApp*>(app) -> addTimeout(this, CTimeout::SEL_TIMEOUT, nanosec, ctx);
-        };
-        return result;
-    }
-    long onChore(FXObject* app, FXSelector, void* ctx) {
-        long result = 0;
-        if (this -> callback) result = this -> callback(static_cast<FXApp*>(app), ctx);
-        return result;
-    }
+  enum
+  {
+    SEL_TIMEOUT,
+    SEL_CHORE
+  };
+  CTimeout(CbTimer cb, unsigned ns)
+    : callback(cb)
+    , nanosec(ns)
+  {
+  }
+  long onTimeout(FXObject* app, FXSelector, void* ctx)
+  {
+    long result = 0;
+    if (this->callback) {
+      result = this->callback(static_cast<FXApp*>(app), ctx);
+      static_cast<FXApp*>(app)->addTimeout(
+        this, CTimeout::SEL_TIMEOUT, nanosec, ctx);
+    };
+    return result;
+  }
+  long onChore(FXObject* app, FXSelector, void* ctx)
+  {
+    long result = 0;
+    if (this->callback)
+      result = this->callback(static_cast<FXApp*>(app), ctx);
+    return result;
+  }
 };
 
-FXDEFMAP(CTimeout) CTimeoutMap[] = {
-    FXMAPFUNC(SEL_TIMEOUT, CTimeout::SEL_TIMEOUT, CTimeout::onTimeout),
-    FXMAPFUNC(SEL_CHORE, CTimeout::SEL_CHORE, CTimeout::onChore),
+FXDEFMAP(CTimeout)
+CTimeoutMap[] = {
+  FXMAPFUNC(SEL_TIMEOUT, CTimeout::SEL_TIMEOUT, CTimeout::onTimeout),
+  FXMAPFUNC(SEL_CHORE, CTimeout::SEL_CHORE, CTimeout::onChore),
 };
 FXIMPLEMENT(CTimeout, FXObject, CTimeoutMap, ARRAYNUMBER(CTimeoutMap))
 
 // CMouseTarget bridge (defined outside extern "C")
-class CMouseTarget : public FXObject {
-    FXDECLARE(CMouseTarget)
+class CMouseTarget : public FXObject
+{
+  FXDECLARE(CMouseTarget)
 protected:
-    CMouseTarget() {}
+  CMouseTarget() {}
+
 private:
-    long (*callback)(FXObject*, int, int, int, void*) = nullptr;
-    void* context = nullptr;
+  long (*callback)(FXObject*, int, int, int, void*) = nullptr;
+  void* context = nullptr;
+
 public:
-    enum { SEL_LBP = SEL_LEFTBUTTONPRESS, SEL_LBR = SEL_LEFTBUTTONRELEASE, SEL_MOT = SEL_MOTION, SEL_RBP = SEL_RIGHTBUTTONPRESS, SEL_RBR = SEL_RIGHTBUTTONRELEASE };
-    CMouseTarget(long (*cb)(FXObject*, int, int, int, void*), void* ctx) : callback(cb), context(ctx) {}
-    long callBack(FXObject* wgt, FXSelector sel, void* ptr) {
-        long result = 0;
-        if (this->callback) {
-                int x = 0;
-                int y = 0;
-                FXEvent* ev = static_cast<FXEvent*>(ptr);
-                if (ev) {
-                    x = ev -> win_x;
-                    y = ev -> win_y;
-                }
-                int code = 0;
-                if (sel == SEL_LEFTBUTTONPRESS) code = 1;
-                else if (sel == SEL_LEFTBUTTONRELEASE) code = 2;
-                else if (sel == SEL_MOTION) code = 3;
-                else if (sel == SEL_RIGHTBUTTONPRESS) code = 4;
-                else if (sel == SEL_RIGHTBUTTONRELEASE) code = 5;
-                result = this->callback(wgt, code, x, y, this->context);
-        }
-        return result;
+  enum
+  {
+    SEL_LBP = SEL_LEFTBUTTONPRESS,
+    SEL_LBR = SEL_LEFTBUTTONRELEASE,
+    SEL_MOT = SEL_MOTION,
+    SEL_RBP = SEL_RIGHTBUTTONPRESS,
+    SEL_RBR = SEL_RIGHTBUTTONRELEASE
+  };
+  CMouseTarget(long (*cb)(FXObject*, int, int, int, void*), void* ctx)
+    : callback(cb)
+    , context(ctx)
+  {
+  }
+  long callBack(FXObject* wgt, FXSelector sel, void* ptr)
+  {
+    long result = 0;
+    if (this->callback) {
+      int x = 0;
+      int y = 0;
+      FXEvent* ev = static_cast<FXEvent*>(ptr);
+      if (ev) {
+        x = ev->win_x;
+        y = ev->win_y;
+      }
+      int code = 0;
+      if (sel == SEL_LEFTBUTTONPRESS)
+        code = 1;
+      else if (sel == SEL_LEFTBUTTONRELEASE)
+        code = 2;
+      else if (sel == SEL_MOTION)
+        code = 3;
+      else if (sel == SEL_RIGHTBUTTONPRESS)
+        code = 4;
+      else if (sel == SEL_RIGHTBUTTONRELEASE)
+        code = 5;
+      result = this->callback(wgt, code, x, y, this->context);
     }
+    return result;
+  }
 };
 
-FXDEFMAP(CMouseTarget) CMouseTargetMap[] = {
-    FXMAPFUNC(SEL_LEFTBUTTONPRESS, CMouseTarget::SEL_LBP, CMouseTarget::callBack),
-    FXMAPFUNC(SEL_LEFTBUTTONRELEASE, CMouseTarget::SEL_LBR, CMouseTarget::callBack),
-    FXMAPFUNC(SEL_MOTION, CMouseTarget::SEL_MOT, CMouseTarget::callBack),
-    FXMAPFUNC(SEL_RIGHTBUTTONPRESS, CMouseTarget::SEL_RBP, CMouseTarget::callBack),
-    FXMAPFUNC(SEL_RIGHTBUTTONRELEASE, CMouseTarget::SEL_RBR, CMouseTarget::callBack),
+FXDEFMAP(CMouseTarget)
+CMouseTargetMap[] = {
+  FXMAPFUNC(SEL_LEFTBUTTONPRESS, CMouseTarget::SEL_LBP, CMouseTarget::callBack),
+  FXMAPFUNC(SEL_LEFTBUTTONRELEASE,
+            CMouseTarget::SEL_LBR,
+            CMouseTarget::callBack),
+  FXMAPFUNC(SEL_MOTION, CMouseTarget::SEL_MOT, CMouseTarget::callBack),
+  FXMAPFUNC(SEL_RIGHTBUTTONPRESS,
+            CMouseTarget::SEL_RBP,
+            CMouseTarget::callBack),
+  FXMAPFUNC(SEL_RIGHTBUTTONRELEASE,
+            CMouseTarget::SEL_RBR,
+            CMouseTarget::callBack),
 };
-FXIMPLEMENT(CMouseTarget, FXObject, CMouseTargetMap, ARRAYNUMBER(CMouseTargetMap))
+FXIMPLEMENT(CMouseTarget,
+            FXObject,
+            CMouseTargetMap,
+            ARRAYNUMBER(CMouseTargetMap))
 
-template <typename Widget, typename Parent, typename... Args>
-inline Widget * make_widget(FXObject * parent, Args&&... args) {
-    if (!parent) return nullptr;
-    return new Widget(static_cast<Parent*>(parent), std::forward<Args>(args)...);
+template<typename Widget, typename Parent, typename... Args>
+inline Widget*
+make_widget(FXObject* parent, Args&&... args)
+{
+  if (!parent)
+    return nullptr;
+  return new Widget(static_cast<Parent*>(parent), std::forward<Args>(args)...);
 }
 
-template <typename Value>
-inline const char* string_result(const Value& value) {
-    static thread_local FXString buffer;
-    buffer = value;
-    return buffer.text();
+template<typename Value>
+inline const char*
+string_result(const Value& value)
+{
+  static thread_local FXString buffer;
+  buffer = value;
+  return buffer.text();
 }
 
-#define ASSERT_NOT_NULL(ptr, result) if (!ptr) return result
+#define ASSERT_NOT_NULL(ptr, result)                                           \
+  if (!ptr)                                                                    \
+  return result
 
-extern "C" {
-    unsigned int fx_rgb(unsigned int r, unsigned int g, unsigned int b) {
-        return FXRGB(r,g,b);
-    }
-    unsigned int fx_rgba(unsigned int r, unsigned int g, unsigned int b, unsigned int a) {
-        return FXRGBA(r,g,b,a);
-    }
-    unsigned int fx_red_val(unsigned int rgba) {
-        return FXREDVAL(rgba);
-    }
-    unsigned int fx_green_val(unsigned int rgba) {
-        return FXGREENVAL(rgba);
-    }
-    unsigned int fx_blue_val(unsigned int rgba) {
-        return FXBLUEVAL(rgba);
-    }
-    unsigned int fx_alpha_val(unsigned int rgba) {
-        return FXALPHAVAL(rgba);
-    }
+extern "C"
+{
+  unsigned fx_rgb(unsigned r, unsigned g, unsigned b)
+  {
+    return FXRGB(r, g, b);
+  }
+  unsigned fx_rgba(unsigned r, unsigned g, unsigned b, unsigned a)
+  {
+    return FXRGBA(r, g, b, a);
+  }
+  unsigned fx_red_val(unsigned rgba)
+  {
+    return FXREDVAL(rgba);
+  }
+  unsigned fx_green_val(unsigned rgba)
+  {
+    return FXGREENVAL(rgba);
+  }
+  unsigned fx_blue_val(unsigned rgba)
+  {
+    return FXBLUEVAL(rgba);
+  }
+  unsigned fx_alpha_val(unsigned rgba)
+  {
+    return FXALPHAVAL(rgba);
+  }
 
-//~ FXObject.h
-    void FXObject_delete(FXObject* self) {
-        delete self;
-    }
+  //~ FXObject.h
+  void FXObject_delete(FXObject* self)
+  {
+    delete self;
+  }
 
-//~ FXId.h
-    FXApp* FXId_get_app(const FXId* self) {
-        ASSERT_NOT_NULL(self, nullptr);
-        return self -> getApp();
-    }
-    FXID FXId_get_id(const FXId* self) {
-        return self -> id();
-    }
+  //~ FXId.h
+  FXApp* FXId_get_app(const FXId* self)
+  {
+    ASSERT_NOT_NULL(self, nullptr);
+    return self->getApp();
+  }
+  FXID FXId_get_id(const FXId* self)
+  {
+    return self->id();
+  }
 
-//~ FXDrawable.h
-    int FXDrawable_get_height(const FXDrawable* self) {
-        return self -> getHeight();
-    }
-    int FXDrawable_get_width(const FXDrawable* self) {
-        return self -> getWidth();
-    }
+  //~ FXDrawable.h
+  int FXDrawable_get_height(const FXDrawable* self)
+  {
+    return self->getHeight();
+  }
+  int FXDrawable_get_width(const FXDrawable* self)
+  {
+    return self->getWidth();
+  }
 
-//~ FXWindow.h
-    FXWindow* FXWindow_get_parent(const FXWindow* self) {
-        ASSERT_NOT_NULL(self, nullptr);
-        return self -> getParent();
-    }
-    FXWindow* FXWindow_get_root(const FXWindow* self) {
-        ASSERT_NOT_NULL(self, nullptr);
-        return self -> getRoot();
-    }
-    long FXWindow_has_focus(const FXWindow* self) {
-        return self -> hasFocus();
-    }
-    void FXWindow_set_target(FXWindow* self, CbWidget cb, void* ctx) {
-        if (auto old = dynamic_cast<CTarget*>(self->getTarget())) delete old;
-        self -> setTarget(new CTarget(cb, ctx));
-    }
-    void FXWindow_set_selector(FXWindow* self, int val) {
-        if (val == 0) self -> setSelector(CTarget::SEL_COMMAND);
-        else if (val == 1) self ->setSelector(CTarget::SEL_CHANGED);
-    }
-    void FXWindow_set_width(FXWindow* self, int width) {
-        self -> setWidth(width);
-    }
-    void FXWindow_set_x(FXWindow* self, int x) {
-        self -> setX(x);
-    }
-    void FXWindow_set_y(FXWindow* self, int y) {
-        self -> setY(y);
-    }
-    void FXWindow_set_height(FXWindow* self, int height) {
-        self -> setHeight(height);
-    }
-    void FXWindow_set_layout_hints(FXWindow* self, unsigned int val) {
-        self -> setLayoutHints(val);
-    }
-    void FXWindow_disable(FXWindow* self) {
-        self -> disable();
-    }
-    void FXWindow_enable(FXWindow* self) {
-        self -> enable();
-    }
+  //~ FXWindow.h
+  FXWindow* FXWindow_get_parent(const FXWindow* self)
+  {
+    ASSERT_NOT_NULL(self, nullptr);
+    return self->getParent();
+  }
+  FXWindow* FXWindow_get_root(const FXWindow* self)
+  {
+    ASSERT_NOT_NULL(self, nullptr);
+    return self->getRoot();
+  }
+  long FXWindow_has_focus(const FXWindow* self)
+  {
+    return self->hasFocus();
+  }
+  void FXWindow_set_target(FXWindow* self, CbWidget cb, void* ctx)
+  {
+    if (auto old = dynamic_cast<CTarget*>(self->getTarget()))
+      delete old;
+    self->setTarget(new CTarget(cb, ctx));
+  }
+  void FXWindow_set_selector(FXWindow* self, int val)
+  {
+    if (val == 0)
+      self->setSelector(CTarget::SEL_COMMAND);
+    else if (val == 1)
+      self->setSelector(CTarget::SEL_CHANGED);
+  }
+  void FXWindow_set_width(FXWindow* self, int width)
+  {
+    self->setWidth(width);
+  }
+  void FXWindow_set_x(FXWindow* self, int x)
+  {
+    self->setX(x);
+  }
+  void FXWindow_set_y(FXWindow* self, int y)
+  {
+    self->setY(y);
+  }
+  void FXWindow_set_height(FXWindow* self, int height)
+  {
+    self->setHeight(height);
+  }
+  void FXWindow_set_layout_hints(FXWindow* self, unsigned val)
+  {
+    self->setLayoutHints(val);
+  }
+  void FXWindow_disable(FXWindow* self)
+  {
+    self->disable();
+  }
+  void FXWindow_enable(FXWindow* self)
+  {
+    self->enable();
+  }
 
-//~ FXComposite.h
-    int FXComposite_child_width(const FXComposite* self) {
-        return self -> maxChildWidth();
-    }
-    int FXComposite_child_height(const FXComposite* self) {
-        return self -> maxChildHeight();
-    }
+  //~ FXComposite.h
+  int FXComposite_child_width(const FXComposite* self)
+  {
+    return self->maxChildWidth();
+  }
+  int FXComposite_child_height(const FXComposite* self)
+  {
+    return self->maxChildHeight();
+  }
 
-//~ FXApp
-    FXApp * FXApp_new(const char* name, const char* vendor, int argc, char** argv) {
-        auto app = new FXApp(name, vendor);
-        app->init(argc, argv);
-        return app;
-    }
-    int FXApp_run(FXApp* self) {
-        self -> create();
-        return self -> run();
-    }
-    void FXApp_add_timeout(FXApp* self, CbTimer cb, unsigned int ns, void* ctx) {
-        self -> addTimeout(new CTimeout(cb, ns), CTimeout::SEL_TIMEOUT, ns, ctx);
-    }
+  //~ FXApp
+  FXApp* FXApp_new(const char* name, const char* vendor, int argc, char** argv)
+  {
+    auto app = new FXApp(name, vendor);
+    app->init(argc, argv);
+    return app;
+  }
+  int FXApp_run(FXApp* self)
+  {
+    self->create();
+    return self->run();
+  }
+  void FXApp_add_timeout(FXApp* self, CbTimer cb, unsigned ns, void* ctx)
+  {
+    self->addTimeout(new CTimeout(cb, ns), CTimeout::SEL_TIMEOUT, ns, ctx);
+  }
 
-//~ FXFrame.h
-    void FXFrame_set_frame_style(FXFrame* self, unsigned int style) {
-        self -> setFrameStyle(style);
-    }
-    void FXFrame_set_pad_bottom(FXFrame* self, int pad) {
-        self -> setPadBottom(pad);
-    }
-    void FXFrame_set_pad_left(FXFrame* self, int pad) {
-        self -> setPadLeft(pad);
-    }
-    void FXFrame_set_pad_right(FXFrame* self, int pad) {
-        self -> setPadRight(pad);
-    }
-    void FXFrame_set_pad_top(FXFrame* self, int pad) {
-        self -> setPadTop(pad);
-    }
-    void FXFrame_set_base_color(FXFrame* self, unsigned int color) {
-        self -> setBaseColor(color);
-    }
-    void FXFrame_set_border_color(FXFrame* self, unsigned int color) {
-        self -> setBorderColor(color);
-    }
-    void FXFrame_set_hilite_color(FXFrame* self, unsigned int color) {
-        self -> setHiliteColor(color);
-    }
-    void FXFrame_set_shadow_color(FXFrame* self, unsigned int color) {
-        self -> setShadowColor(color);
-    }
+  //~ FXFrame.h
+  void FXFrame_set_frame_style(FXFrame* self, unsigned style)
+  {
+    self->setFrameStyle(style);
+  }
+  void FXFrame_set_pad_bottom(FXFrame* self, int pad)
+  {
+    self->setPadBottom(pad);
+  }
+  void FXFrame_set_pad_left(FXFrame* self, int pad)
+  {
+    self->setPadLeft(pad);
+  }
+  void FXFrame_set_pad_right(FXFrame* self, int pad)
+  {
+    self->setPadRight(pad);
+  }
+  void FXFrame_set_pad_top(FXFrame* self, int pad)
+  {
+    self->setPadTop(pad);
+  }
+  void FXFrame_set_base_color(FXFrame* self, unsigned color)
+  {
+    self->setBaseColor(color);
+  }
+  void FXFrame_set_border_color(FXFrame* self, unsigned color)
+  {
+    self->setBorderColor(color);
+  }
+  void FXFrame_set_hilite_color(FXFrame* self, unsigned color)
+  {
+    self->setHiliteColor(color);
+  }
+  void FXFrame_set_shadow_color(FXFrame* self, unsigned color)
+  {
+    self->setShadowColor(color);
+  }
 
-//~ FXKnob.h
-    FXKnob* FXKnob_new(FXComposite* parent) {
-        ASSERT_NOT_NULL(parent, nullptr);
-        return make_widget<FXKnob, FXComposite>(parent);
-    }
-    void FXKnob_set_help_text(FXKnob* self, const char* text) {
-        self -> setHelpText(text);
-    }
-    void FXKnob_set_tip_text(FXKnob* self, const char* text) {
-        self -> setTipText(text);
-    }
-    void FXKnob_set_value(FXKnob* self, int value) {
-        self -> setValue(value);
-    }
-    void FXKnob_set_range(FXKnob* self, int lo, int hi) {
-        self -> setRange(lo, hi);
-    }
-    void FXKnob_set_increment(FXKnob* self, int inc) {
-        self -> setIncrement(inc);
-    }
+  //~ FXKnob.h
+  FXKnob* FXKnob_new(FXComposite* parent)
+  {
+    ASSERT_NOT_NULL(parent, nullptr);
+    return make_widget<FXKnob, FXComposite>(parent);
+  }
+  void FXKnob_set_help_text(FXKnob* self, const char* text)
+  {
+    self->setHelpText(text);
+  }
+  void FXKnob_set_tip_text(FXKnob* self, const char* text)
+  {
+    self->setTipText(text);
+  }
+  void FXKnob_set_value(FXKnob* self, int value)
+  {
+    self->setValue(value);
+  }
+  void FXKnob_set_range(FXKnob* self, int lo, int hi)
+  {
+    self->setRange(lo, hi);
+  }
+  void FXKnob_set_increment(FXKnob* self, int inc)
+  {
+    self->setIncrement(inc);
+  }
 
 #define TextExt(widget)                                                        \
-    const char* widget##_get_text(const widget* self) {                        \
-        return string_result(self -> getText());                               \
+  const char* widget##_get_text(const widget* self)                            \
+  {                                                                            \
+    return string_result(self->getText());                                     \
+  }                                                                            \
+  void widget##_set_text(widget* self, const char* text)                       \
+  {                                                                            \
+    self->setText(text);                                                       \
+  }                                                                            \
+  void widget##_set_help_text(widget* self, const char* text)                  \
+  {                                                                            \
+    self->setHelpText(text);                                                   \
+  }                                                                            \
+  void widget##_set_tip_text(widget* self, const char* text)                   \
+  {                                                                            \
+    self->setTipText(text);                                                    \
+  }                                                                            \
+  void widget##_set_text_color(widget* self, unsigned color)                   \
+  {                                                                            \
+    self->setTextColor(color);                                                 \
+  }                                                                            \
+  void widget##_set_font(widget* self, const char* family, int size)           \
+  {                                                                            \
+    auto old_font = self->getFont();                                           \
+    auto new_font = new FXFont(self->getApp(), family, size, 0, 0);            \
+    self->setFont(new_font);                                                   \
+    if (old_font && old_font != self->getApp()->getNormalFont()) {             \
+      delete old_font;                                                         \
     }                                                                          \
-    void widget##_set_text(widget* self, const char* text) {                   \
-        self -> setText(text);                                                 \
-    }                                                                          \
-    void widget##_set_help_text(widget* self, const char* text) {              \
-        self -> setHelpText(text);                                             \
-    }                                                                          \
-    void widget##_set_tip_text(widget* self, const char* text) {               \
-        self -> setTipText(text);                                              \
-    }                                                                          \
-    void widget##_set_text_color(widget* self, unsigned int color) {           \
-        self -> setTextColor(color);                                           \
-    }                                                                          \
-    void widget##_set_font(widget* self, const char* family, int size) {       \
-        auto old_font = self -> getFont();                                     \
-        auto new_font = new FXFont(self -> getApp(), family, size, 0, 0);      \
-        self -> setFont(new_font);                                             \
-        if (old_font && old_font != self -> getApp() -> getNormalFont()) {     \
-            delete old_font;                                                   \
-        }                                                                      \
-    }
+  }
 
-//~ FXLabel.h
-    TextExt(FXLabel)
-    FXLabel* FXLabel_new(FXComposite* parent, const char* title) {
-        ASSERT_NOT_NULL(parent, nullptr);
-        return make_widget<FXLabel, FXComposite>(parent, title);
-    }
-    void FXLabel_set_justify(FXLabel* self, unsigned int justify) {
-        self -> setJustify(justify);
-    }
+  //~ FXLabel.h
+  TextExt(FXLabel) FXLabel* FXLabel_new(FXComposite* parent, const char* title)
+  {
+    ASSERT_NOT_NULL(parent, nullptr);
+    return make_widget<FXLabel, FXComposite>(parent, title);
+  }
+  void FXLabel_set_justify(FXLabel* self, unsigned justify)
+  {
+    self->setJustify(justify);
+  }
 
-//~ FXArrowButton.h
-    FXArrowButton* FXArrowButton_new(FXComposite* parent) {
-        ASSERT_NOT_NULL(parent, nullptr);
-        return make_widget<FXArrowButton, FXComposite>(parent);
-    }
-    void FXArrowButton_set_arrow_size(FXArrowButton* self, int size) {
-        self -> setArrowSize(size);
-    }
-    void FXArrowButton_set_arrow_color(FXArrowButton* self, unsigned int color) {
-        self -> setArrowColor(color);
-    }
+  //~ FXArrowButton.h
+  FXArrowButton* FXArrowButton_new(FXComposite* parent)
+  {
+    ASSERT_NOT_NULL(parent, nullptr);
+    return make_widget<FXArrowButton, FXComposite>(parent);
+  }
+  void FXArrowButton_set_arrow_size(FXArrowButton* self, int size)
+  {
+    self->setArrowSize(size);
+  }
+  void FXArrowButton_set_arrow_color(FXArrowButton* self, unsigned color)
+  {
+    self->setArrowColor(color);
+  }
 
-//~ FXMessageBox.h
-    unsigned int FXMessageBox_error(FXWindow* owner, unsigned int opts, const char* caption, const char* message) {
-        return FXMessageBox::error(owner, opts, caption, "%s", message);
-    }
-    unsigned int FXMessageBox_warning(FXWindow* owner, unsigned int opts, const char* caption, const char* message) {
-        return FXMessageBox::warning(owner, opts, caption, "%s", message);
-    }
-    unsigned int FXMessageBox_question(FXWindow* owner, unsigned int opts, const char* caption, const char* message) {
-        return FXMessageBox::question(owner, opts, caption, "%s", message);
-    }
-    unsigned int FXMessageBox_information(FXWindow* owner, unsigned int opts, const char* caption, const char* message) {
-        return FXMessageBox::information(owner, opts, caption, "%s", message);
-    }
+  //~ FXMessageBox.h
+  unsigned FXMessageBox_error(FXWindow* owner,
+                              unsigned opts,
+                              const char* caption,
+                              const char* message)
+  {
+    return FXMessageBox::error(owner, opts, caption, "%s", message);
+  }
+  unsigned FXMessageBox_warning(FXWindow* owner,
+                                unsigned opts,
+                                const char* caption,
+                                const char* message)
+  {
+    return FXMessageBox::warning(owner, opts, caption, "%s", message);
+  }
+  unsigned FXMessageBox_question(FXWindow* owner,
+                                 unsigned opts,
+                                 const char* caption,
+                                 const char* message)
+  {
+    return FXMessageBox::question(owner, opts, caption, "%s", message);
+  }
+  unsigned FXMessageBox_information(FXWindow* owner,
+                                    unsigned opts,
+                                    const char* caption,
+                                    const char* message)
+  {
+    return FXMessageBox::information(owner, opts, caption, "%s", message);
+  }
 
-//~ FXChoiceBox.h
-    int FXChoiceBox_ask(FXWindow* owner, unsigned int opts, const char* caption, const char* text, FXIcon* icon, const char** choices) {
-        return FXChoiceBox::ask(owner, opts, caption, text, icon, choices);
-    }
+  //~ FXChoiceBox.h
+  int FXChoiceBox_ask(FXWindow* owner,
+                      unsigned opts,
+                      const char* caption,
+                      const char* text,
+                      FXIcon* icon,
+                      const char** choices)
+  {
+    return FXChoiceBox::ask(owner, opts, caption, text, icon, choices);
+  }
 
-//~ FXTriStateButton.h
-    FXTriStateButton* FXTriStateButton_new(FXComposite* prt, const char* text1, const char* text2, const char* text3) {
-        return make_widget<FXTriStateButton, FXComposite>(prt, text1, text2, text3);
-    }
+  //~ FXPrintDialog.h
+  FXPrintDialog* FXPrintDialog_new(FXWindow* owner, const char* title)
+  {
+    return make_widget<FXPrintDialog, FXWindow>(owner, title);
+  }
 
-//~ FXTreeListBox.h
-    FXTreeListBox* FXTreeListBox_new(FXComposite* prt) {
-        return make_widget<FXTreeListBox, FXComposite>(prt);
-    }
+  //~ FXTriStateButton.h
+  FXTriStateButton* FXTriStateButton_new(FXComposite* prt,
+                                         const char* text1,
+                                         const char* text2,
+                                         const char* text3)
+  {
+    return make_widget<FXTriStateButton, FXComposite>(prt, text1, text2, text3);
+  }
 
-//~ FXDriveBox.h
-    FXDriveBox* FXDriveBox_new(FXComposite* prt) {
-        return make_widget<FXDriveBox, FXComposite>(prt);
-    }
+  //~ FXTreeListBox.h
+  FXTreeListBox* FXTreeListBox_new(FXComposite* prt)
+  {
+    return make_widget<FXTreeListBox, FXComposite>(prt);
+  }
 
-//~ FXDirBox.h
-    FXDirBox* FXDirBox_new(FXComposite* prt) {
-        return make_widget<FXDirBox, FXComposite>(prt);
-    }
-    FXDirList* FXDirList_new(FXComposite* prt) {
-        return make_widget<FXDirList, FXComposite>(prt);
-    }
-    FXDirSelector* FXDirSelector_new(FXComposite* prt) {
-        return make_widget<FXDirSelector, FXComposite>(prt);
-    }
+  //~ FXDriveBox.h
+  FXDriveBox* FXDriveBox_new(FXComposite* prt)
+  {
+    return make_widget<FXDriveBox, FXComposite>(prt);
+  }
 
-//~ FXFileSelector.h
-    FXFileSelector* FXFileSelector_new(FXComposite* prt) {
-        return make_widget<FXFileSelector, FXComposite>(prt);
-    }
-    FXFileList* FXFileList_new(FXComposite* prt) {
-        return make_widget<FXFileList, FXComposite>(prt);
-    }
+  //~ FXDirBox.h
+  FXDirBox* FXDirBox_new(FXComposite* prt)
+  {
+    return make_widget<FXDirBox, FXComposite>(prt);
+  }
+  FXDirList* FXDirList_new(FXComposite* prt)
+  {
+    return make_widget<FXDirList, FXComposite>(prt);
+  }
+  FXDirSelector* FXDirSelector_new(FXComposite* prt)
+  {
+    return make_widget<FXDirSelector, FXComposite>(prt);
+  }
 
-//~ FXFontSelector.h
-    FXFontSelector* FXFontSelector_new(FXComposite* prt) {
-        return make_widget<FXFontSelector, FXComposite>(prt);
-    }
+  //~ FXFileSelector.h
+  FXFileSelector* FXFileSelector_new(FXComposite* prt)
+  {
+    return make_widget<FXFileSelector, FXComposite>(prt);
+  }
+  FXFileList* FXFileList_new(FXComposite* prt)
+  {
+    return make_widget<FXFileList, FXComposite>(prt);
+  }
 
-//~ FXColorSelector.h
-    FXColorSelector* FXColorSelector_new(FXComposite* prt) {
-        return make_widget<FXColorSelector, FXComposite>(prt);
-    }
+  //~ FXFontSelector.h
+  FXFontSelector* FXFontSelector_new(FXComposite* prt)
+  {
+    return make_widget<FXFontSelector, FXComposite>(prt);
+  }
 
-//~ FXDial.h
-    FXDial* FXDial_new(FXComposite* prt) {
-        return make_widget<FXDial, FXComposite>(prt);
-    }
+  //~ FXColorSelector.h
+  FXColorSelector* FXColorSelector_new(FXComposite* prt)
+  {
+    return make_widget<FXColorSelector, FXComposite>(prt);
+  }
 
-//~ FXColorWell.h
-    FXColorWell* FXColorWell_new(FXComposite* prt) {
-        return make_widget<FXColorWell, FXComposite>(prt);
-    }
+  //~ FXDial.h
+  FXDial* FXDial_new(FXComposite* prt)
+  {
+    return make_widget<FXDial, FXComposite>(prt);
+  }
 
-//~ FXColorWheel.h
-    FXColorWheel* FXColorWheel_new(FXComposite* prt) {
-        return make_widget<FXColorWheel, FXComposite>(prt);
-    }
+  //~ FXColorWell.h
+  FXColorWell* FXColorWell_new(FXComposite* prt)
+  {
+    return make_widget<FXColorWell, FXComposite>(prt);
+  }
 
-//~ FXColorRing.h
-    FXColorRing* FXColorRing_new(FXComposite* prt) {
-        return make_widget<FXColorRing, FXComposite>(prt);
-    }
+  //~ FXColorWheel.h
+  FXColorWheel* FXColorWheel_new(FXComposite* prt)
+  {
+    return make_widget<FXColorWheel, FXComposite>(prt);
+  }
 
-//~ FXColorBar.h
-    FXColorBar* FXColorBar_new(FXComposite* prt) {
-        return make_widget<FXColorBar, FXComposite>(prt);
-    }
+  //~ FXColorRing.h
+  FXColorRing* FXColorRing_new(FXComposite* prt)
+  {
+    return make_widget<FXColorRing, FXComposite>(prt);
+  }
 
-//~ FX7Segment.h
-    FX7Segment* FX7Segment_new(FXComposite* prt, const char* text) {
-        return make_widget<FX7Segment, FXComposite>(prt, text);
-    }
+  //~ FXColorBar.h
+  FXColorBar* FXColorBar_new(FXComposite* prt)
+  {
+    return make_widget<FXColorBar, FXComposite>(prt);
+  }
 
-//~ FXColorDialog.h
-    FXColorDialog* FXColorDialog_new(FXWindow* owner, const char* title) {
-        return make_widget<FXColorDialog, FXWindow>(owner, title);
-    }
+  //~ FX7Segment.h
+  FX7Segment* FX7Segment_new(FXComposite* prt, const char* text)
+  {
+    return make_widget<FX7Segment, FXComposite>(prt, text);
+  }
 
-//~ FXDialogBox.h
-    FXDialogBox* FXDialogBox_new(FXWindow* owner, const char* title) {
-        return make_widget<FXDialogBox, FXWindow>(owner, title);
-    }
+  //~ FXColorDialog.h
+  FXColorDialog* FXColorDialog_new(FXWindow* owner, const char* title)
+  {
+    return make_widget<FXColorDialog, FXWindow>(owner, title);
+  }
 
-//~ FXFileDialog.h
-    const char* FXFileDialog_get_open_filename(FXWindow* owner, const char* caption, const char* path, const char* patterns, int initial) {
-        return string_result(FXFileDialog::getOpenFilename(owner, caption, path, patterns, initial));
-    }
-    const char* FXFileDialog_get_save_filename(FXWindow* owner, const char* caption, const char* path, const char* patterns, int initial) {
-        return string_result(FXFileDialog::getSaveFilename(owner, caption, path, patterns, initial));
-    }
+  //~ FXDialogBox.h
+  FXDialogBox* FXDialogBox_new(FXWindow* owner, const char* title)
+  {
+    return make_widget<FXDialogBox, FXWindow>(owner, title);
+  }
 
-//~ FXButton.h
-    TextExt(FXButton)
-    FXButton* FXButton_new(FXComposite *prt, const char* title) {
-        return make_widget<FXButton, FXComposite>(prt, title);
-    }
-    void FXButton_set_state(FXButton *self, unsigned int state) {
-        self -> setState(state);
-    }
-    void FXButton_set_style(FXButton *self, unsigned int style) {
-        self -> setButtonStyle(style);
-    }
+  //~ FXFileDialog.h
+  const char* FXFileDialog_get_open_filename(FXWindow* owner,
+                                             const char* caption,
+                                             const char* path,
+                                             const char* patterns,
+                                             int initial)
+  {
+    return string_result(
+      FXFileDialog::getOpenFilename(owner, caption, path, patterns, initial));
+  }
+  const char* FXFileDialog_get_save_filename(FXWindow* owner,
+                                             const char* caption,
+                                             const char* path,
+                                             const char* patterns,
+                                             int initial)
+  {
+    return string_result(
+      FXFileDialog::getSaveFilename(owner, caption, path, patterns, initial));
+  }
 
-//~ FXCheckButton.h
-    FXCheckButton* FXCheckButton_new(FXComposite *prt, const char* title) {
-        return make_widget<FXCheckButton, FXComposite>(prt, title);
-    }
-    unsigned char FXCheckButton_get_check(const FXCheckButton *self) {
-        return self -> getCheck();
-    }
-    void FXCheckButton_set_check(FXCheckButton *self, unsigned char check) {
-        self -> setCheck(check);
-    }
+  //~ FXButton.h
+  TextExt(FXButton) FXButton* FXButton_new(FXComposite* prt, const char* title)
+  {
+    return make_widget<FXButton, FXComposite>(prt, title);
+  }
+  void FXButton_set_state(FXButton* self, unsigned state)
+  {
+    self->setState(state);
+  }
+  void FXButton_set_style(FXButton* self, unsigned style)
+  {
+    self->setButtonStyle(style);
+  }
 
-//~ FXRadioButton.h
-    FXRadioButton* FXRadioButton_new(FXComposite* prt, const char* title) {
-        return make_widget<FXRadioButton, FXComposite>(prt, title);
-    }
-    unsigned char FXRadioButton_get_check(const FXRadioButton* self) {
-        return self -> getCheck();
-    }
-    void FXRadioButton_set_check(FXRadioButton* self) {
-        self -> setCheck();
-    }
+  //~ FXCheckButton.h
+  FXCheckButton* FXCheckButton_new(FXComposite* prt, const char* title)
+  {
+    return make_widget<FXCheckButton, FXComposite>(prt, title);
+  }
+  unsigned char FXCheckButton_get_check(const FXCheckButton* self)
+  {
+    return self->getCheck();
+  }
+  void FXCheckButton_set_check(FXCheckButton* self, unsigned char check)
+  {
+    self->setCheck(check);
+  }
 
-//~ FXToggleButton.h
-    FXToggleButton* FXToggleButton_new(FXComposite* prt, const char* text1, const char* text2) {
-        return make_widget<FXToggleButton, FXComposite>(prt, text1, text2);
-    }
+  //~ FXRadioButton.h
+  FXRadioButton* FXRadioButton_new(FXComposite* prt, const char* title)
+  {
+    return make_widget<FXRadioButton, FXComposite>(prt, title);
+  }
+  unsigned char FXRadioButton_get_check(const FXRadioButton* self)
+  {
+    return self->getCheck();
+  }
+  void FXRadioButton_set_check(FXRadioButton* self)
+  {
+    self->setCheck();
+  }
 
-//~ FXText.h
-    TextExt(FXText)
-    FXText* FXText_new(FXComposite* prt) {
-        return make_widget<FXText, FXComposite>(prt);
-    }
-    void FXText_set_editable(FXText* self, long editable) {
-        self -> setEditable(editable != 0);
-    }
+  //~ FXToggleButton.h
+  FXToggleButton* FXToggleButton_new(FXComposite* prt,
+                                     const char* text1,
+                                     const char* text2)
+  {
+    return make_widget<FXToggleButton, FXComposite>(prt, text1, text2);
+  }
 
-//~ FXTextField
-    TextExt(FXTextField)
-    FXTextField* FXTextField_new(FXComposite* prt) {
-        return make_widget<FXTextField, FXComposite>(prt, 8);
-    }
-    void FXTextField_set_editable(FXTextField* self, long val) {
-        self -> setEditable(val != 0);
-    }
+  //~ FXText.h
+  TextExt(FXText) FXText* FXText_new(FXComposite* prt)
+  {
+    return make_widget<FXText, FXComposite>(prt);
+  }
+  void FXText_set_editable(FXText* self, long editable)
+  {
+    self->setEditable(editable != 0);
+  }
+
+  //~ FXTextField
+  TextExt(FXTextField) FXTextField* FXTextField_new(FXComposite* prt)
+  {
+    return make_widget<FXTextField, FXComposite>(prt, 8);
+  }
+  void FXTextField_set_editable(FXTextField* self, long val)
+  {
+    self->setEditable(val != 0);
+  }
 
 #define RangerExt(widget)                                                      \
-    int widget##_get_increment(const widget* self) {                           \
-        return self -> getIncrement();                                         \
-    }                                                                          \
-    int widget##_get_value(const widget* self) {                               \
-        return self -> getValue();                                             \
-    }                                                                          \
-    void widget##_get_range(const widget* self, int* lo, int* hi){             \
-        FXint lower, upper;                                                    \
-        self -> getRange(lower, upper);                                        \
-        if (lo) *lo = lower;                                                   \
-        if (hi) *hi = upper;                                                   \
-    }                                                                          \
-    void widget##_set_value(widget* self, int value) {                         \
-        self -> setValue(value);                                               \
-    }                                                                          \
-    void widget##_set_range(widget* self, int lo, int hi) {                    \
-        self -> setRange(lo, hi);                                              \
-    }                                                                          \
-    void widget##_set_increment(widget* self, int inc) {                       \
-        self -> setIncrement(inc);                                             \
-    }
+  int widget##_get_increment(const widget* self)                               \
+  {                                                                            \
+    return self->getIncrement();                                               \
+  }                                                                            \
+  int widget##_get_value(const widget* self)                                   \
+  {                                                                            \
+    return self->getValue();                                                   \
+  }                                                                            \
+  void widget##_get_range(const widget* self, int* lo, int* hi)                \
+  {                                                                            \
+    FXint lower, upper;                                                        \
+    self->getRange(lower, upper);                                              \
+    if (lo)                                                                    \
+      *lo = lower;                                                             \
+    if (hi)                                                                    \
+      *hi = upper;                                                             \
+  }                                                                            \
+  void widget##_set_value(widget* self, int value)                             \
+  {                                                                            \
+    self->setValue(value);                                                     \
+  }                                                                            \
+  void widget##_set_range(widget* self, int lo, int hi)                        \
+  {                                                                            \
+    self->setRange(lo, hi);                                                    \
+  }                                                                            \
+  void widget##_set_increment(widget* self, int inc)                           \
+  {                                                                            \
+    self->setIncrement(inc);                                                   \
+  }
 
-//~ FXSlider
-    RangerExt(FXSlider)
-    FXSlider* FXSlider_new(FXComposite* parent) {
-        return make_widget<FXSlider, FXComposite>(parent);
-    }
+  //~ FXSlider
+  RangerExt(FXSlider) FXSlider* FXSlider_new(FXComposite* parent)
+  {
+    return make_widget<FXSlider, FXComposite>(parent);
+  }
 
-//~ FXSpinner
-    RangerExt(FXSpinner)
-    FXSpinner* FXSpinner_new(FXComposite* parent) {
-        return make_widget<FXSpinner, FXComposite>(parent, 6);
-    }
-    void FXSpinner_decrement(FXSpinner* self) {
-        self -> decrement();
-    }
+  //~ FXSpinner
+  RangerExt(FXSpinner) FXSpinner* FXSpinner_new(FXComposite* parent)
+  {
+    return make_widget<FXSpinner, FXComposite>(parent, 6);
+  }
+  void FXSpinner_decrement(FXSpinner* self)
+  {
+    self->decrement();
+  }
 
-//~ FXProgressBar
-    FXProgressBar* FXProgressBar_new(FXComposite* prt) {
-        return make_widget<FXProgressBar, FXComposite>(prt);
-    }
-    void FXProgressBar_set_progress(FXProgressBar* self, unsigned int value) {
-        self -> setProgress(value);
-    }
-    unsigned int FXProgressBar_get_progress(const FXProgressBar* self) {
-        return self -> getProgress();
-    }
-    void FXProgressBar_set_total(FXProgressBar* self, unsigned int value) {
-        self -> setTotal(value);
-    }
-    unsigned int FXProgressBar_get_total(const FXProgressBar* self) {
-        return self -> getTotal();
-    }
-    void FXProgressBar_increment(FXProgressBar* self, unsigned int value) {
-        self -> increment(value);
-    }
-    void FXProgressBar_show_number(FXProgressBar* self) {
-        self -> showNumber();
-    }
-    void FXProgressBar_hide_number(FXProgressBar* self) {
-        self -> hideNumber();
-    }
-    void FXProgressBar_set_bar_size(FXProgressBar* self, int size) {
-        self -> setBarSize(size);
-    }
-    int FXProgressBar_get_bar_size(const FXProgressBar* self) {
-        return self -> getBarSize();
-    }
+  //~ FXProgressBar
+  FXProgressBar* FXProgressBar_new(FXComposite* prt)
+  {
+    return make_widget<FXProgressBar, FXComposite>(prt);
+  }
+  void FXProgressBar_set_progress(FXProgressBar* self, unsigned value)
+  {
+    self->setProgress(value);
+  }
+  unsigned FXProgressBar_get_progress(const FXProgressBar* self)
+  {
+    return self->getProgress();
+  }
+  void FXProgressBar_set_total(FXProgressBar* self, unsigned value)
+  {
+    self->setTotal(value);
+  }
+  unsigned FXProgressBar_get_total(const FXProgressBar* self)
+  {
+    return self->getTotal();
+  }
+  void FXProgressBar_increment(FXProgressBar* self, unsigned value)
+  {
+    self->increment(value);
+  }
+  void FXProgressBar_show_number(FXProgressBar* self)
+  {
+    self->showNumber();
+  }
+  void FXProgressBar_hide_number(FXProgressBar* self)
+  {
+    self->hideNumber();
+  }
+  void FXProgressBar_set_bar_size(FXProgressBar* self, int size)
+  {
+    self->setBarSize(size);
+  }
+  int FXProgressBar_get_bar_size(const FXProgressBar* self)
+  {
+    return self->getBarSize();
+  }
 
-//~ FXPacker
-    FXPacker* FXPacker_new(FXComposite* prt) {
-        return make_widget<FXPacker, FXComposite>(prt);
-    }
-    void FXPacker_set_hspacing(FXPacker* self, int val) {
-        self -> setHSpacing(val);
-    }
-    void FXPacker_set_vspacing(FXPacker* self, int val) {
-        self -> setVSpacing(val);
-    }
+  //~ FXPacker
+  FXPacker* FXPacker_new(FXComposite* prt)
+  {
+    return make_widget<FXPacker, FXComposite>(prt);
+  }
+  void FXPacker_set_hspacing(FXPacker* self, int val)
+  {
+    self->setHSpacing(val);
+  }
+  void FXPacker_set_vspacing(FXPacker* self, int val)
+  {
+    self->setVSpacing(val);
+  }
 
-//~ FXMatrix
-    FXMatrix* FXMatrix_new(FXComposite* prt, int rows, unsigned int opts) {
-        return make_widget<FXMatrix, FXComposite>(prt, rows, opts);
-    }
-    void FXMatrix_set_matrix_style(FXMatrix* self, unsigned int style) {
-        self -> setMatrixStyle(style);
-    }
-    void FXMatrix_set_num_rows(FXMatrix* self, int rows) {
-        self -> setNumRows(rows);
-    }
-    void FXMatrix_set_num_columns(FXMatrix* self, int cols) {
-        self -> setNumColumns(cols);
-    }
-    unsigned int FXMatrix_get_matrix_style(const FXMatrix* self) {
-        return self -> getMatrixStyle();
-    }
-    int FXMatrix_get_num_rows(const FXMatrix* self) {
-        return self -> getNumRows();
-    }
-    int FXMatrix_get_num_columns(const FXMatrix* self) {
-        return self -> getNumColumns();
-    }
+  //~ FXMatrix
+  FXMatrix* FXMatrix_new(FXComposite* prt, int rows, unsigned opts)
+  {
+    return make_widget<FXMatrix, FXComposite>(prt, rows, opts);
+  }
+  void FXMatrix_set_matrix_style(FXMatrix* self, unsigned style)
+  {
+    self->setMatrixStyle(style);
+  }
+  void FXMatrix_set_num_rows(FXMatrix* self, int rows)
+  {
+    self->setNumRows(rows);
+  }
+  void FXMatrix_set_num_columns(FXMatrix* self, int cols)
+  {
+    self->setNumColumns(cols);
+  }
+  unsigned FXMatrix_get_matrix_style(const FXMatrix* self)
+  {
+    return self->getMatrixStyle();
+  }
+  int FXMatrix_get_num_rows(const FXMatrix* self)
+  {
+    return self->getNumRows();
+  }
+  int FXMatrix_get_num_columns(const FXMatrix* self)
+  {
+    return self->getNumColumns();
+  }
 
-//~ FXSplitter
-    FXSplitter* FXSplitter_new(FXComposite* prt, unsigned int opts) {
-        return make_widget<FXSplitter, FXComposite>(prt, opts);
-    }
-    int FXSplitter_get_split(const FXSplitter* self, int index) {
-        return self -> getSplit(index);
-    }
-    void FXSplitter_set_split(FXSplitter* self, int index, int size) {
-        self -> setSplit(index, size);
-    }
-    void FXSplitter_set_splitter_style(FXSplitter* self, unsigned int style) {
-        self -> setSplitterStyle(style);
-    }
-    unsigned int FXSplitter_get_splitter_style(const FXSplitter* self) {
-        return self -> getSplitterStyle();
-    }
-    void FXSplitter_set_bar_size(FXSplitter* self, int size) {
-        self -> setBarSize(size);
-    }
-    int FXSplitter_get_bar_size(const FXSplitter* self) {
-        return self -> getBarSize();
-    }
+  //~ FXSplitter
+  FXSplitter* FXSplitter_new(FXComposite* prt, unsigned opts)
+  {
+    return make_widget<FXSplitter, FXComposite>(prt, opts);
+  }
+  int FXSplitter_get_split(const FXSplitter* self, int index)
+  {
+    return self->getSplit(index);
+  }
+  void FXSplitter_set_split(FXSplitter* self, int index, int size)
+  {
+    self->setSplit(index, size);
+  }
+  void FXSplitter_set_splitter_style(FXSplitter* self, unsigned style)
+  {
+    self->setSplitterStyle(style);
+  }
+  unsigned FXSplitter_get_splitter_style(const FXSplitter* self)
+  {
+    return self->getSplitterStyle();
+  }
+  void FXSplitter_set_bar_size(FXSplitter* self, int size)
+  {
+    self->setBarSize(size);
+  }
+  int FXSplitter_get_bar_size(const FXSplitter* self)
+  {
+    return self->getBarSize();
+  }
 
-//~ FXScrollWindow
-    FXScrollWindow* FXScrollWindow_new(FXComposite* prt, unsigned int opts, int x, int y, int w, int h) {
-        return make_widget<FXScrollWindow, FXComposite>(prt, opts, x, y, w, h);
-    }
+  //~ FXScrollWindow
+  FXScrollWindow* FXScrollWindow_new(FXComposite* prt,
+                                     unsigned opts,
+                                     int x,
+                                     int y,
+                                     int w,
+                                     int h)
+  {
+    return make_widget<FXScrollWindow, FXComposite>(prt, opts, x, y, w, h);
+  }
 
-//~ FXGroupBox
-    FXGroupBox* FXGroupBox_new(FXComposite* prt, const char* title) {
-        return make_widget<FXGroupBox, FXComposite>(prt, title);
-    }
-    void FXGroupBox_set_style(FXGroupBox* self, unsigned int style) {
-        self -> setGroupBoxStyle(style);
-    }
-    void FXGroupBox_set_text(FXGroupBox* self, const char* text) {
-        self -> setText(text);
-    }
+  //~ FXGroupBox
+  FXGroupBox* FXGroupBox_new(FXComposite* prt, const char* title)
+  {
+    return make_widget<FXGroupBox, FXComposite>(prt, title);
+  }
+  void FXGroupBox_set_style(FXGroupBox* self, unsigned style)
+  {
+    self->setGroupBoxStyle(style);
+  }
+  void FXGroupBox_set_text(FXGroupBox* self, const char* text)
+  {
+    self->setText(text);
+  }
 
-//~ FXVerticalFrame
-    FXVerticalFrame* FXVerticalFrame_new(FXComposite* prt) {
-        return make_widget<FXVerticalFrame, FXComposite>(prt);
-    }
+  //~ FXVerticalFrame
+  FXVerticalFrame* FXVerticalFrame_new(FXComposite* prt)
+  {
+    return make_widget<FXVerticalFrame, FXComposite>(prt);
+  }
 
-//~ FXHorizontalFrame
-    FXHorizontalFrame* FXHorizontalFrame_new(FXComposite* prt) {
-        return make_widget<FXHorizontalFrame, FXComposite>(prt);
-    }
+  //~ FXHorizontalFrame
+  FXHorizontalFrame* FXHorizontalFrame_new(FXComposite* prt)
+  {
+    return make_widget<FXHorizontalFrame, FXComposite>(prt);
+  }
 
-//~ FXSwitcher
-    FXSwitcher* FXSwitcher_new(FXComposite* prt) {
-        return make_widget<FXSwitcher, FXComposite>(prt);
-    }
+  //~ FXSwitcher
+  FXSwitcher* FXSwitcher_new(FXComposite* prt)
+  {
+    return make_widget<FXSwitcher, FXComposite>(prt);
+  }
 
-    void FXSwitcher_set_current(FXSwitcher* self, int index) {
-        self -> setCurrent(index);
-    }
+  void FXSwitcher_set_current(FXSwitcher* self, int index)
+  {
+    self->setCurrent(index);
+  }
 
-//~ FXDCWindow
-    FXDCWindow* FXDCWindow_new(FXDrawable* drawable) {
-        return make_widget<FXDCWindow, FXDrawable>(drawable);
-    }
+  //~ FXDCWindow
+  FXDCWindow* FXDCWindow_new(FXDrawable* drawable)
+  {
+    return make_widget<FXDCWindow, FXDrawable>(drawable);
+  }
 
-//~ FXDC (drawing)
-    void FXDC_set_foreground(FXDCWindow* self, unsigned int color) {
-        self -> setForeground(color);
-    }
-    void FXDC_set_line_width(FXDCWindow* self, int width) {
-        self -> setLineWidth(width);
-    }
-    void FXDC_draw_line(FXDCWindow* self, int x1, int y1, int x2, int y2) {
-        self -> drawLine(x1, y1, x2, y2);
-    }
-    void FXDC_draw_point(FXDCWindow* self, int x, int y) {
-        self -> drawPoint(x, y);
-    }
-    void FXDC_draw_rect(FXDCWindow* self, int x, int y, int w, int h) {
-        self -> drawRectangle(x, y, w, h);
-    }
-    void FXDC_fill_rect(FXDCWindow* self, int x, int y, int w, int h) {
-        self -> fillRectangle(x, y, w, h);
-    }
+  //~ FXDC (drawing)
+  void FXDC_set_foreground(FXDCWindow* self, unsigned color)
+  {
+    self->setForeground(color);
+  }
+  void FXDC_set_line_width(FXDCWindow* self, int width)
+  {
+    self->setLineWidth(width);
+  }
+  void FXDC_draw_line(FXDCWindow* self, int x1, int y1, int x2, int y2)
+  {
+    self->drawLine(x1, y1, x2, y2);
+  }
+  void FXDC_draw_point(FXDCWindow* self, int x, int y)
+  {
+    self->drawPoint(x, y);
+  }
+  void FXDC_draw_rect(FXDCWindow* self, int x, int y, int w, int h)
+  {
+    self->drawRectangle(x, y, w, h);
+  }
+  void FXDC_fill_rect(FXDCWindow* self, int x, int y, int w, int h)
+  {
+    self->fillRectangle(x, y, w, h);
+  }
 
-//~ FXSplashWindow
-    FXSplashWindow* FXSplashWindow_new(FXApp* app) {
-        return make_widget<FXSplashWindow, FXApp>(app, nullptr);
-    }
+  //~ FXSplashWindow
+  FXSplashWindow* FXSplashWindow_new(FXApp* app)
+  {
+    return make_widget<FXSplashWindow, FXApp>(app, nullptr);
+  }
 
-//~ FXMainWindow
-    FXMainWindow* FXMainWindow_new(FXApp* app, const char* title, int width, int height) {
-        return make_widget<FXMainWindow, FXApp>(app, title, nullptr, nullptr, DECOR_ALL, 0, 0, width, height);
-    }
-    void FXMainWindow_show(FXMainWindow* self) {
-        self ->  show(PLACEMENT_SCREEN);
-    }
+  //~ FXMainWindow
+  FXMainWindow* FXMainWindow_new(FXApp* app,
+                                 const char* title,
+                                 int width,
+                                 int height)
+  {
+    return make_widget<FXMainWindow, FXApp>(
+      app, title, nullptr, nullptr, DECOR_ALL, 0, 0, width, height);
+  }
+  void FXMainWindow_show(FXMainWindow* self)
+  {
+    self->show(PLACEMENT_SCREEN);
+  }
 
-//~ FXComboBox
-    FXComboBox* FXComboBox_new(FXComposite* prt, int cols) {
-        return make_widget<FXComboBox, FXComposite>(prt, cols);
-    }
-    FXint FXComboBox_append_item(FXComboBox* self, const char* text) {
-        return self -> appendItem(text);
-    }
-    void FXComboBox_clear_items(FXComboBox* self) {
-        self -> clearItems();
-    }
-    int FXComboBox_get_current_item(const FXComboBox* self) {
-        return self -> getCurrentItem();
-    }
-    void FXComboBox_set_current_item(FXComboBox* self, int index) {
-        self -> setCurrentItem(index);
-    }
-    void FXComboBox_set_num_visible(FXComboBox* self, int nvis) {
-        self -> setNumVisible(nvis);
-    }
-    const char* FXComboBox_get_item_text(const FXComboBox* self, int index) {
-        return string_result(self -> getItemText(index));
-    }
-    int FXComboBox_get_num_items(const FXComboBox* self) {
-        return self -> getNumItems();
-    }
+  //~ FXComboBox
+  FXComboBox* FXComboBox_new(FXComposite* prt, int cols)
+  {
+    return make_widget<FXComboBox, FXComposite>(prt, cols);
+  }
+  FXint FXComboBox_append_item(FXComboBox* self, const char* text)
+  {
+    return self->appendItem(text);
+  }
+  void FXComboBox_clear_items(FXComboBox* self)
+  {
+    self->clearItems();
+  }
+  int FXComboBox_get_current_item(const FXComboBox* self)
+  {
+    return self->getCurrentItem();
+  }
+  void FXComboBox_set_current_item(FXComboBox* self, int index)
+  {
+    self->setCurrentItem(index);
+  }
+  void FXComboBox_set_num_visible(FXComboBox* self, int nvis)
+  {
+    self->setNumVisible(nvis);
+  }
+  const char* FXComboBox_get_item_text(const FXComboBox* self, int index)
+  {
+    return string_result(self->getItemText(index));
+  }
+  int FXComboBox_get_num_items(const FXComboBox* self)
+  {
+    return self->getNumItems();
+  }
 
 #define SelectorExt(widget)                                                    \
-    widget* widget##_new(FXComposite* parent) {                                  \
-        return make_widget<widget, FXComposite>(parent);                       \
-    }                                                                          \
-    void widget##_append_item(widget* self, const char* text) {                \
-        self -> appendItem(text);                                              \
-    }                                                                          \
-    void widget##_clear_items(widget* self) {                                  \
-        self -> clearItems();                                                  \
-    }                                                                          \
-    void widget##_set_current_item(widget* self, int index) {                  \
-        self -> setCurrentItem(index);                                         \
-    }                                                                          \
-    void widget##_set_num_visible(widget* self, int nvis) {                    \
-        self -> setNumVisible(nvis);                                           \
-    }                                                                          \
-    const char* widget##_get_item_text(const widget* self, int index) {        \
-        return string_result(self -> getItemText(index));                      \
-    }                                                                          \
-    int widget##_get_current_item(const widget* self) {                        \
-        return self -> getCurrentItem();                                       \
-    }                                                                          \
-    int widget##_get_num_items(const widget* self) {                           \
-        return self -> getNumItems();                                          \
-    }
+  widget* widget##_new(FXComposite* parent)                                    \
+  {                                                                            \
+    return make_widget<widget, FXComposite>(parent);                           \
+  }                                                                            \
+  void widget##_append_item(widget* self, const char* text)                    \
+  {                                                                            \
+    self->appendItem(text);                                                    \
+  }                                                                            \
+  void widget##_clear_items(widget* self)                                      \
+  {                                                                            \
+    self->clearItems();                                                        \
+  }                                                                            \
+  void widget##_set_current_item(widget* self, int index)                      \
+  {                                                                            \
+    self->setCurrentItem(index);                                               \
+  }                                                                            \
+  void widget##_set_num_visible(widget* self, int nvis)                        \
+  {                                                                            \
+    self->setNumVisible(nvis);                                                 \
+  }                                                                            \
+  const char* widget##_get_item_text(const widget* self, int index)            \
+  {                                                                            \
+    return string_result(self->getItemText(index));                            \
+  }                                                                            \
+  int widget##_get_current_item(const widget* self)                            \
+  {                                                                            \
+    return self->getCurrentItem();                                             \
+  }                                                                            \
+  int widget##_get_num_items(const widget* self)                               \
+  {                                                                            \
+    return self->getNumItems();                                                \
+  }
 
-//~ FXList
-    SelectorExt(FXList)
-    void FXList_set_style(FXList* self, unsigned int style) {
-        self -> setListStyle(style);
-    }
+  //~ FXList
+  SelectorExt(FXList) void FXList_set_style(FXList* self, unsigned style)
+  {
+    self->setListStyle(style);
+  }
 
-//~ FXListBox
-    SelectorExt(FXListBox)
+  //~ FXListBox
+  SelectorExt(FXListBox)
 
-//~ FXTreeList
-    FXTreeList* FXTreeList_new(FXComposite* prt) {
-        return make_widget<FXTreeList, FXComposite>(prt);
-    }
-    FXTreeItem* FXTreeList_append_item(FXTreeList* self, FXTreeItem* item, const char* text) {
-        return self -> appendItem(item, text);
-    }
-    void FXTreeList_clear_items(FXTreeList* self) {
-        self -> clearItems();
-    }
+    //~ FXTreeList
+    FXTreeList* FXTreeList_new(FXComposite* prt)
+  {
+    return make_widget<FXTreeList, FXComposite>(prt);
+  }
+  FXTreeItem* FXTreeList_append_item(FXTreeList* self,
+                                     FXTreeItem* item,
+                                     const char* text)
+  {
+    return self->appendItem(item, text);
+  }
+  void FXTreeList_clear_items(FXTreeList* self)
+  {
+    self->clearItems();
+  }
 
-//~ FXTable
-    FXTable* FXTable_new(FXComposite* prt) {
-        return make_widget<FXTable, FXComposite>(prt);
-    }
-    void FXTable_set_table_size(FXTable* self, int nr, int nc) {
-        self -> setTableSize(nr, nc);
-    }
-    void FXTable_set_item_text(FXTable* self, int r, int c, const char* text) {
-        self -> setItemText(r, c, text);
-    }
-    const char* FXTable_get_item_text(const FXTable* self, int r, int c) {
-        return string_result(self -> getItemText(r, c));
-    }
+  //~ FXTable
+  FXTable* FXTable_new(FXComposite* prt)
+  {
+    return make_widget<FXTable, FXComposite>(prt);
+  }
+  void FXTable_set_table_size(FXTable* self, int nr, int nc)
+  {
+    self->setTableSize(nr, nc);
+  }
+  void FXTable_set_item_text(FXTable* self, int r, int c, const char* text)
+  {
+    self->setItemText(r, c, text);
+  }
+  const char* FXTable_get_item_text(const FXTable* self, int r, int c)
+  {
+    return string_result(self->getItemText(r, c));
+  }
 
-//~ FXCanvas.h
-    FXCanvas* FXCanvas_new(FXComposite* prt) {
-        return make_widget<FXCanvas, FXComposite>(prt);
-    }
-    void FXCanvas_set_mouse_callback(FXCanvas* self, long (*cb)(FXObject*, int, int, int, void*), void* ctx) {
-        auto old = self -> getTarget();
-        if (static_cast<CMouseTarget*>(old)) delete old;
-        self -> setTarget(static_cast<FXObject*>(new CMouseTarget(cb, ctx)));
-    }
+  //~ FXCanvas.h
+  FXCanvas* FXCanvas_new(FXComposite* prt)
+  {
+    return make_widget<FXCanvas, FXComposite>(prt);
+  }
+  void FXCanvas_set_mouse_callback(FXCanvas* self,
+                                   long (*cb)(FXObject*, int, int, int, void*),
+                                   void* ctx)
+  {
+    auto old = self->getTarget();
+    if (static_cast<CMouseTarget*>(old))
+      delete old;
+    self->setTarget(static_cast<FXObject*>(new CMouseTarget(cb, ctx)));
+  }
 
-//~ FXTabBar.h
-    FXTabBar* FXTabBar_new(FXComposite* prt) {
-        return make_widget<FXTabBar, FXComposite>(prt);
-    }
+  //~ FXTabBar.h
+  FXTabBar* FXTabBar_new(FXComposite* prt)
+  {
+    return make_widget<FXTabBar, FXComposite>(prt);
+  }
 
-//~ FXTabBook.h
-    FXTabBook* FXTabBook_new(FXComposite* prt) {
-        return make_widget<FXTabBook, FXComposite>(prt);
-    }
+  //~ FXTabBook.h
+  FXTabBook* FXTabBook_new(FXComposite* prt)
+  {
+    return make_widget<FXTabBook, FXComposite>(prt);
+  }
 
-//~ FXTabItem.h
-    FXTabItem* FXTabItem_new(FXTabBar* prt, const char* text) {
-        return make_widget<FXTabItem, FXTabBar>(prt, text);
-    }
-    void FXTabItem_set_text(FXTabItem* self, const char* text) {
-        self -> setText(text);
-    }
-    const char* FXTabItem_get_text(const FXTabItem* self) {
-        return string_result(self -> getText());
-    }
+  //~ FXTabItem.h
+  FXTabItem* FXTabItem_new(FXTabBar* prt, const char* text)
+  {
+    return make_widget<FXTabItem, FXTabBar>(prt, text);
+  }
+  void FXTabItem_set_text(FXTabItem* self, const char* text)
+  {
+    self->setText(text);
+  }
+  const char* FXTabItem_get_text(const FXTabItem* self)
+  {
+    return string_result(self->getText());
+  }
 
-//~ FXScrollBar
-    FXScrollBar* FXScrollBar_new(FXComposite* prt) {
-        return make_widget<FXScrollBar, FXComposite>(prt);
-    }
-    int FXScrollBar_get_position(const FXScrollBar* self) {
-        return self -> getPosition();
-    }
-    void FXScrollBar_set_position(FXScrollBar* self, int pos) {
-        self -> setPosition(pos);
-    }
-    void FXScrollBar_set_range(FXScrollBar* self, int hi) {
-        self -> setRange(hi);
-    }
+  //~ FXScrollBar
+  FXScrollBar* FXScrollBar_new(FXComposite* prt)
+  {
+    return make_widget<FXScrollBar, FXComposite>(prt);
+  }
+  int FXScrollBar_get_position(const FXScrollBar* self)
+  {
+    return self->getPosition();
+  }
+  void FXScrollBar_set_position(FXScrollBar* self, int pos)
+  {
+    self->setPosition(pos);
+  }
+  void FXScrollBar_set_range(FXScrollBar* self, int hi)
+  {
+    self->setRange(hi);
+  }
 
-//~ FXMenuBar
-    FXMenuBar* FXMenuBar_new(FXComposite* prt) {
-        return make_widget<FXMenuBar, FXComposite>(prt, nullptr);
-    }
+  //~ FXMenuBar
+  FXMenuBar* FXMenuBar_new(FXComposite* prt)
+  {
+    return make_widget<FXMenuBar, FXComposite>(prt, nullptr);
+  }
 
-//~ FXMenuPane
-    FXMenuPane* FXMenuPane_new(FXWindow* prt) {
-        return make_widget<FXMenuPane, FXWindow>(prt);
-    }
+  //~ FXMenuPane
+  FXMenuPane* FXMenuPane_new(FXWindow* prt)
+  {
+    return make_widget<FXMenuPane, FXWindow>(prt);
+  }
 
-//~ FXMenuButton.h
-    FXMenuButton* FXMenuButton_new(FXComposite* prt, const char* title, FXPopup* pop) {
-        auto wgt = make_widget<FXMenuButton, FXComposite>(prt, title);
-        wgt -> setMenu(pop);
-        return wgt;
-    }
-    void FXMenuButton_set_style(FXMenuButton* self, FXuint style) {
-        self -> setButtonStyle(style);
-    }
-    void FXMenuButton_set_popup_style(FXMenuButton* self, FXuint style) {
-        self -> setPopupStyle(style);
-    }
-    void FXMenuButton_set_attachment(FXMenuButton* self, FXuint attachment) {
-        self -> setAttachment(attachment);
-    }
+  //~ FXMenuButton.h
+  FXMenuButton* FXMenuButton_new(FXComposite* prt,
+                                 const char* title,
+                                 FXPopup* pop)
+  {
+    auto wgt = make_widget<FXMenuButton, FXComposite>(prt, title);
+    wgt->setMenu(pop);
+    return wgt;
+  }
+  void FXMenuButton_set_style(FXMenuButton* self, FXuint style)
+  {
+    self->setButtonStyle(style);
+  }
+  void FXMenuButton_set_popup_style(FXMenuButton* self, FXuint style)
+  {
+    self->setPopupStyle(style);
+  }
+  void FXMenuButton_set_attachment(FXMenuButton* self, FXuint attachment)
+  {
+    self->setAttachment(attachment);
+  }
 
-//~ FXMenuTitle
-    FXMenuTitle* FXMenuTitle_new(FXComposite* prt, const char* text, FXPopup* pop) {
-        auto wgt = make_widget<FXMenuTitle, FXComposite>(prt, text);
-        wgt -> setMenu(pop);
-        return wgt;
-    }
+  //~ FXMenuTitle
+  FXMenuTitle* FXMenuTitle_new(FXComposite* prt, const char* text, FXPopup* pop)
+  {
+    auto wgt = make_widget<FXMenuTitle, FXComposite>(prt, text);
+    wgt->setMenu(pop);
+    return wgt;
+  }
 
-//~ FXMenuCaption
-    FXMenuCaption* FXMenuCaption_new(FXComposite* prt, const char* text) {
-        return make_widget<FXMenuCaption, FXComposite>(prt, text);
-    }
+  //~ FXMenuCaption
+  FXMenuCaption* FXMenuCaption_new(FXComposite* prt, const char* text)
+  {
+    return make_widget<FXMenuCaption, FXComposite>(prt, text);
+  }
 
-//~ FXMenuCascade
-    FXMenuCascade* FXMenuCascade_new(FXComposite* prt, const char* text) {
-        return make_widget<FXMenuCascade, FXComposite>(prt, text);
-    }
+  //~ FXMenuCascade
+  FXMenuCascade* FXMenuCascade_new(FXComposite* prt, const char* text)
+  {
+    return make_widget<FXMenuCascade, FXComposite>(prt, text);
+  }
 
-//~ FXMenuRadio
-    FXMenuRadio* FXMenuRadio_new(FXComposite* prt, const char* text) {
-        return make_widget<FXMenuRadio, FXComposite>(prt, text);
-    }
-    unsigned char FXMenuRadio_get_check(const FXMenuRadio* self) {
-        return self -> getCheck();
-    }
-    void FXMenuRadio_set_check(FXMenuRadio* self) {
-        self -> setCheck();
-    }
+  //~ FXMenuRadio
+  FXMenuRadio* FXMenuRadio_new(FXComposite* prt, const char* text)
+  {
+    return make_widget<FXMenuRadio, FXComposite>(prt, text);
+  }
+  unsigned char FXMenuRadio_get_check(const FXMenuRadio* self)
+  {
+    return self->getCheck();
+  }
+  void FXMenuRadio_set_check(FXMenuRadio* self)
+  {
+    self->setCheck();
+  }
 
-//~ FXMenuCheck
-    FXMenuCheck* FXMenuCheck_new(FXComposite* prt, const char* text) {
-        return make_widget<FXMenuCheck, FXComposite>(prt, text);
-    }
-    unsigned char FXMenuCheck_get_check(const FXMenuCheck* self) {
-        return self -> getCheck();
-    }
-    void FXMenuCheck_set_check(FXMenuCheck* self, unsigned char check) {
-        self -> setCheck(check);
-    }
+  //~ FXMenuCheck
+  FXMenuCheck* FXMenuCheck_new(FXComposite* prt, const char* text)
+  {
+    return make_widget<FXMenuCheck, FXComposite>(prt, text);
+  }
+  unsigned char FXMenuCheck_get_check(const FXMenuCheck* self)
+  {
+    return self->getCheck();
+  }
+  void FXMenuCheck_set_check(FXMenuCheck* self, unsigned char check)
+  {
+    self->setCheck(check);
+  }
 
-//~ FXMenuSeparator
-    FXMenuSeparator* FXMenuSeparator_new(FXComposite* prt) {
-        return make_widget<FXMenuSeparator, FXComposite>(prt);
-    }
+  //~ FXMenuSeparator
+  FXMenuSeparator* FXMenuSeparator_new(FXComposite* prt)
+  {
+    return make_widget<FXMenuSeparator, FXComposite>(prt);
+  }
 
-//~ FXMenuCommand
-    FXMenuCommand* FXMenuCommand_new(FXComposite* prt, const char* text) {
-        return make_widget<FXMenuCommand, FXComposite>(prt, text);
-    }
-    void FXMenuCommand_set_accel_text(FXMenuCommand* self, const char* text) {
-        self -> setAccelText(text);
-    }
-    const char* FXMenuCommand_get_accel_text(const FXMenuCommand* self) {
-        return string_result(self -> getAccelText());
-    }
+  //~ FXMenuCommand
+  FXMenuCommand* FXMenuCommand_new(FXComposite* prt, const char* text)
+  {
+    return make_widget<FXMenuCommand, FXComposite>(prt, text);
+  }
+  void FXMenuCommand_set_accel_text(FXMenuCommand* self, const char* text)
+  {
+    self->setAccelText(text);
+  }
+  const char* FXMenuCommand_get_accel_text(const FXMenuCommand* self)
+  {
+    return string_result(self->getAccelText());
+  }
 
-//~ FXStatusLine
-    FXStatusLine* FXStatusLine_new(FXComposite* prt) {
-        return make_widget<FXStatusLine, FXComposite>(prt);
-    }
-    const char* FXStatusLine_get_text(const FXStatusLine* self) {
-        return string_result(self -> getText());
-    }
-    void FXStatusLine_set_text(FXStatusLine* self, const char* text) {
-        self -> setText(text);
-    }
+  //~ FXStatusLine
+  FXStatusLine* FXStatusLine_new(FXComposite* prt)
+  {
+    return make_widget<FXStatusLine, FXComposite>(prt);
+  }
+  const char* FXStatusLine_get_text(const FXStatusLine* self)
+  {
+    return string_result(self->getText());
+  }
+  void FXStatusLine_set_text(FXStatusLine* self, const char* text)
+  {
+    self->setText(text);
+  }
 
-//~ FXStatusBar
-    FXStatusBar* FXStatusBar_new(FXComposite* prt) {
-        return make_widget<FXStatusBar, FXComposite>(prt);
-    }
+  //~ FXStatusBar
+  FXStatusBar* FXStatusBar_new(FXComposite* prt)
+  {
+    return make_widget<FXStatusBar, FXComposite>(prt);
+  }
 
-//~ FXOption
-    FXOption* FXOption_new(FXComposite* prt, const char* text) {
-        return make_widget<FXOption, FXComposite>(prt, text);
-    }
+  //~ FXOption
+  FXOption* FXOption_new(FXComposite* prt, const char* text)
+  {
+    return make_widget<FXOption, FXComposite>(prt, text);
+  }
 
-//~ FXOptionMenu
-    FXOptionMenu* FXOptionMenu_new(FXComposite* prt) {
-        return make_widget<FXOptionMenu, FXComposite>(prt);
-    }
+  //~ FXOptionMenu
+  FXOptionMenu* FXOptionMenu_new(FXComposite* prt)
+  {
+    return make_widget<FXOptionMenu, FXComposite>(prt);
+  }
 }

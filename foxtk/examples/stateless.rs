@@ -1,5 +1,3 @@
-use foxtk::prelude::*;
-
 fn main() {
     // Make application
     let app = foxtk::App::new("ApplicationName", "VendorName");
