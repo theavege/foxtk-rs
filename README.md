@@ -70,6 +70,72 @@ and commercial applications without being required to open-source your own code.
 
 ## [Human Interface Guidelines](https://www.fltk.org/hig.php)
 
+## [UML: Class Diagram](https://plantuml.com)
+
+```plantuml
+@startuml
+!theme sunlust
+skinparam defaultFontName Monospaced
+skinparam linetype ortho
+scale 2000x2000
+left header FoxTK-rs
+left to right direction
+package containers #line.dotted {
+    struct Packer {
+        -ptr : FXObject
+    }
+}
+package outputs #line.dotted {
+    struct Label {
+        -ptr : FXObject
+    }
+}
+package inputs #line.dotted {
+    struct Button {
+        -ptr : FXObject
+    }
+}
+package prelude #line.dashed {
+    interface ObjectExt {
+        #Self from_raw(FXObject*)
+        #FXObject* as_raw()
+        #del()
+    }
+    interface FrameExt {
+        +Self with_frame(Style)
+        +with_pad(int)
+    }
+    interface WindowExt {
+        +disable()
+        +enable()
+    }
+    interface DrawableExt {
+        +int height()
+        +int width()
+    }
+    interface IdExt {
+        +FXApp app()
+    }
+    interface CompositeExt {
+        +inside()
+    }
+    interface TextExt {
+        +String text()
+        +set_text(String)
+    }
+    interface IdExt extends ObjectExt
+    interface DrawableExt extends IdExt
+    interface WindowExt extends DrawableExt
+    interface FrameExt extends WindowExt
+    interface TextExt extends FrameExt
+    interface CompositeExt extends WindowExt
+}
+struct containers.Packer implements prelude.CompositeExt
+struct outputs.Label implements prelude.TextExt
+struct inputs.Button implements prelude.TextExt
+@enduml
+```
+
 ## Work in process
 
 - [x] [FXApp](docs/FXApp.md)

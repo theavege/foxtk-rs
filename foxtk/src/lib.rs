@@ -171,6 +171,9 @@ macro_rules! impl_editable {
 }
 
 impl_widget!(App,);
+/// The application object manages the message queue, timers, chores, signal handling, GUI updating, and other system facilities. Each FOX application will have exactly one application instance. Every FOX application will start by constructing one FXApp object prior to building the GUI.  Usually, the FXApp object is the last object to be deleted as well.
+///
+/// Using the code below, the application object will be constructed on the stack and hence is automatically destroyed when the program terminates.  Also, when the application object is destroyed, all the windows and other resources it knows about are destroyed as well.
 impl App {
     pub fn new(name: &str, vendor: &str) -> Self {
         let args = std::env::args()
@@ -221,7 +224,7 @@ impl SplashWindow {
     }
 }
 
-impl_widget!(Button, IdExt, FrameExt, DrawableExt, WindowExt);
+impl_widget!(Button, IdExt, DrawableExt, WindowExt, FrameExt);
 impl Button {
     pub fn new(parent: &impl CompositeExt, title: &str) -> Self {
         Self::from_raw(unsafe {
@@ -245,7 +248,7 @@ impl Button {
     }
 }
 
-impl_widget!(ArrowButton, IdExt, FrameExt, DrawableExt, WindowExt);
+impl_widget!(ArrowButton, IdExt, DrawableExt, WindowExt, FrameExt);
 impl ArrowButton {
     pub fn new(parent: &impl CompositeExt) -> Self {
         Self::from_raw(unsafe { FXArrowButton_new(parent.as_raw() as *mut FXComposite) })
@@ -280,7 +283,7 @@ impl Canvas {
     }
 }
 
-impl_widget!(CheckButton, IdExt, FrameExt, DrawableExt, WindowExt);
+impl_widget!(CheckButton, IdExt, DrawableExt, WindowExt, FrameExt);
 impl CheckButton {
     pub fn new(parent: &impl CompositeExt, title: &str) -> Self {
         Self::from_raw(unsafe {
@@ -553,11 +556,11 @@ impl ListBox {
 impl_widget!(
     List,
     IdExt,
-    FrameExt,
     DrawableExt,
     WindowExt,
-    PackerExt,
-    CompositeExt
+    FrameExt,
+    CompositeExt,
+    PackerExt
 );
 
 impl List {
@@ -567,7 +570,7 @@ impl List {
     }
 }
 
-impl_widget!(ProgressBar, IdExt, FrameExt, DrawableExt, WindowExt);
+impl_widget!(ProgressBar, IdExt, DrawableExt, WindowExt, FrameExt);
 impl ProgressBar {
     pub fn new(parent: &impl CompositeExt) -> Self {
         Self::from_raw(unsafe { FXProgressBar_new(parent.as_raw() as *mut FXComposite) })
@@ -609,7 +612,7 @@ impl ProgressBar {
     }
 }
 
-impl_widget!(TriStateButton, IdExt, FrameExt, DrawableExt, WindowExt);
+impl_widget!(TriStateButton, IdExt, DrawableExt, WindowExt, FrameExt);
 impl TriStateButton {
     pub fn new(parent: &impl CompositeExt, text1: &str, text2: &str, text3: &str) -> Self {
         Self::from_raw(unsafe {
@@ -624,7 +627,7 @@ impl TriStateButton {
     }
 }
 
-impl_widget!(ToggleButton, IdExt, FrameExt, DrawableExt, WindowExt);
+impl_widget!(ToggleButton, IdExt, DrawableExt, WindowExt, FrameExt);
 impl ToggleButton {
     pub fn new(parent: &impl CompositeExt, title: &str, title_: &str) -> Self {
         Self::from_raw(unsafe {
@@ -638,7 +641,7 @@ impl ToggleButton {
     }
 }
 
-impl_widget!(RadioButton, IdExt, FrameExt, DrawableExt, WindowExt);
+impl_widget!(RadioButton, IdExt, DrawableExt, WindowExt, FrameExt);
 impl RadioButton {
     pub fn new(parent: &impl CompositeExt, title: &str) -> Self {
         Self::from_raw(unsafe {
@@ -892,7 +895,7 @@ impl MenuPane {
     }
 }
 
-impl_widget!(MenuButton, IdExt, FrameExt, DrawableExt, WindowExt);
+impl_widget!(MenuButton, IdExt, DrawableExt, WindowExt, FrameExt);
 impl MenuButton {
     pub fn new(prt: &impl CompositeExt, text_: &str, pane: &MenuPane) -> Self {
         Self::from_raw(unsafe {
