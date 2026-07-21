@@ -68,17 +68,6 @@ and commercial applications without being required to open-source your own code.
 - [GTK-rs](https://github.com/gtk-rs)
 - [RSTK](https://codeberg.org/peterlane/rstk)
 
-### FOX vs alternatives at a glance
-
-| | FOX | FLTK | GTK |
-|---|---|---|---|
-| Dependencies | Minimal | Minimal | Heavy (GLib, GObject, …) |
-| OpenGL support | Built-in | Built-in | ⚠️ Via external crate |
-| Widget variety | Rich | Basic | Very rich |
-| Cross-platform | V | V | X️ (Linux-native feel) |
-| License | LGPL | LGPL | LGPL |
-| Maturity | Since ~1997 | Since ~1998 | Since ~1998 |
-
 ## [Human Interface Guidelines](https://www.fltk.org/hig.php)
 
 ## Work in process
@@ -117,23 +106,3 @@ and commercial applications without being required to open-source your own code.
   - [x] [Selectors](docs/FXSelectorExt.md)
     - [x] [FXList](docs/FXSelectorExt.md#FXList) - Simple item list
     - [x] [FXListBox](docs/FXSelectorExt.md#FXListBox) - Choise
-
-## Screenshots
-
-![main](assets/scrot_fox_calculator_main.png)
-
----
-
-![edit](assets/scrot_fox_calculator_edit.png)
-
----
-
-![font](assets/scrot_fox_calculator_font.png)
-
----
-
-![color](assets/scrot_fox_calculator_color.png)
-
----
-
-![about](assets/scrot_fox_calculator_about.png)
