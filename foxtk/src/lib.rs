@@ -77,12 +77,6 @@ macro_rules! impl_ranger {
                 fn set_range(&self, low: i32, high: i32) {
                     unsafe { [<FX $name _set_range>](self.as_raw(), low, high) }
                 }
-                fn increment(&self) -> i32 {
-                    unsafe { [<FX $name _get_increment>](self.as_raw()) }
-                }
-                fn set_increment(&self, inc: i32) {
-                    unsafe { [<FX $name _set_increment>](self.as_raw(), inc) }
-                }
             }
         )+}
     };
@@ -157,18 +151,6 @@ macro_rules! impl_textable {
                         [<FX $name _set_font>](self.as_raw(), CString::new(family).unwrap().as_ptr(), size);
                     }
                 }
-                fn with_tip(self, tip: &str) -> Self {
-                    unsafe {
-                        [<FX $name _set_tip_text>](self.as_raw(), CString::new(tip).unwrap().as_ptr());
-                    }
-                    self
-                }
-                fn with_help(self, help: &str) -> Self {
-                    unsafe {
-                        [<FX $name _set_help_text>](self.as_raw(), CString::new(help).unwrap().as_ptr());
-                    }
-                    self
-                }
             }
         )+}
     };
@@ -180,7 +162,7 @@ macro_rules! impl_editable {
             impl EditableExt for $name {
                 fn set_editable(&self, val: bool) {
                     unsafe {
-                        [<FX $name _set_editable>](self.as_raw(), val as c_long);
+                        [<FX $name _set_editable>](self.as_raw(), val as u8);
                     }
                 }
             }
@@ -430,7 +412,7 @@ impl Matrix {
     }
     pub fn set_style(&self, style: MatrixStyle) {
         unsafe {
-            FXMatrix_set_matrix_style(self.as_raw(), style as u32);
+            FXMatrix_set_style(self.as_raw(), style as u32);
         }
     }
     pub fn set_num_rows(&self, rows: i32) {
@@ -445,7 +427,7 @@ impl Matrix {
     }
     pub fn style(&self) -> MatrixStyle {
         unsafe {
-            std::mem::transmute::<u32, MatrixStyle>(FXMatrix_get_matrix_style(self.as_raw()) as u32)
+            std::mem::transmute::<u32, MatrixStyle>(FXMatrix_get_style(self.as_raw()) as u32)
         }
     }
     pub fn num_rows(&self) -> i32 {
@@ -475,20 +457,18 @@ impl Splitter {
         .with_layout(Layout::Fill)
     }
     pub fn with_style(self, style: SplitterStyle) -> Self {
-        unsafe {
-            FXSplitter_set_splitter_style(self.as_raw(), style as u32);
-        }
+        self.set_style(style);
         self
     }
     pub fn set_style(&self, style: SplitterStyle) {
         unsafe {
-            FXSplitter_set_splitter_style(self.as_raw(), style as u32);
+            FXSplitter_set_style(self.as_raw(), style as u32);
         }
     }
     pub fn style(&self) -> SplitterStyle {
         unsafe {
             std::mem::transmute::<u32, SplitterStyle>(
-                FXSplitter_get_splitter_style(self.as_raw()) as u32
+                FXSplitter_get_style(self.as_raw()) as u32
             )
         }
     }
@@ -549,12 +529,17 @@ impl Label {
     }
 }
 
-impl_widget!(Dial, IdExt, FrameExt, DrawableExt, WindowExt);
-
 impl_widget!(Knob, IdExt, FrameExt, DrawableExt, WindowExt);
 impl Knob {
     pub fn new(parent: &impl CompositeExt) -> Self {
         Self::from_raw(unsafe { FXKnob_new(parent.as_raw() as *mut FXComposite) })
+    }
+}
+
+impl_widget!(Dial, IdExt, FrameExt, DrawableExt, WindowExt);
+impl Dial {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        Self::from_raw(unsafe { FXDial_new(parent.as_raw() as *mut FXComposite) })
     }
 }
 
@@ -701,8 +686,8 @@ impl RadioButton {
     pub fn check(&self) -> bool {
         unsafe { FXRadioButton_get_check(self.as_raw()) != 0 }
     }
-    pub fn set_check(&self) {
-        unsafe { FXRadioButton_set_check(self.as_raw()) }
+    pub fn set_check(&self, check: bool) {
+        unsafe { FXRadioButton_set_check(self.as_raw(), check as u8) }
     }
 }
 
@@ -800,21 +785,6 @@ impl TabItem {
     pub fn new(parent: &TabBar, text: &str) -> Self {
         let c_text = CString::new(text).unwrap();
         unsafe { Self::from_raw(FXTabItem_new(parent.as_raw(), c_text.as_ptr())) }
-    }
-    pub fn set_text(&self, text: &str) {
-        unsafe {
-            FXTabItem_set_text(self.as_raw(), CString::new(text).unwrap().as_ptr());
-        }
-    }
-    pub fn text(&self) -> String {
-        unsafe {
-            let ptr = FXTabItem_get_text(self.as_raw());
-            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
-        }
-    }
-    pub fn with_text(self, text: &str) -> Self {
-        self.set_text(text);
-        self
     }
 }
 
@@ -1021,7 +991,16 @@ impl MenuCommand {
     }
 }
 
-impl_textable!(Label, TextField, Text, Button);
-impl_ranger!(Slider, Spinner);
-impl_selector!(ComboBox, ListBox, List);
-impl_editable!(TextField, Text);
+impl_widget!(StatusLine, IdExt, FrameExt, DrawableExt, WindowExt);
+impl StatusLine {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        Self::from_raw(unsafe {
+            FXStatusLine_new(parent.as_raw() as *mut FXComposite)
+        })
+    }
+}
+
+impl_textable!(Button, GroupBox, Label, Text, TextField, StatusLine);
+impl_selector!(ComboBox, List, ListBox);
+impl_ranger!(Dial, Knob, Slider, Spinner);
+impl_editable!(ComboBox, Spinner, Table, Text, TextField);

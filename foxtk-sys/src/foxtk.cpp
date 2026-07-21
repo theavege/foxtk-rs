@@ -1,5 +1,99 @@
 #include <fx.h>
 
+#define EXT_TEXT(widget)                                                       \
+  const char* widget##_get_text(const widget* self)                            \
+  {                                                                            \
+    return string_result(self->getText());                                     \
+  }                                                                            \
+  void widget##_set_text(widget* self, const char* text)                       \
+  {                                                                            \
+    self->setText(text);                                                       \
+  }                                                                            \
+  void widget##_set_text_color(widget* self, unsigned color)                   \
+  {                                                                            \
+    self->setTextColor(color);                                                 \
+  }                                                                            \
+  void widget##_set_font(widget* self, const char* family, int size)           \
+  {                                                                            \
+    auto old_font = self->getFont();                                           \
+    auto new_font = new FXFont(self->getApp(), family, size, 0, 0);            \
+    self->setFont(new_font);                                                   \
+    if (old_font && old_font != self->getApp()->getNormalFont()) {             \
+      delete old_font;                                                         \
+    }                                                                          \
+  }
+
+#define EXT_HELP(widget)                                                       \
+  const char* widget##_get_help_text(const widget* self)                       \
+  {                                                                            \
+    return string_result(self->getHelpText());                                 \
+  }                                                                            \
+  const char* widget##_get_tip_text(const widget* self)                        \
+  {                                                                            \
+    return string_result(self->getTipText());                                  \
+  }                                                                            \
+  void widget##_set_help_text(widget* self, const char* text)                  \
+  {                                                                            \
+    self->setHelpText(text);                                                   \
+  }                                                                            \
+  void widget##_set_tip_text(widget* self, const char* text)                   \
+  {                                                                            \
+    self->setTipText(text);                                                    \
+  }
+
+#define EXT_RANGE(widget, type)                                                \
+  int widget##_get_value(const widget* self)                                   \
+  {                                                                            \
+    return self->getValue();                                                   \
+  }                                                                            \
+  void widget##_get_range(const widget* self, type* lo, type* hi)              \
+  {                                                                            \
+    FXint lower, upper;                                                        \
+    self->getRange(lower, upper);                                              \
+    if (lo)                                                                    \
+      *lo = lower;                                                             \
+    if (hi)                                                                    \
+      *hi = upper;                                                             \
+  }                                                                            \
+  void widget##_set_value(widget* self, type value)                            \
+  {                                                                            \
+    self->setValue(value);                                                     \
+  }                                                                            \
+  void widget##_set_range(widget* self, type lo, type hi)                      \
+  {                                                                            \
+    self->setRange(lo, hi);                                                    \
+  }
+
+#define EXT_SELECTABLE(widget)                                                 \
+  void widget##_append_item(widget* self, const char* text)                    \
+  {                                                                            \
+    self->appendItem(text);                                                    \
+  }                                                                            \
+  void widget##_clear_items(widget* self)                                      \
+  {                                                                            \
+    self->clearItems();                                                        \
+  }                                                                            \
+  void widget##_set_current_item(widget* self, int index)                      \
+  {                                                                            \
+    self->setCurrentItem(index);                                               \
+  }                                                                            \
+  void widget##_set_num_visible(widget* self, int nvis)                        \
+  {                                                                            \
+    self->setNumVisible(nvis);                                                 \
+  }                                                                            \
+  const char* widget##_get_item_text(const widget* self, int index)            \
+  {                                                                            \
+    return string_result(self->getItemText(index));                            \
+  }                                                                            \
+  int widget##_get_current_item(const widget* self)                            \
+  {                                                                            \
+    return self->getCurrentItem();                                             \
+  }                                                                            \
+  int widget##_get_num_items(const widget* self)                               \
+  {                                                                            \
+    return self->getNumItems();                                                \
+  }
+
 //~ OPAQUE HANDLES
 
 typedef long (*CbWidget)(FXObject* wgt, void* ctx);
@@ -187,6 +281,7 @@ string_result(const Value& value)
 
 extern "C"
 {
+  //~ fxdefs.h
   unsigned fx_rgb(unsigned r, unsigned g, unsigned b)
   {
     return FXRGB(r, g, b);
@@ -306,7 +401,7 @@ extern "C"
     return self->maxChildHeight();
   }
 
-  //~ FXApp
+  //~ FXApp.h
   FXApp* FXApp_new(const char* name, const char* vendor, int argc, char** argv)
   {
     auto app = new FXApp(name, vendor);
@@ -324,7 +419,7 @@ extern "C"
   }
 
   //~ FXFrame.h
-  void FXFrame_set_frame_style(FXFrame* self, unsigned style)
+  void FXFrame_set_style(FXFrame* self, unsigned style)
   {
     self->setFrameStyle(style);
   }
@@ -367,60 +462,11 @@ extern "C"
     ASSERT_NOT_NULL(parent, nullptr);
     return make_widget<FXKnob, FXComposite>(parent);
   }
-  void FXKnob_set_help_text(FXKnob* self, const char* text)
-  {
-    self->setHelpText(text);
-  }
-  void FXKnob_set_tip_text(FXKnob* self, const char* text)
-  {
-    self->setTipText(text);
-  }
-  void FXKnob_set_value(FXKnob* self, int value)
-  {
-    self->setValue(value);
-  }
-  void FXKnob_set_range(FXKnob* self, int lo, int hi)
-  {
-    self->setRange(lo, hi);
-  }
-  void FXKnob_set_increment(FXKnob* self, int inc)
-  {
-    self->setIncrement(inc);
-  }
-
-#define TextExt(widget)                                                        \
-  const char* widget##_get_text(const widget* self)                            \
-  {                                                                            \
-    return string_result(self->getText());                                     \
-  }                                                                            \
-  void widget##_set_text(widget* self, const char* text)                       \
-  {                                                                            \
-    self->setText(text);                                                       \
-  }                                                                            \
-  void widget##_set_help_text(widget* self, const char* text)                  \
-  {                                                                            \
-    self->setHelpText(text);                                                   \
-  }                                                                            \
-  void widget##_set_tip_text(widget* self, const char* text)                   \
-  {                                                                            \
-    self->setTipText(text);                                                    \
-  }                                                                            \
-  void widget##_set_text_color(widget* self, unsigned color)                   \
-  {                                                                            \
-    self->setTextColor(color);                                                 \
-  }                                                                            \
-  void widget##_set_font(widget* self, const char* family, int size)           \
-  {                                                                            \
-    auto old_font = self->getFont();                                           \
-    auto new_font = new FXFont(self->getApp(), family, size, 0, 0);            \
-    self->setFont(new_font);                                                   \
-    if (old_font && old_font != self->getApp()->getNormalFont()) {             \
-      delete old_font;                                                         \
-    }                                                                          \
-  }
+  EXT_RANGE(FXKnob, int)
+  EXT_HELP(FXKnob)
 
   //~ FXLabel.h
-  TextExt(FXLabel) FXLabel* FXLabel_new(FXComposite* parent, const char* title)
+  FXLabel* FXLabel_new(FXComposite* parent, const char* title)
   {
     ASSERT_NOT_NULL(parent, nullptr);
     return make_widget<FXLabel, FXComposite>(parent, title);
@@ -429,6 +475,7 @@ extern "C"
   {
     self->setJustify(justify);
   }
+  EXT_TEXT(FXLabel)
 
   //~ FXArrowButton.h
   FXArrowButton* FXArrowButton_new(FXComposite* parent)
@@ -444,6 +491,7 @@ extern "C"
   {
     self->setArrowColor(color);
   }
+  EXT_HELP(FXArrowButton)
 
   //~ FXMessageBox.h
   unsigned FXMessageBox_error(FXWindow* owner,
@@ -554,6 +602,8 @@ extern "C"
   {
     return make_widget<FXDial, FXComposite>(prt);
   }
+  EXT_RANGE(FXDial, int)
+  EXT_HELP(FXDial)
 
   //~ FXColorWell.h
   FXColorWell* FXColorWell_new(FXComposite* prt)
@@ -618,7 +668,7 @@ extern "C"
   }
 
   //~ FXButton.h
-  TextExt(FXButton) FXButton* FXButton_new(FXComposite* prt, const char* title)
+  FXButton* FXButton_new(FXComposite* prt, const char* title)
   {
     return make_widget<FXButton, FXComposite>(prt, title);
   }
@@ -630,6 +680,7 @@ extern "C"
   {
     self->setButtonStyle(style);
   }
+  EXT_TEXT(FXButton)
 
   //~ FXCheckButton.h
   FXCheckButton* FXCheckButton_new(FXComposite* prt, const char* title)
@@ -668,7 +719,7 @@ extern "C"
   }
 
   //~ FXText.h
-  TextExt(FXText) FXText* FXText_new(FXComposite* prt)
+  FXText* FXText_new(FXComposite* prt)
   {
     return make_widget<FXText, FXComposite>(prt);
   }
@@ -676,9 +727,10 @@ extern "C"
   {
     self->setEditable(editable != 0);
   }
+  EXT_TEXT(FXText)
 
-  //~ FXTextField
-  TextExt(FXTextField) FXTextField* FXTextField_new(FXComposite* prt)
+  //~ FXTextField.h
+  FXTextField* FXTextField_new(FXComposite* prt)
   {
     return make_widget<FXTextField, FXComposite>(prt, 8);
   }
@@ -686,46 +738,23 @@ extern "C"
   {
     self->setEditable(val != 0);
   }
+  EXT_TEXT(FXTextField)
 
-#define RangerExt(widget)                                                      \
-  int widget##_get_increment(const widget* self)                               \
-  {                                                                            \
-    return self->getIncrement();                                               \
-  }                                                                            \
-  int widget##_get_value(const widget* self)                                   \
-  {                                                                            \
-    return self->getValue();                                                   \
-  }                                                                            \
-  void widget##_get_range(const widget* self, int* lo, int* hi)                \
-  {                                                                            \
-    FXint lower, upper;                                                        \
-    self->getRange(lower, upper);                                              \
-    if (lo)                                                                    \
-      *lo = lower;                                                             \
-    if (hi)                                                                    \
-      *hi = upper;                                                             \
-  }                                                                            \
-  void widget##_set_value(widget* self, int value)                             \
-  {                                                                            \
-    self->setValue(value);                                                     \
-  }                                                                            \
-  void widget##_set_range(widget* self, int lo, int hi)                        \
-  {                                                                            \
-    self->setRange(lo, hi);                                                    \
-  }                                                                            \
-  void widget##_set_increment(widget* self, int inc)                           \
-  {                                                                            \
-    self->setIncrement(inc);                                                   \
-  }
-
-  //~ FXSlider
-  RangerExt(FXSlider) FXSlider* FXSlider_new(FXComposite* parent)
+  //~ FXSlider.h
+  FXSlider* FXSlider_new(FXComposite* parent)
   {
     return make_widget<FXSlider, FXComposite>(parent);
   }
+  EXT_RANGE(FXSlider, int)
 
-  //~ FXSpinner
-  RangerExt(FXSpinner) FXSpinner* FXSpinner_new(FXComposite* parent)
+  //~ FXRealSlider.h
+  FXRealSlider* FXRealSlider_new(FXComposite* parent);
+
+  //~ FXRealSpinner.h
+  FXRealSpinner* FXRealSpinner_new(FXComposite* parent);
+
+  //~ FXSpinner.h
+  FXSpinner* FXSpinner_new(FXComposite* parent)
   {
     return make_widget<FXSpinner, FXComposite>(parent, 6);
   }
@@ -733,8 +762,9 @@ extern "C"
   {
     self->decrement();
   }
+  EXT_RANGE(FXSpinner, int)
 
-  //~ FXProgressBar
+  //~ FXProgressBar.h
   FXProgressBar* FXProgressBar_new(FXComposite* prt)
   {
     return make_widget<FXProgressBar, FXComposite>(prt);
@@ -776,7 +806,7 @@ extern "C"
     return self->getBarSize();
   }
 
-  //~ FXPacker
+  //~ FXPacker.h
   FXPacker* FXPacker_new(FXComposite* prt)
   {
     return make_widget<FXPacker, FXComposite>(prt);
@@ -790,7 +820,7 @@ extern "C"
     self->setVSpacing(val);
   }
 
-  //~ FXMatrix
+  //~ FXMatrix.h
   FXMatrix* FXMatrix_new(FXComposite* prt, int rows, unsigned opts)
   {
     return make_widget<FXMatrix, FXComposite>(prt, rows, opts);
@@ -820,7 +850,7 @@ extern "C"
     return self->getNumColumns();
   }
 
-  //~ FXSplitter
+  //~ FXSplitter.h
   FXSplitter* FXSplitter_new(FXComposite* prt, unsigned opts)
   {
     return make_widget<FXSplitter, FXComposite>(prt, opts);
@@ -850,7 +880,7 @@ extern "C"
     return self->getBarSize();
   }
 
-  //~ FXScrollWindow
+  //~ FXScrollWindow.h
   FXScrollWindow* FXScrollWindow_new(FXComposite* prt,
                                      unsigned opts,
                                      int x,
@@ -861,7 +891,7 @@ extern "C"
     return make_widget<FXScrollWindow, FXComposite>(prt, opts, x, y, w, h);
   }
 
-  //~ FXGroupBox
+  //~ FXGroupBox.h
   FXGroupBox* FXGroupBox_new(FXComposite* prt, const char* title)
   {
     return make_widget<FXGroupBox, FXComposite>(prt, title);
@@ -875,19 +905,19 @@ extern "C"
     self->setText(text);
   }
 
-  //~ FXVerticalFrame
+  //~ FXVerticalFrame.h
   FXVerticalFrame* FXVerticalFrame_new(FXComposite* prt)
   {
     return make_widget<FXVerticalFrame, FXComposite>(prt);
   }
 
-  //~ FXHorizontalFrame
+  //~ FXHorizontalFrame.h
   FXHorizontalFrame* FXHorizontalFrame_new(FXComposite* prt)
   {
     return make_widget<FXHorizontalFrame, FXComposite>(prt);
   }
 
-  //~ FXSwitcher
+  //~ FXSwitcher.h
   FXSwitcher* FXSwitcher_new(FXComposite* prt)
   {
     return make_widget<FXSwitcher, FXComposite>(prt);
@@ -898,13 +928,13 @@ extern "C"
     self->setCurrent(index);
   }
 
-  //~ FXDCWindow
+  //~ FXDCWindow.h
   FXDCWindow* FXDCWindow_new(FXDrawable* drawable)
   {
     return make_widget<FXDCWindow, FXDrawable>(drawable);
   }
 
-  //~ FXDC (drawing)
+  //~ FXDC.h
   void FXDC_set_foreground(FXDCWindow* self, unsigned color)
   {
     self->setForeground(color);
@@ -930,13 +960,13 @@ extern "C"
     self->fillRectangle(x, y, w, h);
   }
 
-  //~ FXSplashWindow
+  //~ FXSplashWindow.h
   FXSplashWindow* FXSplashWindow_new(FXApp* app)
   {
     return make_widget<FXSplashWindow, FXApp>(app, nullptr);
   }
 
-  //~ FXMainWindow
+  //~ FXMainWindow.h
   FXMainWindow* FXMainWindow_new(FXApp* app,
                                  const char* title,
                                  int width,
@@ -950,85 +980,34 @@ extern "C"
     self->show(PLACEMENT_SCREEN);
   }
 
-  //~ FXComboBox
+  //~ FXComboBox.h
   FXComboBox* FXComboBox_new(FXComposite* prt, int cols)
   {
     return make_widget<FXComboBox, FXComposite>(prt, cols);
   }
-  FXint FXComboBox_append_item(FXComboBox* self, const char* text)
-  {
-    return self->appendItem(text);
-  }
-  void FXComboBox_clear_items(FXComboBox* self)
-  {
-    self->clearItems();
-  }
-  int FXComboBox_get_current_item(const FXComboBox* self)
-  {
-    return self->getCurrentItem();
-  }
-  void FXComboBox_set_current_item(FXComboBox* self, int index)
-  {
-    self->setCurrentItem(index);
-  }
-  void FXComboBox_set_num_visible(FXComboBox* self, int nvis)
-  {
-    self->setNumVisible(nvis);
-  }
-  const char* FXComboBox_get_item_text(const FXComboBox* self, int index)
-  {
-    return string_result(self->getItemText(index));
-  }
-  int FXComboBox_get_num_items(const FXComboBox* self)
-  {
-    return self->getNumItems();
-  }
+  EXT_SELECTABLE(FXComboBox)
+  EXT_HELP(FXComboBox)
 
-#define SelectorExt(widget)                                                    \
-  widget* widget##_new(FXComposite* parent)                                    \
-  {                                                                            \
-    return make_widget<widget, FXComposite>(parent);                           \
-  }                                                                            \
-  void widget##_append_item(widget* self, const char* text)                    \
-  {                                                                            \
-    self->appendItem(text);                                                    \
-  }                                                                            \
-  void widget##_clear_items(widget* self)                                      \
-  {                                                                            \
-    self->clearItems();                                                        \
-  }                                                                            \
-  void widget##_set_current_item(widget* self, int index)                      \
-  {                                                                            \
-    self->setCurrentItem(index);                                               \
-  }                                                                            \
-  void widget##_set_num_visible(widget* self, int nvis)                        \
-  {                                                                            \
-    self->setNumVisible(nvis);                                                 \
-  }                                                                            \
-  const char* widget##_get_item_text(const widget* self, int index)            \
-  {                                                                            \
-    return string_result(self->getItemText(index));                            \
-  }                                                                            \
-  int widget##_get_current_item(const widget* self)                            \
-  {                                                                            \
-    return self->getCurrentItem();                                             \
-  }                                                                            \
-  int widget##_get_num_items(const widget* self)                               \
-  {                                                                            \
-    return self->getNumItems();                                                \
+  //~ FXList.h
+  FXList* FXList_new(FXList* prt)
+  {
+    return make_widget<FXList, FXComposite>(prt);
   }
-
-  //~ FXList
-  SelectorExt(FXList) void FXList_set_style(FXList* self, unsigned style)
+  void FXList_set_style(FXList* self, unsigned style)
   {
     self->setListStyle(style);
   }
+  EXT_SELECTABLE(FXList)
 
-  //~ FXListBox
-  SelectorExt(FXListBox)
+  //~ FXListBox.h
+  FXListBox* FXListBox_new(FXListBox* prt)
+  {
+    return make_widget<FXListBox, FXComposite>(prt);
+  }
+  EXT_SELECTABLE(FXListBox)
 
-    //~ FXTreeList
-    FXTreeList* FXTreeList_new(FXComposite* prt)
+  //~ FXTreeList.h
+  FXTreeList* FXTreeList_new(FXComposite* prt)
   {
     return make_widget<FXTreeList, FXComposite>(prt);
   }
@@ -1043,7 +1022,7 @@ extern "C"
     self->clearItems();
   }
 
-  //~ FXTable
+  //~ FXTable.h
   FXTable* FXTable_new(FXComposite* prt)
   {
     return make_widget<FXTable, FXComposite>(prt);
@@ -1102,7 +1081,7 @@ extern "C"
     return string_result(self->getText());
   }
 
-  //~ FXScrollBar
+  //~ FXScrollBar.h
   FXScrollBar* FXScrollBar_new(FXComposite* prt)
   {
     return make_widget<FXScrollBar, FXComposite>(prt);
@@ -1120,13 +1099,13 @@ extern "C"
     self->setRange(hi);
   }
 
-  //~ FXMenuBar
+  //~ FXMenuBar.h
   FXMenuBar* FXMenuBar_new(FXComposite* prt)
   {
     return make_widget<FXMenuBar, FXComposite>(prt, nullptr);
   }
 
-  //~ FXMenuPane
+  //~ FXMenuPane.h
   FXMenuPane* FXMenuPane_new(FXWindow* prt)
   {
     return make_widget<FXMenuPane, FXWindow>(prt);
@@ -1154,7 +1133,7 @@ extern "C"
     self->setAttachment(attachment);
   }
 
-  //~ FXMenuTitle
+  //~ FXMenuTitle.h
   FXMenuTitle* FXMenuTitle_new(FXComposite* prt, const char* text, FXPopup* pop)
   {
     auto wgt = make_widget<FXMenuTitle, FXComposite>(prt, text);
@@ -1162,19 +1141,19 @@ extern "C"
     return wgt;
   }
 
-  //~ FXMenuCaption
+  //~ FXMenuCaption.h
   FXMenuCaption* FXMenuCaption_new(FXComposite* prt, const char* text)
   {
     return make_widget<FXMenuCaption, FXComposite>(prt, text);
   }
 
-  //~ FXMenuCascade
+  //~ FXMenuCascade.h
   FXMenuCascade* FXMenuCascade_new(FXComposite* prt, const char* text)
   {
     return make_widget<FXMenuCascade, FXComposite>(prt, text);
   }
 
-  //~ FXMenuRadio
+  //~ FXMenuRadio.h
   FXMenuRadio* FXMenuRadio_new(FXComposite* prt, const char* text)
   {
     return make_widget<FXMenuRadio, FXComposite>(prt, text);
@@ -1188,7 +1167,7 @@ extern "C"
     self->setCheck();
   }
 
-  //~ FXMenuCheck
+  //~ FXMenuCheck.h
   FXMenuCheck* FXMenuCheck_new(FXComposite* prt, const char* text)
   {
     return make_widget<FXMenuCheck, FXComposite>(prt, text);
@@ -1202,13 +1181,13 @@ extern "C"
     self->setCheck(check);
   }
 
-  //~ FXMenuSeparator
+  //~ FXMenuSeparator.h
   FXMenuSeparator* FXMenuSeparator_new(FXComposite* prt)
   {
     return make_widget<FXMenuSeparator, FXComposite>(prt);
   }
 
-  //~ FXMenuCommand
+  //~ FXMenuCommand.h
   FXMenuCommand* FXMenuCommand_new(FXComposite* prt, const char* text)
   {
     return make_widget<FXMenuCommand, FXComposite>(prt, text);
@@ -1222,7 +1201,7 @@ extern "C"
     return string_result(self->getAccelText());
   }
 
-  //~ FXStatusLine
+  //~ FXStatusLine.h
   FXStatusLine* FXStatusLine_new(FXComposite* prt)
   {
     return make_widget<FXStatusLine, FXComposite>(prt);
@@ -1236,19 +1215,19 @@ extern "C"
     self->setText(text);
   }
 
-  //~ FXStatusBar
+  //~ FXStatusBar.h
   FXStatusBar* FXStatusBar_new(FXComposite* prt)
   {
     return make_widget<FXStatusBar, FXComposite>(prt);
   }
 
-  //~ FXOption
+  //~ FXOption.h
   FXOption* FXOption_new(FXComposite* prt, const char* text)
   {
     return make_widget<FXOption, FXComposite>(prt, text);
   }
 
-  //~ FXOptionMenu
+  //~ FXOptionMenu.h
   FXOptionMenu* FXOptionMenu_new(FXComposite* prt)
   {
     return make_widget<FXOptionMenu, FXComposite>(prt);

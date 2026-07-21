@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-if ! (pkg-config --cflags 'fox'); then
+if ! (command -v 'fox-config'); then
     source '/etc/os-release'
     case ${ID:?} in
         debian | ubuntu) sudo bash -c '

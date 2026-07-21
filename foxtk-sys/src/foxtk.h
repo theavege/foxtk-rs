@@ -1,5 +1,60 @@
 #ifndef FOXTK_H
 #define FOXTK_H
+#define EXT_TEXT(widget)                                                       \
+  const char* widget##_get_text(const widget* self);                           \
+  void widget##_set_text(widget* self, const char* text);                      \
+  void widget##_set_text_color(widget* self, unsigned color);                  \
+  void widget##_set_font(widget* self, const char* family, int size);
+
+#define EXT_HELP(widget)                                                       \
+  const char* widget##_get_help_text(const widget* self);                      \
+  const char* widget##_get_tip_text(const widget* self);                       \
+  void widget##_set_help_text(widget* self, const char* text);                 \
+  void widget##_set_tip_text(widget* self, const char* text);
+
+#define EXT_CHECK(widget)                                                      \
+  unsigned char widget##_get_check(const widget* self);                        \
+  void widget##_set_check(widget* self, unsigned char check);
+
+#define EXT_EDITABLE(widget)                                                   \
+  unsigned char widget##_is_editable(const widget* self);                      \
+  void widget##_set_editable(widget* self, unsigned char editable);
+
+#define EXT_STATE(widget)                                                      \
+  unsigned widget##_get_state(const widget* self);                             \
+  void widget##_set_state(widget* self, unsigned check);
+
+#define EXT_JUSTIFY(widget)                                                    \
+  unsigned widget##_get_justify(const widget* self);                           \
+  void widget##_set_justify(widget* self, unsigned justify);
+
+#define EXT_STYLE(widget)                                                      \
+  unsigned widget##_get_style(const widget* self);                             \
+  void widget##_set_style(widget* self, unsigned style);
+
+#define EXT_RANGE(widget, type)                                                \
+  int widget##_get_value(const widget* self);                                  \
+  void widget##_get_range(const widget* self, type* lo, type* hi);             \
+  void widget##_set_value(widget* self, type value);                           \
+  void widget##_set_range(widget* self, type lo, type hi);
+
+#define EXT_SELECTABLE(widget)                                                 \
+  const char* widget##_get_item_text(const widget* self, int index);           \
+  int widget##_get_num_items(const widget* self);                              \
+  int widget##_get_current_item(const widget* self);                           \
+  void widget##_append_item(widget* self, const char* text);                   \
+  void widget##_clear_items(widget* self);                                     \
+  void widget##_set_current_item(widget* self, int index);                     \
+  void widget##_set_num_visible(widget* self, int nvis);
+
+#define EXT_DRAWING(widget)                                                    \
+  const char* widget##_get_item_text(const widget* self, int index);           \
+  void widget##_set_foreground(widget* self, unsigned color);                  \
+  void widget##_set_line_width(widget* self, int width);                       \
+  void widget##_draw_line(widget* self, int x1, int y1, int x2, int y2);       \
+  void widget##_draw_point(widget* self, int x, int y);                        \
+  void widget##_draw_rect(widget* self, int x, int y, int w, int h);           \
+  void widget##_fill_rect(widget* self, int x, int y, int w, int h);
 
 #ifdef __cplusplus
 extern "C"
@@ -23,7 +78,65 @@ extern "C"
   typedef void FXObject;
   void FXObject_delete(FXObject* self);
 
-  //~ FXApp
+  //~ FXComposite.h
+  typedef struct FXComposite FXComposite;
+  int FXComposite_child_width(const FXComposite* self);
+  int FXComposite_child_height(const FXComposite* self);
+
+  typedef struct FX4Splitter FX4Splitter;
+  typedef struct FX7Segment FX7Segment;
+  EXT_JUSTIFY(FX7Segment)
+  EXT_HELP(FX7Segment)
+
+  typedef struct FXBitmap FXBitmap;
+  typedef struct FXBitmapFrame FXBitmapFrame;
+  EXT_JUSTIFY(FXBitmapFrame)
+
+  typedef struct FXBitmapView FXBitmapView;
+  typedef struct FXBMPIcon FXBMPIcon;
+  typedef struct FXBMPImage FXBMPImage;
+
+  //~ FXColorBar.h
+  typedef struct FXColorBar FXColorBar;
+  EXT_HELP(FXColorBar)
+
+  typedef struct FXColorDialog FXColorDialog;
+  typedef struct FXColorList FXColorList;
+
+  //~ FXColorRing.h
+  typedef struct FXColorRing FXColorRing;
+  EXT_HELP(FXColorRing)
+
+  //~ FXColorWell.h
+  typedef struct FXColorWell FXColorWell;
+  EXT_HELP(FXColorWell)
+
+  //~ FXColorWheel.h
+  typedef struct FXColorWheel FXColorWheel;
+  EXT_HELP(FXColorWheel)
+
+  typedef struct FXComposeContext FXComposeContext;
+  typedef struct FXCURCursor FXCURCursor;
+  typedef struct FXCursor FXCursor;
+  typedef struct FXDataTarget FXDataTarget;
+  typedef struct FXDirDialog FXDirDialog;
+  typedef struct FXDirList FXDirList;
+  typedef struct FXDirSelector FXDirSelector;
+  typedef struct FXDockBar FXDockBar;
+  typedef struct FXDockHandler FXDockHandler;
+  typedef struct FXDockSite FXDockSite;
+  typedef struct FXDockSite FXDockSite;
+  typedef struct FXDockTitle FXDockTitle;
+  EXT_JUSTIFY(FXDockTitle)
+
+  typedef struct FXDragCorner FXDragCorner;
+  typedef struct FXDragCorner FXDragCorner;
+  typedef struct FXFileDialog FXFileDialog;
+  typedef struct FXFileList FXFileList;
+  typedef struct FXFoldingList FXFoldingList;
+  typedef struct FXFontDialog FXFontDialog;
+
+  //~ FXApp.h
   typedef struct FXApp FXApp;
   typedef long (*CbTimer)(FXApp* app, void* ctx);
   FXApp* FXApp_new(const char* name, const char* vendor, int argc, char** argv);
@@ -39,11 +152,6 @@ extern "C"
 unsigned long
 FXId_get_id(const FXId* self);
 #endif
-
-  //~ FXComposite.h
-  typedef struct FXComposite FXComposite;
-  int FXComposite_child_width(const FXComposite* self);
-  int FXComposite_child_height(const FXComposite* self);
 
   //~ FXTriStateButton.h
   typedef struct FXTriStateButton FXTriStateButton;
@@ -81,18 +189,18 @@ FXId_get_id(const FXId* self);
   int FXDrawable_get_height(const FXDrawable* self);
   int FXDrawable_get_width(const FXDrawable* self);
 
+  //~ FXDC.h
+  typedef struct FXDC FXDC;
+  EXT_DRAWING(FXDC)
+
+  //~ FXDCPrint.h
+  typedef struct FXDCPrint FXDCPrint;
+  EXT_DRAWING(FXDCPrint)
+
   //~ FXDCWindow.h
   typedef struct FXDCWindow FXDCWindow;
   FXDCWindow* FXDCWindow_new(FXDrawable* drawable);
-
-  //~ FXDC (drawing).h
-  typedef struct FXDC FXDC;
-  void FXDC_set_foreground(FXDC* self, unsigned color);
-  void FXDC_set_line_width(FXDC* self, int width);
-  void FXDC_draw_line(FXDC* self, int x1, int y1, int x2, int y2);
-  void FXDC_draw_point(FXDC* self, int x, int y);
-  void FXDC_draw_rect(FXDC* self, int x, int y, int w, int h);
-  void FXDC_fill_rect(FXDC* self, int x, int y, int w, int h);
+  EXT_DRAWING(FXDCWindow)
 
   //~ FXWindow.h
   typedef struct FXWindow FXWindow;
@@ -121,6 +229,7 @@ FXId_get_id(const FXId* self);
   //~ FXImageFrame.h
   typedef struct FXImageFrame FXImageFrame;
   FXImageFrame* FXImageFrame_new(FXComposite* prt, FXImage* img);
+  EXT_JUSTIFY(FXImageFrame)
 
   //~ FXIcon.h
   typedef struct FXIcon FXIcon;
@@ -179,10 +288,11 @@ FXId_get_id(const FXId* self);
   //~ FXDial.h
   typedef struct FXDial FXDial;
   FXDial* FXDial_new(FXComposite* prt);
+  EXT_RANGE(FXDial, int)
+  EXT_HELP(FXDial)
 
   //~ FXFrame.h
   typedef struct FXFrame FXFrame;
-  void FXFrame_set_frame_style(FXFrame* self, unsigned val);
   void FXFrame_set_pad_bottom(FXFrame* self, int pad);
   void FXFrame_set_pad_left(FXFrame* self, int pad);
   void FXFrame_set_pad_right(FXFrame* self, int pad);
@@ -191,53 +301,55 @@ FXId_get_id(const FXId* self);
   void FXFrame_set_border_color(FXFrame* self, unsigned color);
   void FXFrame_set_hilite_color(FXFrame* self, unsigned color);
   void FXFrame_set_shadow_color(FXFrame* self, unsigned color);
+  EXT_STYLE(FXFrame)
 
   //~ FXKnob.h
   typedef struct FXKnob FXKnob;
   FXKnob* FXKnob_new(FXComposite* prt);
-  void FXKnob_set_help_text(FXKnob* self, const char* text);
-  void FXKnob_set_tip_text(FXKnob* self, const char* text);
-  void FXKnob_set_value(FXKnob* self, int value);
-  void FXKnob_set_range(FXKnob* self, int lo, int hi);
-  void FXKnob_set_increment(FXKnob* self, int inc);
-
-#define TextExt(widget)                                                        \
-  typedef struct widget widget;                                                \
-  const char* widget##_get_text(const widget* self);                           \
-  const char* widget##_get_text(const widget* self);                           \
-  void widget##_set_text(widget* self, const char* text);                      \
-  void widget##_set_help_text(widget* self, const char* text);                 \
-  void widget##_set_tip_text(widget* self, const char* text);                  \
-  void widget##_set_text_color(widget* self, unsigned color);                  \
-  void widget##_set_font(widget* self, const char* family, int size);
+  EXT_RANGE(FXKnob, int)
+  EXT_HELP(FXKnob)
 
   //~ FXLabel.h
-  TextExt(FXLabel) FXLabel* FXLabel_new(FXComposite* prt, const char* title);
-  void FXLabel_set_justify(FXLabel* self, unsigned justify);
+  typedef struct FXLabel FXLabel;
+  FXLabel* FXLabel_new(FXComposite* prt, const char* title);
+  EXT_JUSTIFY(FXLabel)
+  EXT_TEXT(FXLabel)
 
   //~ FXText.h
-  TextExt(FXText) FXText* FXText_new(FXComposite* prt);
-  void FXText_set_editable(FXText* self, long editable);
+  typedef struct FXText FXText;
+  FXText* FXText_new(FXComposite* prt);
+  EXT_TEXT(FXText)
+  EXT_EDITABLE(FXText)
 
   //~ FXTextField.h
-  TextExt(FXTextField) FXTextField* FXTextField_new(FXComposite* frm);
-  void FXTextField_set_editable(FXTextField* self, long val);
-
-#define RangerExt(widget)                                                      \
-  typedef struct widget widget;                                                \
-  int widget##_get_increment(const widget* self);                              \
-  int widget##_get_value(const widget* self);                                  \
-  void widget##_get_range(const widget* self, int* lo, int* hi);               \
-  void widget##_set_value(widget* self, int value);                            \
-  void widget##_set_range(widget* self, int lo, int hi);                       \
-  void widget##_set_increment(widget* self, int inc);
+  typedef struct FXTextField FXTextField;
+  FXTextField* FXTextField_new(FXComposite* frm);
+  EXT_TEXT(FXTextField)
+  EXT_JUSTIFY(FXTextField)
+  EXT_EDITABLE(FXTextField)
 
   //~ FXSlider.h
-  RangerExt(FXSlider) FXSlider* FXSlider_new(FXComposite* parent);
+  typedef struct FXSlider FXSlider;
+  FXSlider* FXSlider_new(FXComposite* parent);
+  EXT_RANGE(FXSlider, int)
 
   //~ FXSpinner.h
-  RangerExt(FXSpinner) FXSpinner* FXSpinner_new(FXComposite* parent);
+  typedef struct FXSpinner FXSpinner;
+  FXSpinner* FXSpinner_new(FXComposite* parent);
   void FXSpinner_decrement(FXSpinner* self);
+  EXT_RANGE(FXSpinner, int)
+  EXT_EDITABLE(FXSpinner)
+
+  //~ FXRealSpinner.h
+  typedef struct FXRealSpinner FXRealSpinner;
+  FXRealSpinner* FXRealSpinner_new(FXComposite* parent);
+  EXT_RANGE(FXRealSpinner, double)
+  EXT_EDITABLE(FXRealSpinner)
+
+  //~ FXRealSlider.h
+  typedef struct FXRealSlider FXRealSlider;
+  FXRealSlider* FXRealSlider_new(FXComposite* parent);
+  EXT_RANGE(FXRealSlider, double)
 
   //~ FXProgressBar.h
   typedef struct FXProgressBar FXProgressBar;
@@ -257,12 +369,16 @@ FXId_get_id(const FXId* self);
   FXArrowButton* FXArrowButton_new(FXComposite* parent);
   void FXArrowButton_set_arrow_size(FXArrowButton* self, int size);
   void FXArrowButton_set_arrow_color(FXArrowButton* self, unsigned color);
+  EXT_JUSTIFY(FXArrowButton)
+  EXT_STATE(FXArrowButton)
+  EXT_HELP(FXArrowButton)
 
   //~ FXButton.h
-  TextExt(FXButton) FXButton* FXButton_new(FXComposite* parent,
-                                           const char* title);
-  void FXButton_set_state(FXButton* self, unsigned state);
-  void FXButton_set_style(FXButton* self, unsigned style);
+  typedef struct FXButton FXButton;
+  FXButton* FXButton_new(FXComposite* parent, const char* title);
+  EXT_STYLE(FXButton)
+  EXT_TEXT(FXButton)
+  EXT_STATE(FXButton)
 
   //~ FXPopup.h
   typedef struct FXPopup FXPopup;
@@ -271,8 +387,7 @@ FXId_get_id(const FXId* self);
   //~ FXCheckButton.h
   typedef struct FXCheckButton FXCheckButton;
   FXCheckButton* FXCheckButton_new(FXComposite* prt, const char* title);
-  unsigned char FXCheckButton_get_check(const FXCheckButton* self);
-  void FXCheckButton_set_check(FXCheckButton* self, unsigned char check);
+  EXT_CHECK(FXCheckButton)
 
   //~ FXMDIButton.h
   typedef struct FXMDIDeleteButton FXMDIDeleteButton;
@@ -293,12 +408,12 @@ FXId_get_id(const FXId* self);
   FXToggleButton* FXToggleButton_new(FXComposite* prt,
                                      const char* text1,
                                      const char* text2);
+  EXT_STATE(FXToggleButton)
 
   //~ FXRadioButton.h
   typedef struct FXRadioButton FXRadioButton;
   FXRadioButton* FXRadioButton_new(FXComposite* prt, const char* title);
-  unsigned char FXRadioButton_get_check(const FXRadioButton* self);
-  void FXRadioButton_set_check(FXRadioButton* self);
+  EXT_CHECK(FXRadioButton)
 
   //~ FXTopWindow.h
   typedef struct FXTopWindow FXTopWindow;
@@ -327,28 +442,26 @@ FXId_get_id(const FXId* self);
   //~ FXMatrix.h
   typedef struct FXMatrix FXMatrix;
   FXMatrix* FXMatrix_new(FXComposite* prt, int rows, unsigned opts);
-  unsigned FXMatrix_get_matrix_style(const FXMatrix* self);
   int FXMatrix_get_num_rows(const FXMatrix* self);
   int FXMatrix_get_num_columns(const FXMatrix* self);
-  void FXMatrix_set_matrix_style(FXMatrix* self, unsigned style);
   void FXMatrix_set_num_rows(FXMatrix* self, int rows);
   void FXMatrix_set_num_columns(FXMatrix* self, int cols);
+  EXT_STYLE(FXMatrix)
 
   //~ FXSplitter.h
   typedef struct FXSplitter FXSplitter;
   FXSplitter* FXSplitter_new(FXComposite* prt, unsigned opts);
   int FXSplitter_get_split(const FXSplitter* self, int index);
   int FXSplitter_get_bar_size(const FXSplitter* self);
-  unsigned FXSplitter_get_splitter_style(const FXSplitter* self);
   void FXSplitter_set_split(FXSplitter* self, int index, int size);
-  void FXSplitter_set_splitter_style(FXSplitter* self, unsigned style);
   void FXSplitter_set_bar_size(FXSplitter* self, int size);
+  EXT_STYLE(FXSplitter)
 
   //~ FXGroupBox.h
   typedef struct FXGroupBox FXGroupBox;
   FXGroupBox* FXGroupBox_new(FXComposite* prt, const char* title);
-  void FXGroupBox_set_style(FXGroupBox* self, unsigned val);
-  void FXGroupBox_set_text(FXGroupBox* self, const char* text);
+  EXT_STYLE(FXGroupBox)
+  EXT_TEXT(FXGroupBox)
 
   //~ FXVerticalFrame.h
   typedef struct FXVerticalFrame FXVerticalFrame;
@@ -366,33 +479,24 @@ FXId_get_id(const FXId* self);
   //~ FXComboBox.h
   typedef struct FXComboBox FXComboBox;
   FXComboBox* FXComboBox_new(FXComposite* prt, int cols);
-  const char* FXComboBox_get_item_text(const FXComboBox* self, int index);
-  int FXComboBox_get_num_items(const FXComboBox* self);
-  int FXComboBox_get_current_item(const FXComboBox* self);
-  int FXComboBox_append_item(FXComboBox* self, const char* text);
-  void FXComboBox_clear_items(FXComboBox* self);
-  void FXComboBox_set_current_item(FXComboBox* self, int index);
-  void FXComboBox_set_num_visible(FXComboBox* self, int nvis);
-
-#define SelectorExt(widget)                                                    \
-  typedef struct widget widget;                                                \
-  widget* widget##_new(FXComposite* parent);                                   \
-  const char* widget##_get_item_text(const widget* self, int index);           \
-  int widget##_get_num_items(const widget* self);                              \
-  int widget##_get_current_item(const widget* self);                           \
-  void widget##_append_item(widget* self, const char* text);                   \
-  void widget##_clear_items(widget* self);                                     \
-  void widget##_set_current_item(widget* self, int index);                     \
-  void widget##_set_num_visible(widget* self, int nvis);
+  EXT_JUSTIFY(FXComboBox)
+  EXT_SELECTABLE(FXComboBox)
+  EXT_EDITABLE(FXComboBox)
+  EXT_HELP(FXComboBox)
 
   //~ FXList.h
-  SelectorExt(FXList) void FXList_set_style(FXList* self, unsigned style);
+  typedef struct FXList FXList;
+  FXList* FXList_new(FXComposite* prt);
+  EXT_SELECTABLE(FXList)
+  EXT_STYLE(FXList)
 
   //~ FXListBox.h
-  SelectorExt(FXListBox)
+  typedef struct FXListBox FXListBox;
+  FXListBox* FXListBox_new(FXComposite* prt);
+  EXT_SELECTABLE(FXListBox)
 
-    //~ FXTreeList.h
-    typedef struct FXTreeItem FXTreeItem;
+  //~ FXTreeList.h
+  typedef struct FXTreeItem FXTreeItem;
   typedef struct FXTreeList FXTreeList;
   FXTreeList* FXTreeList_new(FXComposite* prt);
   FXTreeItem* FXTreeList_append_item(FXTreeList* self,
@@ -406,6 +510,8 @@ FXId_get_id(const FXId* self);
   const char* FXTable_get_item_text(const FXTable* self, int r, int c);
   void FXTable_set_table_size(FXTable* self, int nr, int nc);
   void FXTable_set_item_text(FXTable* self, int r, int c, const char* text);
+  EXT_JUSTIFY(FXTable)
+  EXT_EDITABLE(FXTable)
 
   //~ FXCanvas.h
   typedef struct FXCanvas FXCanvas;
@@ -425,8 +531,6 @@ FXId_get_id(const FXId* self);
   //~ FXTabItem.h
   typedef struct FXTabItem FXTabItem;
   FXTabItem* FXTabItem_new(FXTabBar* prt, const char* text);
-  const char* FXTabItem_get_text(const FXTabItem* self);
-  void FXTabItem_set_text(FXTabItem* self, const char* text);
 
   //~ FXScrollBar.h
   typedef struct FXScrollBar FXScrollBar;
@@ -444,9 +548,9 @@ FXId_get_id(const FXId* self);
   FXMenuButton* FXMenuButton_new(FXComposite* prt,
                                  const char* title,
                                  FXPopup* pop);
-  void FXMenuButton_set_style(FXMenuButton* self, unsigned style);
   void FXMenuButton_set_popup_style(FXMenuButton* self, unsigned style);
   void FXMenuButton_set_attachment(FXMenuButton* self, unsigned attachment);
+  EXT_STYLE(FXMenuButton)
 
   //~ FXMenuCaption.h
   typedef struct FXMenuCaption FXMenuCaption;
@@ -479,20 +583,17 @@ FXId_get_id(const FXId* self);
   //~ FXMenuRadio.h
   typedef struct FXMenuRadio FXMenuRadio;
   FXMenuRadio* FXMenuRadio_new(FXComposite* prt, const char* text);
-  unsigned char FXMenuRadio_get_check(const FXMenuRadio* self);
-  void FXMenuRadio_set_check(FXMenuRadio* self);
+  EXT_CHECK(FXMenuRadio)
 
   //~ FXMenuCheck.h
   typedef struct FXMenuCheck FXMenuCheck;
   FXMenuCheck* FXMenuCheck_new(FXComposite* prt, const char* text);
-  unsigned char FXMenuCheck_get_check(const FXMenuCheck* self);
-  void FXMenuCheck_set_check(FXMenuCheck* self, unsigned char check);
+  EXT_CHECK(FXMenuCheck)
 
   //~ FXStatusLine.h
   typedef struct FXStatusLine FXStatusLine;
   FXStatusLine* FXStatusLine_new(FXComposite* prt);
-  const char* FXStatusLine_get_text(const FXStatusLine* self);
-  void FXStatusLine_set_text(FXStatusLine* self, const char* text);
+  EXT_TEXT(FXStatusLine)
 
   //~ FXStatusBar.h
   typedef struct FXStatusBar FXStatusBar;

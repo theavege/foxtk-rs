@@ -15,15 +15,6 @@ unsafe extern "C" fn ccallback<T: WindowExt>(ptr: *mut FXWindow, context: *mut c
     }
 }
 
-pub trait CastExt<T>: ObjectExt {
-    fn as_ref(&self) -> *const T {
-        self.as_raw() as *const T
-    }
-    fn as_mut(&self) -> *mut T {
-        self.as_raw() as *mut T
-    }
-}
-
 pub trait ObjectExt: Sized {
     type T: 'static;
     fn as_raw(&self) -> *mut Self::T;
@@ -243,7 +234,7 @@ pub trait FrameExt: WindowExt {
     }
     fn with_frame(self, frame: FrameStyle) -> Self {
         unsafe {
-            FXFrame_set_frame_style(self.as_raw() as *mut FXFrame, frame as u32);
+            FXFrame_set_style(self.as_raw() as *mut FXFrame, frame as u32);
         }
         self
     }
@@ -258,8 +249,6 @@ pub trait TextableExt: FrameExt {
         self.set_font(family, size);
         self
     }
-    fn with_help(self, help: &str) -> Self;
-    fn with_tip(self, tip: &str) -> Self;
 }
 
 pub trait LabelExt: FrameExt {}
@@ -428,16 +417,10 @@ impl<T: SelectorExt + 'static> Update<(Vec<String>, i32)> for T {
 pub trait RangerExt: WindowExt {
     fn value(&self) -> i32;
     fn range(&self) -> (i32, i32);
-    fn increment(&self) -> i32;
     fn set_value(&self, value: i32);
     fn set_range(&self, low: i32, high: i32);
-    fn set_increment(&self, inc: i32);
     fn with_range(self, low: i32, high: i32) -> Self {
         self.set_range(low, high);
-        self
-    }
-    fn with_increment(self, inc: i32) -> Self {
-        self.set_increment(inc);
         self
     }
     fn with_value(self, value: i32) -> Self {

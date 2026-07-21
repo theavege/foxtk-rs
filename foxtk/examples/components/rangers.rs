@@ -32,7 +32,6 @@ impl Component for Rangers {
                 foxtk::HorizontalFrame::new(prt).inside(|prt| {
                     self.spinner = foxtk::Spinner::new(prt)
                         .with_range(0, 8)
-                        .with_increment(1)
                         .with_callback({
                             let sender = sender.clone();
                             move |wgt| {
@@ -48,7 +47,6 @@ impl Component for Rangers {
                     self.slider = foxtk::Slider::new(prt)
                         .with_width(WIDTH)
                         .with_range(0, 8)
-                        .with_increment(1)
                         .with_callback({
                             let sender = sender.clone();
                             move |wgt| {
