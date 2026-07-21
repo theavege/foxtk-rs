@@ -414,6 +414,7 @@ FXId_get_id(const FXId* self);
   typedef struct FXRadioButton FXRadioButton;
   FXRadioButton* FXRadioButton_new(FXComposite* prt, const char* title);
   EXT_CHECK(FXRadioButton)
+  EXT_TEXT(FXRadioButton)
 
   //~ FXTopWindow.h
   typedef struct FXTopWindow FXTopWindow;

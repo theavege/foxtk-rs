@@ -221,7 +221,7 @@ impl SplashWindow {
     }
 }
 
-impl_widget!(Button, IdExt, FrameExt, DrawableExt, WindowExt, LabelExt);
+impl_widget!(Button, IdExt, FrameExt, DrawableExt, WindowExt);
 impl Button {
     pub fn new(parent: &impl CompositeExt, title: &str) -> Self {
         Self::from_raw(unsafe {
@@ -280,14 +280,7 @@ impl Canvas {
     }
 }
 
-impl_widget!(
-    CheckButton,
-    IdExt,
-    FrameExt,
-    DrawableExt,
-    WindowExt,
-    LabelExt
-);
+impl_widget!(CheckButton, IdExt, FrameExt, DrawableExt, WindowExt);
 impl CheckButton {
     pub fn new(parent: &impl CompositeExt, title: &str) -> Self {
         Self::from_raw(unsafe {
@@ -426,9 +419,7 @@ impl Matrix {
         }
     }
     pub fn style(&self) -> MatrixStyle {
-        unsafe {
-            std::mem::transmute::<u32, MatrixStyle>(FXMatrix_get_style(self.as_raw()) as u32)
-        }
+        unsafe { std::mem::transmute::<u32, MatrixStyle>(FXMatrix_get_style(self.as_raw()) as u32) }
     }
     pub fn num_rows(&self) -> i32 {
         unsafe { FXMatrix_get_num_rows(self.as_raw()) }
@@ -467,9 +458,7 @@ impl Splitter {
     }
     pub fn style(&self) -> SplitterStyle {
         unsafe {
-            std::mem::transmute::<u32, SplitterStyle>(
-                FXSplitter_get_style(self.as_raw()) as u32
-            )
+            std::mem::transmute::<u32, SplitterStyle>(FXSplitter_get_style(self.as_raw()) as u32)
         }
     }
     pub fn set_split(&self, index: i32, size: i32) {
@@ -510,7 +499,7 @@ impl Switcher {
     }
 }
 
-impl_widget!(Label, IdExt, FrameExt, DrawableExt, WindowExt, LabelExt);
+impl_widget!(Label, IdExt, FrameExt, DrawableExt, WindowExt);
 impl Label {
     pub fn new(parent: &impl CompositeExt, title: &str) -> Self {
         Self::from_raw(unsafe {
@@ -620,14 +609,7 @@ impl ProgressBar {
     }
 }
 
-impl_widget!(
-    TriStateButton,
-    IdExt,
-    FrameExt,
-    DrawableExt,
-    WindowExt,
-    LabelExt
-);
+impl_widget!(TriStateButton, IdExt, FrameExt, DrawableExt, WindowExt);
 impl TriStateButton {
     pub fn new(parent: &impl CompositeExt, text1: &str, text2: &str, text3: &str) -> Self {
         Self::from_raw(unsafe {
@@ -642,15 +624,7 @@ impl TriStateButton {
     }
 }
 
-impl_widget!(
-    ToggleButton,
-    IdExt,
-    FrameExt,
-    DrawableExt,
-    WindowExt,
-    LabelExt,
-    RadioButtonExt
-);
+impl_widget!(ToggleButton, IdExt, FrameExt, DrawableExt, WindowExt);
 impl ToggleButton {
     pub fn new(parent: &impl CompositeExt, title: &str, title_: &str) -> Self {
         Self::from_raw(unsafe {
@@ -664,15 +638,7 @@ impl ToggleButton {
     }
 }
 
-impl_widget!(
-    RadioButton,
-    IdExt,
-    FrameExt,
-    DrawableExt,
-    WindowExt,
-    LabelExt,
-    RadioButtonExt
-);
+impl_widget!(RadioButton, IdExt, FrameExt, DrawableExt, WindowExt);
 impl RadioButton {
     pub fn new(parent: &impl CompositeExt, title: &str) -> Self {
         Self::from_raw(unsafe {
@@ -777,8 +743,7 @@ impl_widget!(
     DrawableExt,
     WindowExt,
     PackerExt,
-    CompositeExt,
-    TabItemExt
+    CompositeExt
 );
 
 impl TabItem {
@@ -994,13 +959,19 @@ impl MenuCommand {
 impl_widget!(StatusLine, IdExt, FrameExt, DrawableExt, WindowExt);
 impl StatusLine {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe {
-            FXStatusLine_new(parent.as_raw() as *mut FXComposite)
-        })
+        Self::from_raw(unsafe { FXStatusLine_new(parent.as_raw() as *mut FXComposite) })
     }
 }
 
-impl_textable!(Button, GroupBox, Label, Text, TextField, StatusLine);
+impl_textable!(
+    Button,
+    GroupBox,
+    Label,
+    Text,
+    TextField,
+    RadioButton,
+    StatusLine
+);
 impl_selector!(ComboBox, List, ListBox);
 impl_ranger!(Dial, Knob, Slider, Spinner);
 impl_editable!(ComboBox, Spinner, Table, Text, TextField);

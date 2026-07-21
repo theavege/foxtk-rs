@@ -30,17 +30,15 @@ impl Component for Rangers {
         foxtk::GroupBox::new(prt, "Rangers").inside(|prt| {
             foxtk::VerticalFrame::new(prt).inside(|prt| {
                 foxtk::HorizontalFrame::new(prt).inside(|prt| {
-                    self.spinner = foxtk::Spinner::new(prt)
-                        .with_range(0, 8)
-                        .with_callback({
-                            let sender = sender.clone();
-                            move |wgt| {
-                                if wgt.has_focus() {
-                                    sender.send(Msg::Set(wgt.value())).unwrap();
-                                }
-                                false
+                    self.spinner = foxtk::Spinner::new(prt).with_range(0, 8).with_callback({
+                        let sender = sender.clone();
+                        move |wgt| {
+                            if wgt.has_focus() {
+                                sender.send(Msg::Set(wgt.value())).unwrap();
                             }
-                        });
+                            false
+                        }
+                    });
                 });
                 foxtk::HorizontalFrame::new(prt).inside(|prt| {
                     self.progress = foxtk::ProgressBar::new(prt).with_total(8);

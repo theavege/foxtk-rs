@@ -709,6 +709,7 @@ extern "C"
   {
     self->setCheck();
   }
+  EXT_TEXT(FXRadioButton)
 
   //~ FXToggleButton.h
   FXToggleButton* FXToggleButton_new(FXComposite* prt,

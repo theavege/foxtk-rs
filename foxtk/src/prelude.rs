@@ -251,7 +251,6 @@ pub trait TextableExt: FrameExt {
     }
 }
 
-pub trait LabelExt: FrameExt {}
 pub trait EditableExt: ObjectExt {
     fn set_editable(&self, editable: bool);
     fn with_editable(self, editable: bool) -> Self {
@@ -316,8 +315,6 @@ pub trait SelectorExt: PackerExt {
         self
     }
 }
-
-pub trait TabItemExt: WindowExt {}
 
 pub trait TopWindowExt: WindowExt {
     fn set_decorations(&self, decorations: Decor) {
@@ -428,8 +425,6 @@ pub trait RangerExt: WindowExt {
         self
     }
 }
-
-pub trait RadioButtonExt: LabelExt {}
 
 pub trait Component: Default + 'static {
     type Event: 'static;
