@@ -1,7 +1,5 @@
 # FoxTK-rs
 
-![CI](https://github.com/theavege/foxtk-rs/actions/workflows/main.yml/badge.svg)
-
 ![FOX-toolkit](http://www.fox-toolkit.org/art/foxlogo_small.jpg)
 
 Rust bindings for the [fox-toolkit](http://www.fox-toolkit.org).
