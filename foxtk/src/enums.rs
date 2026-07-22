@@ -128,6 +128,17 @@ pub enum MatrixStyle {
 
 #[repr(C)]
 #[derive(Default)]
+pub enum ProgressBarStyle {
+    #[default]
+    Horizontal = 0,
+    Vertical = 0x00008000,
+    Percentage = 0x00010000,
+    Dial = 0x00020000,
+    Normal = 0x00040000,
+}
+
+#[repr(C)]
+#[derive(Default)]
 pub enum SplitterStyle {
     #[default]
     Horizontal = 0,

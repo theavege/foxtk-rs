@@ -66,64 +66,107 @@ and commercial applications without being required to open-source your own code.
 - [GTK-rs](https://github.com/gtk-rs)
 - [RSTK](https://codeberg.org/peterlane/rstk)
 
-### FOX vs alternatives at a glance
-
-| | FOX | FLTK | GTK |
-|---|---|---|---|
-| Dependencies | Minimal | Minimal | Heavy (GLib, GObject, …) |
-| OpenGL support | Built-in | Built-in | ⚠️ Via external crate |
-| Widget variety | Rich | Basic | Very rich |
-| Cross-platform | V | V | X️ (Linux-native feel) |
-| License | LGPL | LGPL | LGPL |
-| Maturity | Since ~1997 | Since ~1998 | Since ~1998 |
-
 ## [Human Interface Guidelines](https://www.fltk.org/hig.php)
+
+## [UML: Class Diagram](https://plantuml.com)
+
+```plantuml
+@startuml
+!theme sunlust
+skinparam defaultFontName Monospaced
+skinparam linetype ortho
+scale 2000x2000
+left header FoxTK-rs
+left to right direction
+package containers #line.dotted {
+    struct Packer {
+        -ptr : FXObject
+    }
+}
+package outputs #line.dotted {
+    struct Label {
+        -ptr : FXObject
+    }
+}
+package inputs #line.dotted {
+    struct Button {
+        -ptr : FXObject
+    }
+}
+package prelude #line.dashed {
+    interface ObjectExt {
+        #Self from_raw(FXObject*)
+        #FXObject* as_raw()
+        #del()
+    }
+    interface FrameExt {
+        +Self with_frame(Style)
+        +with_pad(int)
+    }
+    interface WindowExt {
+        +disable()
+        +enable()
+    }
+    interface DrawableExt {
+        +int height()
+        +int width()
+    }
+    interface IdExt {
+        +FXApp app()
+    }
+    interface CompositeExt {
+        +inside()
+    }
+    interface TextExt {
+        +String text()
+        +set_text(String)
+    }
+    interface IdExt extends ObjectExt
+    interface DrawableExt extends IdExt
+    interface WindowExt extends DrawableExt
+    interface FrameExt extends WindowExt
+    interface TextExt extends FrameExt
+    interface CompositeExt extends WindowExt
+}
+struct containers.Packer implements prelude.CompositeExt
+struct outputs.Label implements prelude.TextExt
+struct inputs.Button implements prelude.TextExt
+@enduml
+```
 
 ## Work in process
 
-- [x] [FXApp](docs/fx_app.md)
-- [x] [Composite](docs/fx_composite.md)
-  - [x] [FXGroupBox](docs/fx_composite.md#FXGroupBox) - Framed container with title
-  - [x] [FXHorizontalFrame](docs/fx_composite.md#FXHorizontalFrame) - Basic horizontal packing
-  - [x] [FXVerticalFrame](docs/fx_composite.md#FXVerticalFrame) - Basic vertical packing
-  - [x] [FXSwitcher](docs/fx_composite.md#FXSwitcher)
+- [x] [FXApp](docs/FXApp.md)
+- [x] [Composite](docs/FXComposite.md)
+  - [x] [FXGroupBox](docs/FXComposite.md#FXGroupBox) - Framed container with title
+  - [x] [FXHorizontalFrame](docs/FXComposite.md#FXHorizontalFrame) - Basic horizontal packing
+  - [x] [FXVerticalFrame](docs/FXComposite.md#FXVerticalFrame) - Basic vertical packing
+  - [x] [FXSwitcher](docs/FXComposite.md#FXSwitcher)
 - [x] Widgets
-  - [x] [Outputs](docs/fx_outputs.md)
-    - [x] [FXLabel](docs/fx_outputs.md#FXLabel) - Text and icon display
-    - [x] [FXProgressBar](docs/fx_outputs.md#FXProgressBar)
-  - [x] [Triggers](docs/fx_triggers.md)
-    - [x] [FXButton](docs/fx_triggers.md#FXButton) - Standart push button
-    - [x] [FXMenuBar](docs/fx_triggers.md#FXMenuBar) - Top menu bar
-      - [x] [FXMenuPane](docs/fx_triggers.md#FXMenuPane) - Popup menus
-        - [x] [FXMenuCommand](docs/fx_triggers.md#FXMenuCommand) - Menu items
-  - [x] [Inputs](docs/fx_inputs.md)
+  - [x] [Outputs](docs/FXOutputExt.md)
+    - [x] [FXLabel](docs/FXOutputExt.md#FXLabel) - Text and icon display
+    - [x] [FXProgressBar](docs/FXOutputExt.md#FXProgressBar)
+  - [x] [Inputs](docs/FXInputExt.md)
+    - [x] Triggers
+      - [x] [FXArrowButton](docs/FXInputExt.md#FXArrowButton) - Standart push button
+      - [x] [FXButton](docs/FXInputExt.md#FXButton) - Standart push button
+      - [x] [FXCheckButton](docs/FXInputExt.md#FXCheckButton)
+      - [x] [FXMDIButton](docs/FXInputExt.md#FXMDIButton)
+      - [x] [FXMDIButton](docs/FXInputExt.md#FXMDIButton)
+      - [x] [FXMenuButton](docs/FXInputExt.md#FXMenuButton)
+      - [x] [FXMenuBar](docs/FXInputExt.md#FXMenuBar) - Top menu bar
+        - [x] [FXMenuPane](docs/FXInputExt.md#FXMenuPane) - Popup menus
+          - [x] [FXMenuCommand](docs/FXInputExt.md#FXMenuCommand) - Menu items
+      - [x] [FXRadioButton](docs/FXInputExt.md#FXRadioButton)
+      - [x] [FXToggleButton](docs/FXInputExt.md#FXToggleButton)
+      - [x] [FXTriStateButton](docs/FXInputExt.md#FXTriStateButton)
     - [x] String
-      - [x] [FXText](docs/fx_inputs.md#FXText) - Multi-line text editor
-      - [x] [FXTextField](docs/fx_inputs.md#FXTextField) - Single-line text input
-    - [x] [Rangers](docs/fx_rangers.md)
+      - [x] [FXText](docs/FXInputExt.md#FXText) - Multi-line text editor
+      - [x] [FXTextField](docs/FXInputExt.md#FXTextField) - Single-line text input
+    - [x] [Rangers](docs/FXRangerExt.md)
       - [x] Numeric
-        - [x] [FXSpinner](docs/fx_rangers.md#FXSpinner) - Numeric input with arrows
-        - [x] [FXSlider](docs/fx_rangers.md#FXSlider) - Value slider
-  - [x] [Selectors](docs/fx_selectors.md)
-    - [x] [FXList](docs/fx_selectors.md#FXList) - Simple item list
-    - [x] [FXListBox](docs/fx_selectors.md#FXListBox) - Choise
-
-## Screenshots
-
-![main](assets/scrot_fox_calculator_main.png)
-
----
-
-![edit](assets/scrot_fox_calculator_edit.png)
-
----
-
-![font](assets/scrot_fox_calculator_font.png)
-
----
-
-![color](assets/scrot_fox_calculator_color.png)
-
----
-
-![about](assets/scrot_fox_calculator_about.png)
+        - [x] [FXSpinner](docs/FXRangerExt.md#FXSpinner) - Numeric input with arrows
+        - [x] [FXSlider](docs/FXRangerExt.md#FXSlider) - Value slider
+  - [x] [Selectors](docs/FXSelectorExt.md)
+    - [x] [FXList](docs/FXSelectorExt.md#FXList) - Simple item list
+    - [x] [FXListBox](docs/FXSelectorExt.md#FXListBox) - Choise
