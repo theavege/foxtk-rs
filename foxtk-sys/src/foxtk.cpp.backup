@@ -1,61 +1,4 @@
 #include <fx.h>
-#include <fx.h>
-#include <cstdio>
-
-// ============================================================================
-// ERROR HANDLING MACROS
-// ============================================================================
-
-/// Validates that a pointer is not null, logs error and returns nullptr if null
-#define VALIDATE_POINTER(ptr, name) \
-  if (!ptr) { \
-    fprintf(stderr, "%s: %s is null at %s:%d\n", __func__, name, __FILE__, __LINE__); \
-    return nullptr; \
-  }
-
-/// Validates parent pointer for widget construction
-#define VALIDATE_PARENT(ptr) VALIDATE_POINTER(ptr, "parent")
-
-/// Validates self pointer for widget methods
-#define VALIDATE_SELF(ptr) VALIDATE_POINTER(ptr, "self")
-
-// ============================================================================
-// STRING UTILITIES
-// ============================================================================
-
-template<typename Value>
-inline const char*
-string_result(const Value& value)
-{
-  static thread_local FXString buffer;
-  buffer = value;
-  return buffer.text();
-}
-
-// ============================================================================
-// WIDGET CONSTRUCTION TEMPLATES
-// ============================================================================
-
-/// Generic widget construction template
-/// 
-/// @tparam Widget The widget type to construct
-/// @tparam Parent The parent type (must inherit from FXObject)
-/// @tparam Args Variadic template arguments for additional constructor parameters
-/// @param parent The parent widget (must not be null)
-/// @param args Additional constructor arguments
-/// @return New widget instance or nullptr if parent is null
-template<typename Widget, typename Parent, typename... Args>
-inline Widget*
-make_widget(FXObject* parent, Args&&... args)
-{
-  VALIDATE_PARENT(parent);
-  return new Widget(static_cast<Parent*>(parent), std::forward<Args>(args)...);
-}
-
-// ============================================================================
-// EXTENSION MACROS FOR COMMON WIDGET PATTERNS
-// ============================================================================
-
 
 #define EXT_TEXT(widget)                                                       \
   const char* widget##_get_text(const widget* self)                            \
@@ -364,10 +307,7 @@ extern "C"
     return FXALPHAVAL(rgba);
   }
 
-  // ============================================================================
-// BASE WIDGETS
-// ============================================================================
-//~ FXObject.h
+  //~ FXObject.h
   void FXObject_delete(FXObject* self)
   {
     delete self;
@@ -384,10 +324,7 @@ extern "C"
     return self->id();
   }
 
-  // ============================================================================
-// DRAWING
-// ============================================================================
-//~ FXDrawable.h
+  //~ FXDrawable.h
   int FXDrawable_get_height(const FXDrawable* self)
   {
     return self->getHeight();
@@ -397,10 +334,7 @@ extern "C"
     return self->getWidth();
   }
 
-  // ============================================================================
-// WINDOW MANAGEMENT
-// ============================================================================
-//~ FXWindow.h
+  //~ FXWindow.h
   FXWindow* FXWindow_get_parent(const FXWindow* self)
   {
     ASSERT_NOT_NULL(self, nullptr);
@@ -467,10 +401,7 @@ extern "C"
     return self->maxChildHeight();
   }
 
-  // ============================================================================
-// APPLICATION
-// ============================================================================
-//~ FXApp.h
+  //~ FXApp.h
   FXApp* FXApp_new(const char* name, const char* vendor, int argc, char** argv)
   {
     auto app = new FXApp(name, vendor);
@@ -776,10 +707,7 @@ extern "C"
     return string_result(self->getPattern());
   }
 
-  // ============================================================================
-// INPUT WIDGETS - BUTTONS
-// ============================================================================
-//~ FXButton.h
+  //~ FXButton.h
   FXButton* FXButton_new(FXComposite* prt, const char* title)
   {
     return make_widget<FXButton, FXComposite>(prt, title);
@@ -919,10 +847,7 @@ extern "C"
     return self->getBarSize();
   }
 
-  // ============================================================================
-// LAYOUT WIDGETS
-// ============================================================================
-//~ FXPacker.h
+  //~ FXPacker.h
   FXPacker* FXPacker_new(FXComposite* prt)
   {
     return make_widget<FXPacker, FXComposite>(prt);
@@ -1014,10 +939,7 @@ extern "C"
     return self->getBarSize();
   }
 
-  // ============================================================================
-// DOCKING WIDGETS
-// ============================================================================
-//~ FXDockBar.h
+  //~ FXDockBar.h
   FXDockBar* FXDockBar_new(FXComposite* prt)
   {
     return make_widget<FXDockBar, FXComposite>(prt);
@@ -1209,10 +1131,7 @@ extern "C"
     return string_result(self->getItemText(r, c));
   }
 
-  // ============================================================================
-// DRAWING WIDGETS
-// ============================================================================
-//~ FXCanvas.h
+  //~ FXCanvas.h
   FXCanvas* FXCanvas_new(FXComposite* prt)
   {
     return make_widget<FXCanvas, FXComposite>(prt);
@@ -1233,10 +1152,7 @@ extern "C"
     return make_widget<FXGLVisual, FXApp>(app);
   }
 
-  // ============================================================================
-// OPENGL WIDGETS
-// ============================================================================
-//~ FXGLCanvas.h
+  //~ FXGLCanvas.h
   FXGLCanvas* FXGLCanvas_new(FXComposite* prt, FXGLVisual* visual)
   {
     return make_widget<FXGLCanvas, FXComposite>(prt, visual);
@@ -1304,10 +1220,7 @@ extern "C"
     self->setRange(hi);
   }
 
-  // ============================================================================
-// MENU WIDGETS
-// ============================================================================
-//~ FXMenuBar.h
+  //~ FXMenuBar.h
   FXMenuBar* FXMenuBar_new(FXComposite* prt)
   {
     return make_widget<FXMenuBar, FXComposite>(prt, nullptr);
@@ -1429,10 +1342,7 @@ extern "C"
     self->setText(text);
   }
 
-  // ============================================================================
-// STATUS WIDGETS
-// ============================================================================
-//~ FXStatusBar.h
+  //~ FXStatusBar.h
   FXStatusBar* FXStatusBar_new(FXComposite* prt)
   {
     return make_widget<FXStatusBar, FXComposite>(prt);
@@ -1466,10 +1376,7 @@ extern "C"
     return make_widget<FXOptionMenu, FXComposite>(prt);
   }
 
-  // ============================================================================
-// TOOLBAR WIDGETS
-// ============================================================================
-//~ FXToolBar.h
+  //~ FXToolBar.h
   FXToolBar* FXToolBar_new(FXComposite* prt)
   {
     return make_widget<FXToolBar, FXComposite>(prt);
