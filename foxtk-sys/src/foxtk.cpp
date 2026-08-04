@@ -891,6 +891,24 @@ extern "C"
     return self->getNumColumns();
   }
 
+  //~ FXHeader.h
+  FXHeader* FXHeader_new(FXComposite* prt)
+  {
+    return make_widget<FXHeader, FXComposite>(prt);
+  }
+
+  //~ FXRuler.h
+  FXRuler* FXRuler_new(FXComposite* prt, unsigned orientation)
+  {
+    return make_widget<FXRuler, FXComposite>(prt, orientation);
+  }
+
+  //~ FXSpring.h
+  FXSpring* FXSpring_new(FXComposite* prt)
+  {
+    return make_widget<FXSpring, FXComposite>(prt);
+  }
+
   //~ FXSplitter.h
   FXSplitter* FXSplitter_new(FXComposite* prt, unsigned opts)
   {
@@ -919,6 +937,38 @@ extern "C"
   int FXSplitter_get_bar_size(const FXSplitter* self)
   {
     return self->getBarSize();
+  }
+
+  //~ FXDockBar.h
+  FXDockBar* FXDockBar_new(FXComposite* prt)
+  {
+    return make_widget<FXDockBar, FXComposite>(prt);
+  }
+
+  //~ FXDockHandler.h
+  FXDockHandler* FXDockHandler_new(FXDockSite* docksite)
+  {
+    return make_widget<FXDockHandler, FXDockSite>(docksite);
+  }
+
+  //~ FXDockSite.h
+  FXDockSite* FXDockSite_new(FXComposite* prt)
+  {
+    return make_widget<FXDockSite, FXComposite>(prt);
+  }
+
+  //~ FXDockTitle.h
+  FXDockTitle* FXDockTitle_new(FXDockBar* bar, const char* title)
+  {
+    return make_widget<FXDockTitle, FXDockBar>(bar, title);
+  }
+  void FXDockTitle_set_justify(FXDockTitle* self, unsigned justify)
+  {
+    self->setJustify(justify);
+  }
+  unsigned FXDockTitle_get_justify(const FXDockTitle* self)
+  {
+    return self->getJustify();
   }
 
   //~ FXScrollWindow.h
@@ -1096,6 +1146,24 @@ extern "C"
     self->setTarget(static_cast<FXObject*>(new CMouseTarget(cb, ctx)));
   }
 
+  //~ FXGLVisual.h
+  FXGLVisual* FXGLVisual_new(FXApp* app)
+  {
+    return make_widget<FXGLVisual, FXApp>(app);
+  }
+
+  //~ FXGLCanvas.h
+  FXGLCanvas* FXGLCanvas_new(FXComposite* prt, FXGLVisual* visual)
+  {
+    return make_widget<FXGLCanvas, FXComposite>(prt, visual);
+  }
+
+  //~ FXGLViewer.h
+  FXGLViewer* FXGLViewer_new(FXComposite* prt, FXGLVisual* visual)
+  {
+    return make_widget<FXGLViewer, FXComposite>(prt, visual);
+  }
+
   //~ FXTabBar.h
   FXTabBar* FXTabBar_new(FXComposite* prt)
   {
@@ -1162,6 +1230,12 @@ extern "C"
   FXMenuPane* FXMenuPane_new(FXWindow* prt)
   {
     return make_widget<FXMenuPane, FXWindow>(prt);
+  }
+
+  //~ FXPopup.h
+  FXPopup* FXPopup_new(FXWindow* owner)
+  {
+    return make_widget<FXPopup, FXWindow>(owner);
   }
 
   //~ FXMenuButton.h
@@ -1301,4 +1375,206 @@ extern "C"
   {
     return make_widget<FXOptionMenu, FXComposite>(prt);
   }
-}
+
+  //~ FXToolBar.h
+  FXToolBar* FXToolBar_new(FXComposite* prt)
+  {
+    return make_widget<FXToolBar, FXComposite>(prt);
+  }
+
+  //~ FXToolBarGrip.h
+  FXToolBarGrip* FXToolBarGrip_new(FXToolBar* toolbar)
+  {
+    return make_widget<FXToolBarGrip, FXToolBar>(toolbar);
+  }
+
+  //~ FXToolBarTab.h
+  FXToolBarTab* FXToolBarTab_new(FXToolBar* toolbar)
+  {
+    return make_widget<FXToolBarTab, FXToolBar>(toolbar);
+  }
+
+  //~ FXBitmapFrame.h
+  FXBitmapFrame* FXBitmapFrame_new(FXComposite* prt)
+  {
+    return make_widget<FXBitmapFrame, FXComposite>(prt);
+  }
+  void FXBitmapFrame_set_justify(FXBitmapFrame* self, unsigned justify)
+  {
+    self->setJustify(justify);
+  }
+  unsigned FXBitmapFrame_get_justify(const FXBitmapFrame* self)
+  {
+    return self->getJustify();
+  }
+
+  //~ FXBitmapView.h
+  FXBitmapView* FXBitmapView_new(FXComposite* prt)
+  {
+    return make_widget<FXBitmapView, FXComposite>(prt);
+  }
+
+  //~ FXImageFrame.h
+  FXImageFrame* FXImageFrame_new(FXComposite* prt, FXImage* img)
+  {
+    return make_widget<FXImageFrame, FXComposite>(prt, img);
+  }
+  void FXImageFrame_set_justify(FXImageFrame* self, unsigned justify)
+  {
+    self->setJustify(justify);
+  }
+  unsigned FXImageFrame_get_justify(const FXImageFrame* self)
+  {
+    return self->getJustify();
+  }
+  void FXImageFrame_set_image(FXImageFrame* self, FXImage* img)
+  {
+    self->setImage(img);
+  }
+  FXImage* FXImageFrame_get_image(const FXImageFrame* self)
+  {
+    return self->getImage();
+  }
+
+  //~ FXImageView.h
+  FXImageView* FXImageView_new(FXComposite* prt)
+  {
+    return make_widget<FXImageView, FXComposite>(prt);
+  }
+  void FXImageView_set_image(FXImageView* self, FXImage* img)
+  {
+    self->setImage(img);
+  }
+  FXImage* FXImageView_get_image(const FXImageView* self)
+  {
+    return self->getImage();
+  }
+
+  //~ FXHeader.h
+  FXHeader* FXHeader_new(FXComposite* prt)
+  {
+    return make_widget<FXHeader, FXComposite>(prt);
+  }
+
+  //~ FXRuler.h
+  FXRuler* FXRuler_new(FXComposite* prt, unsigned orientation)
+  {
+    return make_widget<FXRuler, FXComposite>(prt, orientation);
+  }
+
+  //~ FXSpring.h
+  FXSpring* FXSpring_new(FXComposite* prt)
+  {
+    return make_widget<FXSpring, FXComposite>(prt);
+  }
+
+  //~ FXDockBar.h
+  FXDockBar* FXDockBar_new(FXComposite* prt)
+  {
+    return make_widget<FXDockBar, FXComposite>(prt);
+  }
+
+  //~ FXDockHandler.h
+  FXDockHandler* FXDockHandler_new(FXDockSite* docksite)
+  {
+    return make_widget<FXDockHandler, FXDockSite>(docksite);
+  }
+
+  //~ FXDockSite.h
+  FXDockSite* FXDockSite_new(FXComposite* prt)
+  {
+    return make_widget<FXDockSite, FXComposite>(prt);
+  }
+
+  //~ FXDockTitle.h
+  FXDockTitle* FXDockTitle_new(FXDockBar* bar, const char* title)
+  {
+    return make_widget<FXDockTitle, FXDockBar>(bar, title);
+  }
+  void FXDockTitle_set_justify(FXDockTitle* self, unsigned justify)
+  {
+    self->setJustify(justify);
+  }
+  unsigned FXDockTitle_get_justify(const FXDockTitle* self)
+  {
+    return self->getJustify();
+  }
+
+  //~ FXToolBar.h
+  FXToolBar* FXToolBar_new(FXComposite* prt)
+  {
+    return make_widget<FXToolBar, FXComposite>(prt);
+  }
+
+  //~ FXToolBarGrip.h
+  FXToolBarGrip* FXToolBarGrip_new(FXToolBar* toolbar)
+  {
+    return make_widget<FXToolBarGrip, FXToolBar>(toolbar);
+  }
+
+  //~ FXToolBarTab.h
+  FXToolBarTab* FXToolBarTab_new(FXToolBar* toolbar)
+  {
+    return make_widget<FXToolBarTab, FXToolBar>(toolbar);
+  }
+
+  //~ FXFoldingList.h
+  FXFoldingList* FXFoldingList_new(FXComposite* prt)
+  {
+    return make_widget<FXFoldingList, FXComposite>(prt);
+  }
+
+  //~ FXMDIChild.h
+  FXMDIChild* FXMDIChild_new(FXMDIClient* client, const char* title)
+  {
+    return make_widget<FXMDIChild, FXMDIClient>(client, title);
+  }
+
+  //~ FXMDIClient.h
+  FXMDIClient* FXMDIClient_new(FXComposite* prt)
+  {
+    return make_widget<FXMDIClient, FXComposite>(prt);
+  }
+
+  //~ FXMDIDeleteButton.h
+  FXMDIDeleteButton* FXMDIDeleteButton_new(FXComposite* prt)
+  {
+    return make_widget<FXMDIDeleteButton, FXComposite>(prt);
+  }
+
+  //~ FXMDIMaximizeButton.h
+  FXMDIMaximizeButton* FXMDIMaximizeButton_new(FXComposite* prt)
+  {
+    return make_widget<FXMDIMaximizeButton, FXComposite>(prt);
+  }
+
+  //~ FXMDIMenu.h
+  FXMDIMenu* FXMDIMenu_new(FXComposite* prt)
+  {
+    return make_widget<FXMDIMenu, FXComposite>(prt);
+  }
+
+  //~ FXMDIMinimizeButton.h
+  FXMDIMinimizeButton* FXMDIMinimizeButton_new(FXComposite* prt)
+  {
+    return make_widget<FXMDIMinimizeButton, FXComposite>(prt);
+  }
+
+  //~ FXMDIRestoreButton.h
+  FXMDIRestoreButton* FXMDIRestoreButton_new(FXComposite* prt)
+  {
+    return make_widget<FXMDIRestoreButton, FXComposite>(prt);
+  }
+
+  //~ FXMDIWindowButton.h
+  FXMDIWindowButton* FXMDIWindowButton_new(FXComposite* prt, FXPopup* pup)
+  {
+    return make_widget<FXMDIWindowButton, FXComposite>(prt, pup);
+  }
+
+  //~ FXTableItem.h
+  FXTableItem* FXTableItem_new(FXTable* tbl, const char* text)
+  {
+    return make_widget<FXTableItem, FXTable>(tbl, text);
+  }
+

@@ -178,6 +178,14 @@ pub enum TabBookStyle {
     RightTabs = 0x00020000,
 }
 
+#[repr(C)]
+#[derive(Default)]
+pub enum RulerOrientation {
+    #[default]
+    Horizontal = 0,
+    Vertical = 1,
+}
+
 #[derive(Default)]
 pub struct Color(u32);
 impl Color {
