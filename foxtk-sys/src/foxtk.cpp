@@ -1510,3 +1510,4 @@ extern "C"
     return make_widget<FXTableItem, FXTable>(tbl, text);
   }
 
+}
