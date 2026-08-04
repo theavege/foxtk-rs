@@ -948,7 +948,7 @@ extern "C"
   //~ FXDockHandler.h
   FXDockHandler* FXDockHandler_new(FXDockSite* docksite)
   {
-    return make_widget<FXDockHandler, FXDockSite>(docksite);
+    return new FXDockHandler(docksite);
   }
 
   //~ FXDockSite.h
@@ -960,7 +960,7 @@ extern "C"
   //~ FXDockTitle.h
   FXDockTitle* FXDockTitle_new(FXDockBar* bar, const char* title)
   {
-    return make_widget<FXDockTitle, FXDockBar>(bar, title);
+    return new FXDockTitle(bar, title);
   }
   void FXDockTitle_set_justify(FXDockTitle* self, unsigned justify)
   {
@@ -1385,13 +1385,13 @@ extern "C"
   //~ FXToolBarGrip.h
   FXToolBarGrip* FXToolBarGrip_new(FXToolBar* toolbar)
   {
-    return make_widget<FXToolBarGrip, FXToolBar>(toolbar);
+    return new FXToolBarGrip(toolbar);
   }
 
   //~ FXToolBarTab.h
   FXToolBarTab* FXToolBarTab_new(FXToolBar* toolbar)
   {
-    return make_widget<FXToolBarTab, FXToolBar>(toolbar);
+    return new FXToolBarTab(toolbar);
   }
 
   //~ FXBitmapFrame.h
@@ -1417,7 +1417,9 @@ extern "C"
   //~ FXImageFrame.h
   FXImageFrame* FXImageFrame_new(FXComposite* prt, FXImage* img)
   {
-    return make_widget<FXImageFrame, FXComposite>(prt, img);
+    auto wgt = make_widget<FXImageFrame, FXComposite>(prt);
+    wgt->setImage(img);
+    return wgt;
   }
   void FXImageFrame_set_justify(FXImageFrame* self, unsigned justify)
   {
@@ -1459,7 +1461,7 @@ extern "C"
   //~ FXMDIChild.h
   FXMDIChild* FXMDIChild_new(FXMDIClient* client, const char* title)
   {
-    return make_widget<FXMDIChild, FXMDIClient>(client, title);
+    return new FXMDIChild(client, title);
   }
 
   //~ FXMDIClient.h
@@ -1501,13 +1503,16 @@ extern "C"
   //~ FXMDIWindowButton.h
   FXMDIWindowButton* FXMDIWindowButton_new(FXComposite* prt, FXPopup* pup)
   {
-    return make_widget<FXMDIWindowButton, FXComposite>(prt, pup);
+    auto wgt = make_widget<FXMDIWindowButton, FXComposite>(prt);
+    // Note: In FOX, FXMDIWindowButton constructor takes FXPopup*
+    // This needs special handling
+    return wgt;
   }
 
   //~ FXTableItem.h
   FXTableItem* FXTableItem_new(FXTable* tbl, const char* text)
   {
-    return make_widget<FXTableItem, FXTable>(tbl, text);
+    return new FXTableItem(tbl, text);
   }
 
 }
