@@ -142,6 +142,9 @@ struct inputs.Button implements prelude.TextExt
   - [x] [FXHorizontalFrame](docs/FXComposite.md#FXHorizontalFrame) - Basic horizontal packing
   - [x] [FXVerticalFrame](docs/FXComposite.md#FXVerticalFrame) - Basic vertical packing
   - [x] [FXSwitcher](docs/FXComposite.md#FXSwitcher)
+  - [x] [FXSplitter](docs/FXComposite.md#FXSplitter) - Resizable panes
+  - [x] [FXTabBook](docs/FXComposite.md#FXTabBook) - Tabbed interface
+  - [x] [FXTabItem](docs/FXComposite.md#FXTabItem) - Tab item for TabBook
 - [x] Widgets
   - [x] [Outputs](docs/FXOutputExt.md)
     - [x] [FXLabel](docs/FXOutputExt.md#FXLabel) - Text and icon display
@@ -170,3 +173,8 @@ struct inputs.Button implements prelude.TextExt
   - [x] [Selectors](docs/FXSelectorExt.md)
     - [x] [FXList](docs/FXSelectorExt.md#FXList) - Simple item list
     - [x] [FXListBox](docs/FXSelectorExt.md#FXListBox) - Choise
+- [x] Dialogs
+  - [x] [FXDialogBox](docs/FXDialogBox.md) - Modal and modeless dialogs
+  - [x] [FXFileDialog](docs/FXFileDialog.md) - File open/save dialogs
+- [x] Status
+  - [x] [FXStatusBar](docs/FXStatusBar.md) - Status bar with text and help

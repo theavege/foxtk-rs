@@ -646,8 +646,24 @@ extern "C"
   {
     return make_widget<FXDialogBox, FXWindow>(owner, title);
   }
+  void FXDialogBox_show(FXDialogBox* self)
+  {
+    self->show();
+  }
+  void FXDialogBox_hide(FXDialogBox* self)
+  {
+    self->hide();
+  }
+  unsigned char FXDialogBox_shown(const FXDialogBox* self)
+  {
+    return self->shown();
+  }
 
   //~ FXFileDialog.h
+  FXFileDialog* FXFileDialog_new(FXWindow* owner, const char* title)
+  {
+    return make_widget<FXFileDialog, FXWindow>(owner, title);
+  }
   const char* FXFileDialog_get_open_filename(FXWindow* owner,
                                              const char* caption,
                                              const char* path,
@@ -665,6 +681,30 @@ extern "C"
   {
     return string_result(
       FXFileDialog::getSaveFilename(owner, caption, path, patterns, initial));
+  }
+  void FXFileDialog_set_directory(FXFileDialog* self, const char* directory)
+  {
+    self->setDirectory(directory);
+  }
+  const char* FXFileDialog_get_directory(const FXFileDialog* self)
+  {
+    return string_result(self->getDirectory());
+  }
+  void FXFileDialog_set_filename(FXFileDialog* self, const char* filename)
+  {
+    self->setFilename(filename);
+  }
+  const char* FXFileDialog_get_filename(const FXFileDialog* self)
+  {
+    return string_result(self->getFilename());
+  }
+  void FXFileDialog_set_pattern(FXFileDialog* self, const char* pattern)
+  {
+    self->setPattern(pattern);
+  }
+  const char* FXFileDialog_get_pattern(const FXFileDialog* self)
+  {
+    return string_result(self->getPattern());
   }
 
   //~ FXButton.h
@@ -1067,11 +1107,23 @@ extern "C"
   {
     return make_widget<FXTabBook, FXComposite>(prt);
   }
+  void FXTabBook_set_current(FXTabBook* self, int index)
+  {
+    self->setCurrent(index);
+  }
+  int FXTabBook_get_current(const FXTabBook* self)
+  {
+    return self->getCurrent();
+  }
+  int FXTabBook_get_num_children(const FXTabBook* self)
+  {
+    return self->getNumChildren();
+  }
 
   //~ FXTabItem.h
-  FXTabItem* FXTabItem_new(FXTabBar* prt, const char* text)
+  FXTabItem* FXTabItem_new(FXTabBook* prt, const char* text)
   {
-    return make_widget<FXTabItem, FXTabBar>(prt, text);
+    return make_widget<FXTabItem, FXTabBook>(prt, text);
   }
   void FXTabItem_set_text(FXTabItem* self, const char* text)
   {
@@ -1220,6 +1272,22 @@ extern "C"
   FXStatusBar* FXStatusBar_new(FXComposite* prt)
   {
     return make_widget<FXStatusBar, FXComposite>(prt);
+  }
+  void FXStatusBar_set_text(FXStatusBar* self, const char* text)
+  {
+    self->setText(text);
+  }
+  const char* FXStatusBar_get_text(const FXStatusBar* self)
+  {
+    return string_result(self->getText());
+  }
+  void FXStatusBar_set_help_text(FXStatusBar* self, const char* text)
+  {
+    self->setHelpText(text);
+  }
+  const char* FXStatusBar_get_help_text(const FXStatusBar* self)
+  {
+    return string_result(self->getHelpText());
   }
 
   //~ FXOption.h

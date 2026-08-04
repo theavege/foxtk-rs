@@ -483,6 +483,142 @@ impl Splitter {
 }
 
 impl_widget!(
+    StatusBar,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    CompositeExt,
+    PackerExt
+);
+
+impl StatusBar {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        Self::from_raw(unsafe { FXStatusBar_new(parent.as_raw() as *mut FXComposite) })
+            .with_layout(Layout::FillX)
+    }
+    pub fn set_text(&self, text: &str) {
+        unsafe {
+            FXStatusBar_set_text(self.as_raw(), CString::new(text).unwrap().as_ptr());
+        }
+    }
+    pub fn text(&self) -> String {
+        unsafe {
+            let ptr = FXStatusBar_get_text(self.as_raw());
+            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+        }
+    }
+    pub fn set_help_text(&self, text: &str) {
+        unsafe {
+            FXStatusBar_set_help_text(self.as_raw(), CString::new(text).unwrap().as_ptr());
+        }
+    }
+    pub fn help_text(&self) -> String {
+        unsafe {
+            let ptr = FXStatusBar_get_help_text(self.as_raw());
+            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+        }
+    }
+}
+
+impl_widget!(
+    DialogBox,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    TopWindowExt
+);
+
+impl DialogBox {
+    pub fn new(parent: &impl WindowExt, title: &str) -> Self {
+        Self::from_raw(unsafe {
+            FXDialogBox_new(
+                parent.as_raw() as *mut FXWindow,
+                CString::new(title).unwrap().as_ptr(),
+            )
+        })
+    }
+    pub fn show(&self) {
+        unsafe {
+            FXDialogBox_show(self.as_raw());
+        }
+    }
+    pub fn hide(&self) {
+        unsafe {
+            FXDialogBox_hide(self.as_raw());
+        }
+    }
+    pub fn shown(&self) -> bool {
+        unsafe { FXDialogBox_shown(self.as_raw()) != 0 }
+    }
+    pub fn with_style(self, style: DialogBoxStyle) -> Self {
+        unsafe {
+            FXTopWindow_set_decorations(self.as_raw() as *mut FXTopWindow, style as u32);
+        }
+        self
+    }
+}
+
+impl_widget!(
+    FileDialog,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    TopWindowExt
+);
+
+impl FileDialog {
+    pub fn new(parent: &impl WindowExt, title: &str) -> Self {
+        Self::from_raw(unsafe {
+            FXFileDialog_new(
+                parent.as_raw() as *mut FXWindow,
+                CString::new(title).unwrap().as_ptr(),
+            )
+        })
+    }
+    pub fn show(&self) {
+        unsafe {
+            FXTopWindow_show(self.as_raw() as *mut FXTopWindow);
+        }
+    }
+    pub fn set_directory(&self, directory: &str) {
+        unsafe {
+            FXFileDialog_set_directory(self.as_raw(), CString::new(directory).unwrap().as_ptr());
+        }
+    }
+    pub fn directory(&self) -> String {
+        unsafe {
+            let ptr = FXFileDialog_get_directory(self.as_raw());
+            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+        }
+    }
+    pub fn set_filename(&self, filename: &str) {
+        unsafe {
+            FXFileDialog_set_filename(self.as_raw(), CString::new(filename).unwrap().as_ptr());
+        }
+    }
+    pub fn filename(&self) -> String {
+        unsafe {
+            let ptr = FXFileDialog_get_filename(self.as_raw());
+            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+        }
+    }
+    pub fn set_pattern(&self, pattern: &str) {
+        unsafe {
+            FXFileDialog_set_pattern(self.as_raw(), CString::new(pattern).unwrap().as_ptr());
+        }
+    }
+    pub fn pattern(&self) -> String {
+        unsafe {
+            let ptr = FXFileDialog_get_pattern(self.as_raw());
+            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+        }
+    }
+}
+
+impl_widget!(
     Switcher,
     IdExt,
     FrameExt,
@@ -737,6 +873,21 @@ impl TabBook {
     pub fn new(parent: &impl CompositeExt) -> Self {
         unsafe { Self::from_raw(FXTabBook_new(parent.as_raw() as *mut FXComposite)) }
     }
+    pub fn set_current(&self, index: i32) {
+        unsafe {
+            FXTabBook_set_current(self.as_raw(), index);
+        }
+    }
+    pub fn current(&self) -> i32 {
+        unsafe { FXTabBook_get_current(self.as_raw()) }
+    }
+    pub fn num_children(&self) -> i32 {
+        unsafe { FXTabBook_get_num_children(self.as_raw()) }
+    }
+    pub fn with_current(self, index: i32) -> Self {
+        self.set_current(index);
+        self
+    }
 }
 
 impl_widget!(
@@ -750,9 +901,20 @@ impl_widget!(
 );
 
 impl TabItem {
-    pub fn new(parent: &TabBar, text: &str) -> Self {
+    pub fn new(parent: &TabBook, text: &str) -> Self {
         let c_text = CString::new(text).unwrap();
         unsafe { Self::from_raw(FXTabItem_new(parent.as_raw(), c_text.as_ptr())) }
+    }
+    pub fn set_text(&self, text: &str) {
+        unsafe {
+            FXTabItem_set_text(self.as_raw(), CString::new(text).unwrap().as_ptr());
+        }
+    }
+    pub fn text(&self) -> String {
+        unsafe {
+            let ptr = FXTabItem_get_text(self.as_raw());
+            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+        }
     }
 }
 
@@ -970,6 +1132,7 @@ impl_textable!(
     Button,
     GroupBox,
     Label,
+    StatusBar,
     Text,
     TextField,
     RadioButton,

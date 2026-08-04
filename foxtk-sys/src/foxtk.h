@@ -254,8 +254,13 @@ FXId_get_id(const FXId* self);
   //~ FXDialogBox.h
   typedef struct FXDialogBox FXDialogBox;
   FXDialogBox* FXDialogBox_new(FXWindow* owner, const char* title);
+  void FXDialogBox_show(FXDialogBox* self);
+  void FXDialogBox_hide(FXDialogBox* self);
+  unsigned char FXDialogBox_shown(const FXDialogBox* self);
 
   //~ FXFileDialog.h
+  typedef struct FXFileDialog FXFileDialog;
+  FXFileDialog* FXFileDialog_new(FXWindow* owner, const char* title);
   const char* FXFileDialog_get_open_filename(FXWindow* owner,
                                              const char* caption,
                                              const char* path,
@@ -266,6 +271,12 @@ FXId_get_id(const FXId* self);
                                              const char* path,
                                              const char* patterns,
                                              int initial);
+  void FXFileDialog_set_directory(FXFileDialog* self, const char* directory);
+  const char* FXFileDialog_get_directory(const FXFileDialog* self);
+  void FXFileDialog_set_filename(FXFileDialog* self, const char* filename);
+  const char* FXFileDialog_get_filename(const FXFileDialog* self);
+  void FXFileDialog_set_pattern(FXFileDialog* self, const char* pattern);
+  const char* FXFileDialog_get_pattern(const FXFileDialog* self);
 
   //~ FXMessageBox.h
   unsigned FXMessageBox_error(FXWindow* owner,
@@ -528,10 +539,15 @@ FXId_get_id(const FXId* self);
   //~ FXTabBook.h
   typedef struct FXTabBook FXTabBook;
   FXTabBook* FXTabBook_new(FXComposite* prt);
+  void FXTabBook_set_current(FXTabBook* self, int index);
+  int FXTabBook_get_current(const FXTabBook* self);
+  int FXTabBook_get_num_children(const FXTabBook* self);
 
   //~ FXTabItem.h
   typedef struct FXTabItem FXTabItem;
-  FXTabItem* FXTabItem_new(FXTabBar* prt, const char* text);
+  FXTabItem* FXTabItem_new(FXTabBook* prt, const char* text);
+  void FXTabItem_set_text(FXTabItem* self, const char* text);
+  const char* FXTabItem_get_text(const FXTabItem* self);
 
   //~ FXScrollBar.h
   typedef struct FXScrollBar FXScrollBar;
@@ -599,6 +615,10 @@ FXId_get_id(const FXId* self);
   //~ FXStatusBar.h
   typedef struct FXStatusBar FXStatusBar;
   FXStatusBar* FXStatusBar_new(FXComposite* prt);
+  void FXStatusBar_set_text(FXStatusBar* self, const char* text);
+  const char* FXStatusBar_get_text(const FXStatusBar* self);
+  void FXStatusBar_set_help_text(FXStatusBar* self, const char* text);
+  const char* FXStatusBar_get_help_text(const FXStatusBar* self);
 
   //~ FXOption.h
   typedef struct FXOption FXOption;

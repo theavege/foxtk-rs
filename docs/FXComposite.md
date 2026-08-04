@@ -53,6 +53,46 @@ The Switcher layout manager places its children exactly on top of each other; it
 
 The Splitter layout manager divides some area of the screen horizontally or vertically.  The divider bars can be repositioned by the user, so that depending on what the user is doing, he or she may give one or the other partition more screen space.
 
+### Methods
+
+- `new(parent: &impl CompositeExt) -> Self` - Creates a new splitter
+- `set_split(index: i32, size: i32)` - Sets the split position
+- `split(index: i32) -> i32` - Gets the split position
+- `set_bar_size(size: i32)` - Sets the bar size
+- `bar_size() -> i32` - Gets the bar size
+- `set_style(style: SplitterStyle)` - Sets the splitter style
+- `style() -> SplitterStyle` - Gets the splitter style
+
+### Styles
+
+The `SplitterStyle` enum provides:
+- `Horizontal` - Horizontal splitter
+- `Vertical` - Vertical splitter
+- `Reversed` - Reversed direction
+- `Tracking` - Show position while dragging
+- `Normal` - Default style
+
+## [FXTabBook](http://fox-toolkit.org/ref/classFX_1_1FXTabBook.html#details)
+
+The TabBook layout manager provides a tabbed interface where each tab contains different content. Users can switch between tabs by clicking on the tab headers.
+
+### Methods
+
+- `new(parent: &impl CompositeExt) -> Self` - Creates a new tab book
+- `set_current(index: i32)` - Sets the current tab
+- `current() -> i32` - Gets the current tab index
+- `num_children() -> i32` - Gets the number of tabs
+
+## [FXTabItem](http://fox-toolkit.org/ref/classFX_1_1FXTabItem.html#details)
+
+The TabItem represents a single tab in a TabBook. It contains the tab header and the content area.
+
+### Methods
+
+- `new(parent: &TabBook, text: &str) -> Self` - Creates a new tab item
+- `set_text(text: &str)` - Sets the tab text
+- `text() -> String` - Gets the tab text
+
 ## [FX4Splitter](http://fox-toolkit.org/ref/classFX_1_1FX4Splitter.html#details)
 
 The Four-way splitter divides its contents into four subframes, like a four-paned window. The user can interactively adjust the dividers to change the division. Unlike the simple splitter, the subdivision of the four-way splitter is fractional, i.e. the subframes are resized proportionally if the entire four-way splitter is resized.
