@@ -1159,7 +1159,9 @@ impl BitmapView {
 impl_widget!(ImageFrame, IdExt, FrameExt, DrawableExt, WindowExt);
 impl ImageFrame {
     pub fn new(parent: &impl CompositeExt, img: &Image) -> Self {
-        Self::from_raw(unsafe { FXImageFrame_new(parent.as_raw() as *mut FXComposite, img.as_raw()) })
+        Self::from_raw(unsafe {
+            FXImageFrame_new(parent.as_raw() as *mut FXComposite, img.as_raw())
+        })
     }
     pub fn set_justify(&self, justify: Justify) {
         unsafe {
@@ -1201,14 +1203,18 @@ impl GLVisual {
 impl_widget!(GLCanvas, IdExt, FrameExt, DrawableExt, WindowExt);
 impl GLCanvas {
     pub fn new(parent: &impl CompositeExt, visual: &GLVisual) -> Self {
-        Self::from_raw(unsafe { FXGLCanvas_new(parent.as_raw() as *mut FXComposite, visual.as_raw()) })
+        Self::from_raw(unsafe {
+            FXGLCanvas_new(parent.as_raw() as *mut FXComposite, visual.as_raw())
+        })
     }
 }
 
 impl_widget!(GLViewer, IdExt, FrameExt, DrawableExt, WindowExt);
 impl GLViewer {
     pub fn new(parent: &impl CompositeExt, visual: &GLVisual) -> Self {
-        Self::from_raw(unsafe { FXGLViewer_new(parent.as_raw() as *mut FXComposite, visual.as_raw()) })
+        Self::from_raw(unsafe {
+            FXGLViewer_new(parent.as_raw() as *mut FXComposite, visual.as_raw())
+        })
     }
 }
 
@@ -1222,7 +1228,9 @@ impl Header {
 impl_widget!(Ruler, IdExt, FrameExt, DrawableExt, WindowExt);
 impl Ruler {
     pub fn new(parent: &impl CompositeExt, orientation: RulerOrientation) -> Self {
-        Self::from_raw(unsafe { FXRuler_new(parent.as_raw() as *mut FXComposite, orientation as u32) })
+        Self::from_raw(unsafe {
+            FXRuler_new(parent.as_raw() as *mut FXComposite, orientation as u32)
+        })
     }
     pub fn with_orientation(self, _orientation: RulerOrientation) -> Self {
         // Note: orientation is set in constructor, this is just for consistency
@@ -1237,14 +1245,28 @@ impl Spring {
     }
 }
 
-impl_widget!(DockBar, IdExt, FrameExt, DrawableExt, WindowExt, CompositeExt);
+impl_widget!(
+    DockBar,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    CompositeExt
+);
 impl DockBar {
     pub fn new(parent: &impl CompositeExt) -> Self {
         Self::from_raw(unsafe { FXDockBar_new(parent.as_raw() as *mut FXComposite) })
     }
 }
 
-impl_widget!(DockSite, IdExt, FrameExt, DrawableExt, WindowExt, CompositeExt);
+impl_widget!(
+    DockSite,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    CompositeExt
+);
 impl DockSite {
     pub fn new(parent: &impl CompositeExt) -> Self {
         Self::from_raw(unsafe { FXDockSite_new(parent.as_raw() as *mut FXComposite) })
@@ -1281,7 +1303,14 @@ impl DockTitle {
     }
 }
 
-impl_widget!(ToolBar, IdExt, FrameExt, DrawableExt, WindowExt, CompositeExt);
+impl_widget!(
+    ToolBar,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    CompositeExt
+);
 impl ToolBar {
     pub fn new(parent: &impl CompositeExt) -> Self {
         Self::from_raw(unsafe { FXToolBar_new(parent.as_raw() as *mut FXComposite) })
@@ -1302,21 +1331,42 @@ impl ToolBarTab {
     }
 }
 
-impl_widget!(FoldingList, IdExt, FrameExt, DrawableExt, WindowExt, CompositeExt);
+impl_widget!(
+    FoldingList,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    CompositeExt
+);
 impl FoldingList {
     pub fn new(parent: &impl CompositeExt) -> Self {
         Self::from_raw(unsafe { FXFoldingList_new(parent.as_raw() as *mut FXComposite) })
     }
 }
 
-impl_widget!(MDIClient, IdExt, FrameExt, DrawableExt, WindowExt, CompositeExt);
+impl_widget!(
+    MDIClient,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    CompositeExt
+);
 impl MDIClient {
     pub fn new(parent: &impl CompositeExt) -> Self {
         Self::from_raw(unsafe { FXMDIClient_new(parent.as_raw() as *mut FXComposite) })
     }
 }
 
-impl_widget!(MDIChild, IdExt, FrameExt, DrawableExt, WindowExt, TopWindowExt);
+impl_widget!(
+    MDIChild,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    TopWindowExt
+);
 impl MDIChild {
     pub fn new(client: &MDIClient, title: &str) -> Self {
         Self::from_raw(unsafe {
@@ -1353,7 +1403,14 @@ impl MDIMinimizeButton {
     }
 }
 
-impl_widget!(MDIMenu, IdExt, FrameExt, DrawableExt, WindowExt, CompositeExt);
+impl_widget!(
+    MDIMenu,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    CompositeExt
+);
 impl MDIMenu {
     pub fn new(parent: &impl CompositeExt) -> Self {
         Self::from_raw(unsafe { FXMDIMenu_new(parent.as_raw() as *mut FXComposite) })

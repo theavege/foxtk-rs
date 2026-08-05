@@ -67,5 +67,11 @@ enum Msg {
 }
 
 fn main() {
-    DialogBoxDemo::run("DialogBox Demo", "FOX Toolkit", "DialogBox Example", 400, 300);
+    DialogBoxDemo::run(
+        "DialogBox Demo",
+        "FOX Toolkit",
+        "DialogBox Example",
+        400,
+        300,
+    );
 }

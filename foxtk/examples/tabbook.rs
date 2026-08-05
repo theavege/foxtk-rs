@@ -71,13 +71,19 @@ impl Component for TabBookDemo {
                 let tab3 = foxtk::TabItem::new(prt, "About");
                 tab3.inside(|prt| {
                     foxtk::VerticalFrame::new(prt).inside(|prt| {
-                        foxtk::Label::new(prt, "About TabBook Demo").with_font("Arial", 14).with_layout(Layout::FillX);
-                        foxtk::Label::new(prt, "This is a demonstration of the TabBook widget.").with_layout(Layout::FillX);
+                        foxtk::Label::new(prt, "About TabBook Demo")
+                            .with_font("Arial", 14)
+                            .with_layout(Layout::FillX);
+                        foxtk::Label::new(prt, "This is a demonstration of the TabBook widget.")
+                            .with_layout(Layout::FillX);
                         foxtk::Label::new(prt, "").with_layout(Layout::FillX);
                         foxtk::Label::new(prt, "Features:").with_layout(Layout::FillX);
-                        foxtk::Label::new(prt, "- Multiple tabs with different content").with_layout(Layout::FillX);
-                        foxtk::Label::new(prt, "- Easy navigation between tabs").with_layout(Layout::FillX);
-                        foxtk::Label::new(prt, "- Customizable tab appearance").with_layout(Layout::FillX);
+                        foxtk::Label::new(prt, "- Multiple tabs with different content")
+                            .with_layout(Layout::FillX);
+                        foxtk::Label::new(prt, "- Easy navigation between tabs")
+                            .with_layout(Layout::FillX);
+                        foxtk::Label::new(prt, "- Customizable tab appearance")
+                            .with_layout(Layout::FillX);
                     });
                 });
             });
@@ -111,7 +117,8 @@ impl Component for TabBookDemo {
 
             // Status bar at the bottom
             self.statusbar = foxtk::StatusBar::new(prt);
-            self.statusbar.set_text("Select a tab to see different content");
+            self.statusbar
+                .set_text("Select a tab to see different content");
         });
     }
 }

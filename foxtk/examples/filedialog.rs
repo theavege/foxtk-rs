@@ -34,7 +34,8 @@ impl Component for FileDialogDemo {
 
     fn update(&self, model: &Self::State) {
         self.statusbar.set_text(&format!("Current file: {}", model));
-        self.filename_label.set_text(&format!("Selected: {}", model));
+        self.filename_label
+            .set_text(&format!("Selected: {}", model));
     }
 
     fn view(&mut self, parent: &impl CompositeExt, sender: Sender<Self::Event>) {
@@ -70,9 +71,15 @@ impl Component for FileDialogDemo {
             });
 
             foxtk::GroupBox::new(prt, "Note").inside(|prt| {
-                foxtk::Label::new(prt, "FileDialog requires unsafe code to show properly.").with_layout(Layout::FillX);
-                foxtk::Label::new(prt, "The existing WindowExt methods (open_file_dialog, save_file_dialog)").with_layout(Layout::FillX);
-                foxtk::Label::new(prt, "can be used in safe code through the prelude.").with_layout(Layout::FillX);
+                foxtk::Label::new(prt, "FileDialog requires unsafe code to show properly.")
+                    .with_layout(Layout::FillX);
+                foxtk::Label::new(
+                    prt,
+                    "The existing WindowExt methods (open_file_dialog, save_file_dialog)",
+                )
+                .with_layout(Layout::FillX);
+                foxtk::Label::new(prt, "can be used in safe code through the prelude.")
+                    .with_layout(Layout::FillX);
             });
 
             // Status bar at the bottom
@@ -90,5 +97,11 @@ enum Msg {
 }
 
 fn main() {
-    FileDialogDemo::run("FileDialog Demo", "FOX Toolkit", "FileDialog Example", 500, 400);
+    FileDialogDemo::run(
+        "FileDialog Demo",
+        "FOX Toolkit",
+        "FileDialog Example",
+        500,
+        400,
+    );
 }
