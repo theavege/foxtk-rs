@@ -42,8 +42,7 @@ mod models {
                 Self::SERVICE,
                 self.lang[self.from as usize].0,
                 self.lang[self.to as usize].0,
-                &self
-                    .source
+                self.source
                     .replace("%", "%25")
                     .replace("/", "%20")
                     .replace(r#"\"#, "%20")
@@ -64,6 +63,7 @@ mod models {
 use foxtk::prelude::*;
 use std::collections::HashMap;
 
+#[allow(dead_code)]
 pub enum Msg {
     Run,
     Quit,

@@ -90,9 +90,11 @@ extern "C"
 
   typedef struct FXBitmap FXBitmap;
   typedef struct FXBitmapFrame FXBitmapFrame;
+  FXBitmapFrame* FXBitmapFrame_new(FXComposite* prt);
   EXT_JUSTIFY(FXBitmapFrame)
 
   typedef struct FXBitmapView FXBitmapView;
+  FXBitmapView* FXBitmapView_new(FXComposite* prt);
   typedef struct FXBMPIcon FXBMPIcon;
   typedef struct FXBMPImage FXBMPImage;
 
@@ -123,10 +125,13 @@ extern "C"
   typedef struct FXDirList FXDirList;
   typedef struct FXDirSelector FXDirSelector;
   typedef struct FXDockBar FXDockBar;
+  FXDockBar* FXDockBar_new(FXComposite* prt);
+  typedef struct FXDockSite FXDockSite;
   typedef struct FXDockHandler FXDockHandler;
-  typedef struct FXDockSite FXDockSite;
-  typedef struct FXDockSite FXDockSite;
+  FXDockHandler* FXDockHandler_new(FXDockSite* docksite);
+  FXDockSite* FXDockSite_new(FXComposite* prt);
   typedef struct FXDockTitle FXDockTitle;
+  FXDockTitle* FXDockTitle_new(FXDockBar* bar, const char* title);
   EXT_JUSTIFY(FXDockTitle)
 
   typedef struct FXDragCorner FXDragCorner;
@@ -134,6 +139,7 @@ extern "C"
   typedef struct FXFileDialog FXFileDialog;
   typedef struct FXFileList FXFileList;
   typedef struct FXFoldingList FXFoldingList;
+  FXFoldingList* FXFoldingList_new(FXComposite* prt);
   typedef struct FXFontDialog FXFontDialog;
 
   //~ FXApp.h
@@ -225,11 +231,15 @@ FXId_get_id(const FXId* self);
   //~ FXImageView.h
   typedef struct FXImageView FXImageView;
   FXImageView* FXImageView_new(FXComposite* prt);
+  void FXImageView_set_image(FXImageView* self, FXImage* img);
+  FXImage* FXImageView_get_image(const FXImageView* self);
 
   //~ FXImageFrame.h
   typedef struct FXImageFrame FXImageFrame;
   FXImageFrame* FXImageFrame_new(FXComposite* prt, FXImage* img);
   EXT_JUSTIFY(FXImageFrame)
+  void FXImageFrame_set_image(FXImageFrame* self, FXImage* img);
+  FXImage* FXImageFrame_get_image(const FXImageFrame* self);
 
   //~ FXIcon.h
   typedef struct FXIcon FXIcon;
@@ -254,8 +264,13 @@ FXId_get_id(const FXId* self);
   //~ FXDialogBox.h
   typedef struct FXDialogBox FXDialogBox;
   FXDialogBox* FXDialogBox_new(FXWindow* owner, const char* title);
+  void FXDialogBox_show(FXDialogBox* self);
+  void FXDialogBox_hide(FXDialogBox* self);
+  unsigned char FXDialogBox_shown(const FXDialogBox* self);
 
   //~ FXFileDialog.h
+  typedef struct FXFileDialog FXFileDialog;
+  FXFileDialog* FXFileDialog_new(FXWindow* owner, const char* title);
   const char* FXFileDialog_get_open_filename(FXWindow* owner,
                                              const char* caption,
                                              const char* path,
@@ -266,6 +281,12 @@ FXId_get_id(const FXId* self);
                                              const char* path,
                                              const char* patterns,
                                              int initial);
+  void FXFileDialog_set_directory(FXFileDialog* self, const char* directory);
+  const char* FXFileDialog_get_directory(const FXFileDialog* self);
+  void FXFileDialog_set_filename(FXFileDialog* self, const char* filename);
+  const char* FXFileDialog_get_filename(const FXFileDialog* self);
+  void FXFileDialog_set_pattern(FXFileDialog* self, const char* pattern);
+  const char* FXFileDialog_get_pattern(const FXFileDialog* self);
 
   //~ FXMessageBox.h
   unsigned FXMessageBox_error(FXWindow* owner,
@@ -391,7 +412,7 @@ FXId_get_id(const FXId* self);
 
   //~ FXMDIButton.h
   typedef struct FXMDIDeleteButton FXMDIDeleteButton;
-  FXMDIDeleteButton* FXMDIButton_new(FXComposite* prt);
+  FXMDIDeleteButton* FXMDIDeleteButton_new(FXComposite* prt);
   typedef struct FXMDIMaximizeButton FXMDIMaximizeButton;
   FXMDIMaximizeButton* FXMDIMaximizeButton_new(FXComposite* prt);
   typedef struct FXMDIMenu FXMDIMenu;
@@ -402,6 +423,14 @@ FXId_get_id(const FXId* self);
   FXMDIRestoreButton* FXMDIRestoreButton_new(FXComposite* prt);
   typedef struct FXMDIWindowButton FXMDIWindowButton;
   FXMDIWindowButton* FXMDIWindowButton_new(FXComposite* prt, FXPopup* pup);
+
+  //~ FXMDIChild.h
+  typedef struct FXMDIClient FXMDIClient;
+  typedef struct FXMDIChild FXMDIChild;
+  FXMDIChild* FXMDIChild_new(FXMDIClient* client, const char* title);
+
+  //~ FXMDIClient.h
+  FXMDIClient* FXMDIClient_new(FXComposite* prt);
 
   //~ FXToggleButton.h
   typedef struct FXToggleButton FXToggleButton;
@@ -448,6 +477,18 @@ FXId_get_id(const FXId* self);
   void FXMatrix_set_num_rows(FXMatrix* self, int rows);
   void FXMatrix_set_num_columns(FXMatrix* self, int cols);
   EXT_STYLE(FXMatrix)
+
+  //~ FXHeader.h
+  typedef struct FXHeader FXHeader;
+  FXHeader* FXHeader_new(FXComposite* prt);
+
+  //~ FXRuler.h
+  typedef struct FXRuler FXRuler;
+  FXRuler* FXRuler_new(FXComposite* prt, unsigned orientation);
+
+  //~ FXSpring.h
+  typedef struct FXSpring FXSpring;
+  FXSpring* FXSpring_new(FXComposite* prt);
 
   //~ FXSplitter.h
   typedef struct FXSplitter FXSplitter;
@@ -514,12 +555,28 @@ FXId_get_id(const FXId* self);
   EXT_JUSTIFY(FXTable)
   EXT_EDITABLE(FXTable)
 
+  //~ FXTableItem.h
+  typedef struct FXTableItem FXTableItem;
+  FXTableItem* FXTableItem_new(FXTable* tbl, const char* text);
+
   //~ FXCanvas.h
   typedef struct FXCanvas FXCanvas;
   typedef long (
     *CbMouse)(FXCanvas* widget, int event_code, int x, int y, void* context);
   FXCanvas* FXCanvas_new(FXComposite* prt);
   void FXCanvas_set_mouse_callback(FXCanvas* self, CbMouse cb, void* ctx);
+
+  //~ FXGLVisual.h
+  typedef struct FXGLVisual FXGLVisual;
+  FXGLVisual* FXGLVisual_new(FXApp* app);
+
+  //~ FXGLCanvas.h
+  typedef struct FXGLCanvas FXGLCanvas;
+  FXGLCanvas* FXGLCanvas_new(FXComposite* prt, FXGLVisual* visual);
+
+  //~ FXGLViewer.h
+  typedef struct FXGLViewer FXGLViewer;
+  FXGLViewer* FXGLViewer_new(FXComposite* prt, FXGLVisual* visual);
 
   //~ FXTabBar.h
   typedef struct FXTabBar FXTabBar;
@@ -528,10 +585,15 @@ FXId_get_id(const FXId* self);
   //~ FXTabBook.h
   typedef struct FXTabBook FXTabBook;
   FXTabBook* FXTabBook_new(FXComposite* prt);
+  void FXTabBook_set_current(FXTabBook* self, int index);
+  int FXTabBook_get_current(const FXTabBook* self);
+  int FXTabBook_get_num_children(const FXTabBook* self);
 
   //~ FXTabItem.h
   typedef struct FXTabItem FXTabItem;
-  FXTabItem* FXTabItem_new(FXTabBar* prt, const char* text);
+  FXTabItem* FXTabItem_new(FXTabBook* prt, const char* text);
+  void FXTabItem_set_text(FXTabItem* self, const char* text);
+  const char* FXTabItem_get_text(const FXTabItem* self);
 
   //~ FXScrollBar.h
   typedef struct FXScrollBar FXScrollBar;
@@ -599,6 +661,12 @@ FXId_get_id(const FXId* self);
   //~ FXStatusBar.h
   typedef struct FXStatusBar FXStatusBar;
   FXStatusBar* FXStatusBar_new(FXComposite* prt);
+  void FXStatusBar_set_text(FXStatusBar* self, const char* text);
+  const char* FXStatusBar_get_text(const FXStatusBar* self);
+  void FXStatusBar_set_text_color(FXStatusBar* self, unsigned color);
+  void FXStatusBar_set_font(FXStatusBar* self, const char* family, int size);
+  void FXStatusBar_set_help_text(FXStatusBar* self, const char* text);
+  const char* FXStatusBar_get_help_text(const FXStatusBar* self);
 
   //~ FXOption.h
   typedef struct FXOption FXOption;
@@ -607,6 +675,18 @@ FXId_get_id(const FXId* self);
   //~ FXOptionMenu.h
   typedef struct FXOptionMenu FXOptionMenu;
   FXOptionMenu* FXOptionMenu_new(FXComposite* prt);
+
+  //~ FXToolBar.h
+  typedef struct FXToolBar FXToolBar;
+  FXToolBar* FXToolBar_new(FXComposite* prt);
+
+  //~ FXToolBarGrip.h
+  typedef struct FXToolBarGrip FXToolBarGrip;
+  FXToolBarGrip* FXToolBarGrip_new(FXToolBar* toolbar);
+
+  //~ FXToolBarTab.h
+  typedef struct FXToolBarTab FXToolBarTab;
+  FXToolBarTab* FXToolBarTab_new(FXToolBar* toolbar);
 
 #ifdef __cplusplus
 }

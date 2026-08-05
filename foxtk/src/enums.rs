@@ -156,6 +156,35 @@ pub enum Selector {
     CHANGED,
 }
 
+#[repr(C)]
+#[derive(Default)]
+pub enum DialogBoxStyle {
+    #[default]
+    Normal = 0,
+    Modal = 0x00000001,
+    Resizable = 0x00000002,
+    Minimize = 0x00000004,
+    Maximize = 0x00000008,
+}
+
+#[repr(C)]
+#[derive(Default)]
+pub enum TabBookStyle {
+    #[default]
+    Normal = 0,
+    BottomTabs = 0x00008000,
+    LeftTabs = 0x00010000,
+    RightTabs = 0x00020000,
+}
+
+#[repr(C)]
+#[derive(Default)]
+pub enum RulerOrientation {
+    #[default]
+    Horizontal = 0,
+    Vertical = 1,
+}
+
 #[derive(Default)]
 pub struct Color(u32);
 impl Color {
