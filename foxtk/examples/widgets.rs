@@ -2,6 +2,7 @@
 
 use foxtk::prelude::*;
 
+#[allow(dead_code)]
 #[derive(Default)]
 struct WidgetsDemo {
     statusbar: foxtk::StatusBar,
@@ -24,7 +25,7 @@ impl Component for WidgetsDemo {
             Msg::ShowFileDialog => {
                 // This would normally show a file dialog
             }
-            Msg::UpdateStatus(text) => {
+            Msg::UpdateStatus(_text) => {
                 // Status updates are handled in the view
             }
         }

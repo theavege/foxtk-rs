@@ -14,10 +14,10 @@ impl Component for TabBookDemo {
 
     fn handle(msg: Self::Event, _model: &mut Self::State, _sender: Sender<Self::Event>) -> bool {
         match msg {
-            Msg::SwitchToTab(index) => {
+            Msg::SwitchToTab(_index) => {
                 // This would switch tabs, but we need to handle it in the view
             }
-            Msg::UpdateStatus(text) => {
+            Msg::UpdateStatus(_text) => {
                 // Status updates are handled in the view
             }
         }
@@ -29,7 +29,7 @@ impl Component for TabBookDemo {
             .set_text(&format!("TabBook Demo - Counter: {}", model));
     }
 
-    fn view(&mut self, parent: &impl CompositeExt, sender: Sender<Self::Event>) {
+    fn view(&mut self, parent: &impl CompositeExt, _sender: Sender<Self::Event>) {
         foxtk::VerticalFrame::new(parent).inside(|prt| {
             foxtk::Label::new(prt, "TabBook Demo")
                 .with_font("Arial", 16)
@@ -85,7 +85,7 @@ impl Component for TabBookDemo {
             // Navigation buttons
             foxtk::HorizontalFrame::new(prt).inside(|prt| {
                 foxtk::Button::new(prt, "Tab 1").with_callback({
-                    let tabbook = self.tabbook.clone();
+                    let tabbook = self.tabbook;
                     move |_| {
                         tabbook.set_current(0);
                         false
@@ -93,7 +93,7 @@ impl Component for TabBookDemo {
                 });
 
                 foxtk::Button::new(prt, "Tab 2").with_callback({
-                    let tabbook = self.tabbook.clone();
+                    let tabbook = self.tabbook;
                     move |_| {
                         tabbook.set_current(1);
                         false
@@ -101,7 +101,7 @@ impl Component for TabBookDemo {
                 });
 
                 foxtk::Button::new(prt, "Tab 3").with_callback({
-                    let tabbook = self.tabbook.clone();
+                    let tabbook = self.tabbook;
                     move |_| {
                         tabbook.set_current(2);
                         false
@@ -116,6 +116,7 @@ impl Component for TabBookDemo {
     }
 }
 
+#[allow(dead_code)]
 enum Msg {
     SwitchToTab(usize),
     UpdateStatus(String),

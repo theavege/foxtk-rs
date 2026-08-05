@@ -82,6 +82,7 @@ impl Component for FileDialogDemo {
     }
 }
 
+#[allow(dead_code)]
 enum Msg {
     OpenFile,
     SaveFile,

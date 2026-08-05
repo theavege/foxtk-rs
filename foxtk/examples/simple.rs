@@ -65,7 +65,7 @@ impl Component for Simple {
         self.0 = foxtk::Switcher::new(prt);
         self.0.inside(|prt| {
             foxtk::VerticalFrame::new(prt).inside(|prt| {
-                foxtk::TabBar::new(prt).inside(|prt| {
+                foxtk::TabBook::new(prt).inside(|prt| {
                     foxtk::TabItem::new(prt, "Tab 1");
                     foxtk::TabItem::new(prt, "Tab 2");
                     foxtk::TabItem::new(prt, "Tab 3");

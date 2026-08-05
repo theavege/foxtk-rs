@@ -14,7 +14,7 @@ impl Component for SplitterDemo {
 
     fn handle(msg: Self::Event, _model: &mut Self::State, _sender: Sender<Self::Event>) -> bool {
         match msg {
-            Msg::UpdateStatus(text) => {
+            Msg::UpdateStatus(_text) => {
                 // Status updates are handled in the view
             }
         }
@@ -26,7 +26,7 @@ impl Component for SplitterDemo {
             .set_text(&format!("Splitter Demo - Counter: {}", model));
     }
 
-    fn view(&mut self, parent: &impl CompositeExt, sender: Sender<Self::Event>) {
+    fn view(&mut self, parent: &impl CompositeExt, _sender: Sender<Self::Event>) {
         foxtk::VerticalFrame::new(parent).inside(|prt| {
             foxtk::Label::new(prt, "Splitter Demo")
                 .with_font("Arial", 16)
@@ -51,7 +51,7 @@ impl Component for SplitterDemo {
                         foxtk::Label::new(prt, "Splitter Controls").with_layout(Layout::FillX);
 
                         foxtk::Button::new(prt, "Set Split to 50%").with_callback({
-                            let splitter = self.splitter.clone();
+                            let splitter = self.splitter;
                             move |_| {
                                 // Get the total width and set split to 50%
                                 // In a real app, you would calculate this based on actual sizes
@@ -61,14 +61,14 @@ impl Component for SplitterDemo {
                         });
 
                         foxtk::Button::new(prt, "Set Bar Size").with_callback({
-                            let splitter = self.splitter.clone();
+                            let splitter = self.splitter;
                             move |_| {
                                 splitter.set_bar_size(10);
                                 false
                             }
                         });
 
-                        foxtk::Label::new(prt, &format!("Current bar size: {}", splitter.bar_size()))
+                        foxtk::Label::new(prt, &format!("Current bar size: {}", self.splitter.bar_size()))
                             .with_layout(Layout::FillX);
                     });
                 });
@@ -84,6 +84,7 @@ impl Component for SplitterDemo {
     }
 }
 
+#[allow(dead_code)]
 enum Msg {
     UpdateStatus(String),
 }

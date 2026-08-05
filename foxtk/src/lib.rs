@@ -38,7 +38,7 @@ unsafe extern "C" fn cmouse_callback<T: ObjectExt>(
 macro_rules! impl_widget {
     ($name:ident, $($dep:ident),*) => {
         paste::paste! {
-            #[derive(Default)]
+            #[derive(Default, Clone, Copy)]
             pub struct $name(Option<std::ptr::NonNull<[<FX $name >]>>);
 
             impl ObjectExt for $name {
@@ -580,7 +580,7 @@ impl FileDialog {
     }
     pub fn show(&self) {
         unsafe {
-            FXTopWindow_show(self.as_raw() as *mut FXTopWindow);
+            FXDialogBox_show(self.as_raw() as *mut FXDialogBox);
         }
     }
     pub fn set_directory(&self, directory: &str) {
@@ -1224,7 +1224,7 @@ impl Ruler {
     pub fn new(parent: &impl CompositeExt, orientation: RulerOrientation) -> Self {
         Self::from_raw(unsafe { FXRuler_new(parent.as_raw() as *mut FXComposite, orientation as u32) })
     }
-    pub fn with_orientation(self, orientation: RulerOrientation) -> Self {
+    pub fn with_orientation(self, _orientation: RulerOrientation) -> Self {
         // Note: orientation is set in constructor, this is just for consistency
         self
     }
@@ -1262,7 +1262,7 @@ impl_widget!(DockTitle, IdExt, FrameExt, DrawableExt, WindowExt);
 impl DockTitle {
     pub fn new(bar: &DockBar, title: &str) -> Self {
         Self::from_raw(unsafe {
-            FXDockTitle_new(bar.as_raw() as *mut FXDockBar, CString::new(title).unwrap().as_ptr())
+            FXDockTitle_new(bar.as_raw(), CString::new(title).unwrap().as_ptr())
         })
     }
     pub fn set_justify(&self, justify: Justify) {
@@ -1291,14 +1291,14 @@ impl ToolBar {
 impl_widget!(ToolBarGrip, IdExt, FrameExt, DrawableExt, WindowExt);
 impl ToolBarGrip {
     pub fn new(toolbar: &ToolBar) -> Self {
-        Self::from_raw(unsafe { FXToolBarGrip_new(toolbar.as_raw() as *mut FXToolBar) })
+        Self::from_raw(unsafe { FXToolBarGrip_new(toolbar.as_raw()) })
     }
 }
 
 impl_widget!(ToolBarTab, IdExt, FrameExt, DrawableExt, WindowExt);
 impl ToolBarTab {
     pub fn new(toolbar: &ToolBar) -> Self {
-        Self::from_raw(unsafe { FXToolBarTab_new(toolbar.as_raw() as *mut FXToolBar) })
+        Self::from_raw(unsafe { FXToolBarTab_new(toolbar.as_raw()) })
     }
 }
 
@@ -1320,7 +1320,7 @@ impl_widget!(MDIChild, IdExt, FrameExt, DrawableExt, WindowExt, TopWindowExt);
 impl MDIChild {
     pub fn new(client: &MDIClient, title: &str) -> Self {
         Self::from_raw(unsafe {
-            FXMDIChild_new(client.as_raw() as *mut FXMDIClient, CString::new(title).unwrap().as_ptr())
+            FXMDIChild_new(client.as_raw(), CString::new(title).unwrap().as_ptr())
         })
     }
 }
@@ -1371,7 +1371,7 @@ impl_widget!(MDIWindowButton, IdExt, FrameExt, DrawableExt, WindowExt);
 impl MDIWindowButton {
     pub fn new(parent: &impl CompositeExt, pup: &Popup) -> Self {
         Self::from_raw(unsafe {
-            FXMDIWindowButton_new(parent.as_raw() as *mut FXComposite, pup.as_raw() as *mut FXPopup)
+            FXMDIWindowButton_new(parent.as_raw() as *mut FXComposite, pup.as_raw())
         })
     }
 }
@@ -1380,7 +1380,7 @@ impl_widget!(TableItem, IdExt, FrameExt, DrawableExt, WindowExt);
 impl TableItem {
     pub fn new(table: &Table, text: &str) -> Self {
         Self::from_raw(unsafe {
-            FXTableItem_new(table.as_raw() as *mut FXTable, CString::new(text).unwrap().as_ptr())
+            FXTableItem_new(table.as_raw(), CString::new(text).unwrap().as_ptr())
         })
     }
 }

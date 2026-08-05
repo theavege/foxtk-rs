@@ -663,6 +663,8 @@ FXId_get_id(const FXId* self);
   FXStatusBar* FXStatusBar_new(FXComposite* prt);
   void FXStatusBar_set_text(FXStatusBar* self, const char* text);
   const char* FXStatusBar_get_text(const FXStatusBar* self);
+  void FXStatusBar_set_text_color(FXStatusBar* self, unsigned color);
+  void FXStatusBar_set_font(FXStatusBar* self, const char* family, int size);
   void FXStatusBar_set_help_text(FXStatusBar* self, const char* text);
   const char* FXStatusBar_get_help_text(const FXStatusBar* self);
 

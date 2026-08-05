@@ -5,7 +5,6 @@ use foxtk::prelude::*;
 #[derive(Default)]
 struct StatusBarDemo {
     statusbar: foxtk::StatusBar,
-    counter: i32,
 }
 
 impl Component for StatusBarDemo {

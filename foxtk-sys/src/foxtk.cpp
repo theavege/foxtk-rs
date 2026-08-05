@@ -66,27 +66,55 @@ make_widget(FXObject* parent, Args&&... args)
 // ============================================================================
 
 
+// Text helpers implemented as templates to reduce repetition and improve type
+// safety. Individual C API functions delegate to these helpers.
+template <typename W>
+static inline const char* ext_get_text(const W* self)
+{
+  return string_result(self->getText());
+}
+
+template <typename W>
+static inline void ext_set_text(W* self, const char* text)
+{
+  self->setText(text);
+}
+
+template <typename W>
+static inline void ext_set_text_color(W* self, unsigned color)
+{
+  self->setTextColor(color);
+}
+
+template <typename W>
+static inline void ext_set_font(W* self, const char* family, int size)
+{
+  auto old_font = self->getFont();
+  auto new_font = new FXFont(self->getApp(), family, size, 0, 0);
+  self->setFont(new_font);
+  if (old_font && old_font != self->getApp()->getNormalFont()) {
+    delete old_font;
+  }
+}
+
+// Small delegating macro keeps the familiar function names while centralizing
+// implementation in the templates above.
 #define EXT_TEXT(widget)                                                       \
   const char* widget##_get_text(const widget* self)                            \
   {                                                                            \
-    return string_result(self->getText());                                     \
+    return ext_get_text(self);                                                  \
   }                                                                            \
   void widget##_set_text(widget* self, const char* text)                       \
   {                                                                            \
-    self->setText(text);                                                       \
+    ext_set_text(self, text);                                                  \
   }                                                                            \
   void widget##_set_text_color(widget* self, unsigned color)                   \
   {                                                                            \
-    self->setTextColor(color);                                                 \
+    ext_set_text_color(self, color);                                           \
   }                                                                            \
   void widget##_set_font(widget* self, const char* family, int size)           \
   {                                                                            \
-    auto old_font = self->getFont();                                           \
-    auto new_font = new FXFont(self->getApp(), family, size, 0, 0);            \
-    self->setFont(new_font);                                                   \
-    if (old_font && old_font != self->getApp()->getNormalFont()) {             \
-      delete old_font;                                                         \
-    }                                                                          \
+    ext_set_font(self, family, size);                                          \
   }
 
 #define EXT_HELP(widget)                                                       \
@@ -1460,6 +1488,22 @@ extern "C"
     if (auto status = self->getStatusLine())
       return string_result(status->getText());
     return "";
+  }
+  void FXStatusBar_set_text_color(FXStatusBar* self, unsigned color)
+  {
+    if (auto status = self->getStatusLine())
+      status->setTextColor(color);
+  }
+  void FXStatusBar_set_font(FXStatusBar* self, const char* family, int size)
+  {
+    if (auto status = self->getStatusLine()) {
+      auto old_font = status->getFont();
+      auto new_font = new FXFont(self->getApp(), family, size, 0, 0);
+      status->setFont(new_font);
+      if (old_font && old_font != self->getApp()->getNormalFont()) {
+        delete old_font;
+      }
+    }
   }
   void FXStatusBar_set_help_text(FXStatusBar* self, const char* text)
   {

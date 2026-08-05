@@ -172,7 +172,6 @@ pub enum DialogBoxStyle {
 pub enum TabBookStyle {
     #[default]
     Normal = 0,
-    TopTabs = 0x00000000,
     BottomTabs = 0x00008000,
     LeftTabs = 0x00010000,
     RightTabs = 0x00020000,

@@ -19,7 +19,7 @@ impl Component for DialogBoxDemo {
                 // let dialog = foxtk::DialogBox::new(&window, "My Dialog");
                 // dialog.show();
             }
-            Msg::UpdateStatus(text) => {
+            Msg::UpdateStatus(_text) => {
                 // Status updates are handled in the view
             }
         }
@@ -60,6 +60,7 @@ impl Component for DialogBoxDemo {
     }
 }
 
+#[allow(dead_code)]
 enum Msg {
     ShowDialog,
     UpdateStatus(String),
