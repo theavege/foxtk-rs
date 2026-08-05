@@ -1,3 +1,7 @@
+#include <cstdio>
+#include <fx.h>
+#include <fx3d.h>
+
 #include <FXBitmapFrame.h>
 #include <FXDockBar.h>
 #include <FXDockHandler.h>
@@ -7,9 +11,6 @@
 #include <FXStatusLine.h>
 #include <FXTable.h>
 #include <FXToolBar.h>
-#include <cstdio>
-#include <fx.h>
-#include <fx3d.h>
 
 // ============================================================================
 // ERROR HANDLING MACROS
@@ -1448,6 +1449,15 @@ extern "C"
   void FXSplitter_set_splitter_style(FXSplitter* self, unsigned style)
   {
     self->setSplitterStyle(style);
+  }
+  // Compatibility wrapper: public C API expects get/set style names
+  void FXSplitter_set_style(FXSplitter* self, unsigned style)
+  {
+    self->setSplitterStyle(style);
+  }
+  unsigned FXSplitter_get_style(const FXSplitter* self)
+  {
+    return self->getSplitterStyle();
   }
   unsigned FXSplitter_get_splitter_style(const FXSplitter* self)
   {
