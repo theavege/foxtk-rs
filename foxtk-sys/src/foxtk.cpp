@@ -28,13 +28,14 @@
 /// Validates self pointer for widget methods
 #define VALIDATE_SELF(ptr) VALIDATE_POINTER(ptr, "self")
 
+namespace {
+
 // ============================================================================
-// STRING UTILITIES
+// INTERNAL STRING UTILITIES
 // ============================================================================
 
-template<typename Value>
 inline const char*
-string_result(const Value& value)
+string_result(const FXString& value)
 {
   static thread_local FXString buffer;
   buffer = value;
@@ -42,17 +43,11 @@ string_result(const Value& value)
 }
 
 // ============================================================================
-// WIDGET CONSTRUCTION TEMPLATES
+// INTERNAL WIDGET CONSTRUCTION TEMPLATES
 // ============================================================================
 
-/// Generic widget construction template
-/// 
-/// @tparam Widget The widget type to construct
-/// @tparam Parent The parent type (must inherit from FXObject)
-/// @tparam Args Variadic template arguments for additional constructor parameters
-/// @param parent The parent widget (must not be null)
-/// @param args Additional constructor arguments
-/// @return New widget instance or nullptr if parent is null
+/// Generic widget construction helper used only inside this translation unit.
+/// Returns a new widget instance or nullptr when the parent is null.
 template<typename Widget, typename Parent, typename... Args>
 inline Widget*
 make_widget(FXObject* parent, Args&&... args)
@@ -62,32 +57,29 @@ make_widget(FXObject* parent, Args&&... args)
 }
 
 // ============================================================================
-// EXTENSION MACROS FOR COMMON WIDGET PATTERNS
+// INTERNAL EXTENSION HELPERS
 // ============================================================================
 
-
-// Text helpers implemented as templates to reduce repetition and improve type
-// safety. Individual C API functions delegate to these helpers.
 template <typename W>
-static inline const char* ext_get_text(const W* self)
+inline const char* ext_get_text(const W* self)
 {
   return string_result(self->getText());
 }
 
 template <typename W>
-static inline void ext_set_text(W* self, const char* text)
+inline void ext_set_text(W* self, const char* text)
 {
   self->setText(text);
 }
 
 template <typename W>
-static inline void ext_set_text_color(W* self, unsigned color)
+inline void ext_set_text_color(W* self, unsigned color)
 {
   self->setTextColor(color);
 }
 
 template <typename W>
-static inline void ext_set_font(W* self, const char* family, int size)
+inline void ext_set_font(W* self, const char* family, int size)
 {
   auto old_font = self->getFont();
   auto new_font = new FXFont(self->getApp(), family, size, 0, 0);
@@ -97,103 +89,9 @@ static inline void ext_set_font(W* self, const char* family, int size)
   }
 }
 
-// Small delegating macro keeps the familiar function names while centralizing
-// implementation in the templates above.
-#define EXT_TEXT(widget)                                                       \
-  const char* widget##_get_text(const widget* self)                            \
-  {                                                                            \
-    return ext_get_text(self);                                                  \
-  }                                                                            \
-  void widget##_set_text(widget* self, const char* text)                       \
-  {                                                                            \
-    ext_set_text(self, text);                                                  \
-  }                                                                            \
-  void widget##_set_text_color(widget* self, unsigned color)                   \
-  {                                                                            \
-    ext_set_text_color(self, color);                                           \
-  }                                                                            \
-  void widget##_set_font(widget* self, const char* family, int size)           \
-  {                                                                            \
-    ext_set_font(self, family, size);                                          \
-  }
-
-#define EXT_HELP(widget)                                                       \
-  const char* widget##_get_help_text(const widget* self)                       \
-  {                                                                            \
-    return string_result(self->getHelpText());                                 \
-  }                                                                            \
-  const char* widget##_get_tip_text(const widget* self)                        \
-  {                                                                            \
-    return string_result(self->getTipText());                                  \
-  }                                                                            \
-  void widget##_set_help_text(widget* self, const char* text)                  \
-  {                                                                            \
-    self->setHelpText(text);                                                   \
-  }                                                                            \
-  void widget##_set_tip_text(widget* self, const char* text)                   \
-  {                                                                            \
-    self->setTipText(text);                                                    \
-  }
-
-#define EXT_RANGE(widget, type)                                                \
-  int widget##_get_value(const widget* self)                                   \
-  {                                                                            \
-    return self->getValue();                                                   \
-  }                                                                            \
-  void widget##_get_range(const widget* self, type* lo, type* hi)              \
-  {                                                                            \
-    FXint lower, upper;                                                        \
-    self->getRange(lower, upper);                                              \
-    if (lo)                                                                    \
-      *lo = lower;                                                             \
-    if (hi)                                                                    \
-      *hi = upper;                                                             \
-  }                                                                            \
-  void widget##_set_value(widget* self, type value)                            \
-  {                                                                            \
-    self->setValue(value);                                                     \
-  }                                                                            \
-  void widget##_set_range(widget* self, type lo, type hi)                      \
-  {                                                                            \
-    self->setRange(lo, hi);                                                    \
-  }
-
-#define EXT_SELECTABLE(widget)                                                 \
-  void widget##_append_item(widget* self, const char* text)                    \
-  {                                                                            \
-    self->appendItem(text);                                                    \
-  }                                                                            \
-  void widget##_clear_items(widget* self)                                      \
-  {                                                                            \
-    self->clearItems();                                                        \
-  }                                                                            \
-  void widget##_set_current_item(widget* self, int index)                      \
-  {                                                                            \
-    self->setCurrentItem(index);                                               \
-  }                                                                            \
-  void widget##_set_num_visible(widget* self, int nvis)                        \
-  {                                                                            \
-    self->setNumVisible(nvis);                                                 \
-  }                                                                            \
-  const char* widget##_get_item_text(const widget* self, int index)            \
-  {                                                                            \
-    return string_result(self->getItemText(index));                            \
-  }                                                                            \
-  int widget##_get_current_item(const widget* self)                            \
-  {                                                                            \
-    return self->getCurrentItem();                                             \
-  }                                                                            \
-  int widget##_get_num_items(const widget* self)                               \
-  {                                                                            \
-    return self->getNumItems();                                                \
-  }
-
-//~ OPAQUE HANDLES
-
+// OPAQUE HANDLE TYPES used only by internal implementation.
 typedef long (*CbWidget)(FXObject* wgt, void* ctx);
 typedef long (*CbTimer)(FXApp* app, void* c);
-
-//~ CALLBACK BRIDGE
 
 class CTarget : public FXObject
 {
@@ -279,7 +177,6 @@ CTimeoutMap[] = {
 };
 FXIMPLEMENT(CTimeout, FXObject, CTimeoutMap, ARRAYNUMBER(CTimeoutMap))
 
-// CMouseTarget bridge (defined outside extern "C")
 class CMouseTarget : public FXObject
 {
   FXDECLARE(CMouseTarget)
@@ -373,12 +270,106 @@ FXIMPLEMENT(CDockHandler,
             CDockHandlerMap,
             ARRAYNUMBER(CDockHandlerMap))
 
+} // namespace
+
 #define ASSERT_NOT_NULL(ptr, result)                                           \
   if (!ptr)                                                                    \
   return result
 
 extern "C"
 {
+
+// Small delegating macro keeps the familiar function names while centralizing
+// implementation in the internal helpers above.
+#define EXT_TEXT(widget)                                                       \
+  const char* widget##_get_text(const widget* self)                            \
+  {                                                                            \
+    return ext_get_text(self);                                                  \
+  }                                                                            \
+  void widget##_set_text(widget* self, const char* text)                       \
+  {                                                                            \
+    ext_set_text(self, text);                                                  \
+  }                                                                            \
+  void widget##_set_text_color(widget* self, unsigned color)                   \
+  {                                                                            \
+    ext_set_text_color(self, color);                                           \
+  }                                                                            \
+  void widget##_set_font(widget* self, const char* family, int size)           \
+  {                                                                            \
+    ext_set_font(self, family, size);                                          \
+  }
+
+#define EXT_HELP(widget)                                                       \
+  const char* widget##_get_help_text(const widget* self)                       \
+  {                                                                            \
+    return string_result(self->getHelpText());                                 \
+  }                                                                            \
+  const char* widget##_get_tip_text(const widget* self)                        \
+  {                                                                            \
+    return string_result(self->getTipText());                                  \
+  }                                                                            \
+  void widget##_set_help_text(widget* self, const char* text)                  \
+  {                                                                            \
+    self->setHelpText(text);                                                   \
+  }                                                                            \
+  void widget##_set_tip_text(widget* self, const char* text)                   \
+  {                                                                            \
+    self->setTipText(text);                                                    \
+  }
+
+#define EXT_RANGE(widget, type)                                                \
+  int widget##_get_value(const widget* self)                                   \
+  {                                                                            \
+    return self->getValue();                                                   \
+  }                                                                            \
+  void widget##_get_range(const widget* self, type* lo, type* hi)              \
+  {                                                                            \
+    FXint lower, upper;                                                        \
+    self->getRange(lower, upper);                                              \
+    if (lo)                                                                    \
+      *lo = lower;                                                             \
+    if (hi)                                                                    \
+      *hi = upper;                                                             \
+  }                                                                            \
+  void widget##_set_value(widget* self, type value)                            \
+  {                                                                            \
+    self->setValue(value);                                                     \
+  }                                                                            \
+  void widget##_set_range(widget* self, type lo, type hi)                      \
+  {                                                                            \
+    self->setRange(lo, hi);                                                    \
+  }
+
+#define EXT_SELECTABLE(widget)                                                 \
+  void widget##_append_item(widget* self, const char* text)                    \
+  {                                                                            \
+    self->appendItem(text);                                                    \
+  }                                                                            \
+  void widget##_clear_items(widget* self)                                      \
+  {                                                                            \
+    self->clearItems();                                                        \
+  }                                                                            \
+  void widget##_set_current_item(widget* self, int index)                      \
+  {                                                                            \
+    self->setCurrentItem(index);                                               \
+  }                                                                            \
+  void widget##_set_num_visible(widget* self, int nvis)                        \
+  {                                                                            \
+    self->setNumVisible(nvis);                                                 \
+  }                                                                            \
+  const char* widget##_get_item_text(const widget* self, int index)            \
+  {                                                                            \
+    return string_result(self->getItemText(index));                            \
+  }                                                                            \
+  int widget##_get_current_item(const widget* self)                            \
+  {                                                                            \
+    return self->getCurrentItem();                                             \
+  }                                                                            \
+  int widget##_get_num_items(const widget* self)                               \
+  {                                                                            \
+    return self->getNumItems();                                                \
+  }
+
   //~ fxdefs.h
   unsigned fx_rgb(unsigned r, unsigned g, unsigned b)
   {
