@@ -29,7 +29,7 @@ fn compile() -> Vec<String> {
 
 #[cfg(target_os = "windows")]
 fn compile() -> Vec<String> {
-    const DIST: &str = "fox-snapshot";
+    const DIST: &str = "fox-1.6.59";
     let url = format!("http://fox-toolkit.org/ftp/{DIST}.zip");
     let out = env::var("OUT_DIR").unwrap();
     let zip = Path::new(&out).join(format!("{DIST}.zip"));

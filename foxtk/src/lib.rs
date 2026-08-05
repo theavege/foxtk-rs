@@ -38,7 +38,7 @@ unsafe extern "C" fn cmouse_callback<T: ObjectExt>(
 macro_rules! impl_widget {
     ($name:ident, $($dep:ident),*) => {
         paste::paste! {
-            #[derive(Default, Clone, Copy)]
+            #[derive(Default)]
             pub struct $name(Option<std::ptr::NonNull<[<FX $name >]>>);
 
             impl ObjectExt for $name {
