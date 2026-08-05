@@ -2,16 +2,6 @@
 #include <fx.h>
 #include <fx3d.h>
 
-#include <FXBitmapFrame.h>
-#include <FXDockBar.h>
-#include <FXDockHandler.h>
-#include <FXImageFrame.h>
-#include <FXMDIButton.h>
-#include <FXStatusBar.h>
-#include <FXStatusLine.h>
-#include <FXTable.h>
-#include <FXToolBar.h>
-
 // ============================================================================
 // ERROR HANDLING MACROS
 // ============================================================================

@@ -16,23 +16,23 @@ fi
 if command -v shellcheck >/dev/null; then
     shellcheck --external-sources "${0}"
 else
-    echo 'warning: shellcheck not installed; skipping shellcheck' >&2
+    printf 'warning: shellcheck not installed; skipping shellcheck/n' >&2
 fi
 
 if command -v shfmt >/dev/null; then
     shfmt -ci -fn -i 4 -d "${0}"
 else
-    echo 'warning: shfmt not installed; skipping shfmt check' >&2
+    printf 'warning: shfmt not installed; skipping shfmt check\n' >&2
 fi
 
 declare -r CSRC="foxtk-sys/src"
 
 #~ cppcheck "$(fox-config --cflags)" "${CSRC:?}"/*.{cpp,h}
-#~ clang-tidy "${CSRC:?}"/*.{cpp,h} -- "$(fox-config --cflags)"
+clang-tidy "${CSRC:?}"/*.{cpp,h} -- "$(fox-config --cflags)"
 if command -v clang-format >/dev/null; then
     clang-format --dry-run --Werror -style=Mozilla "${CSRC:?}"/*.{cpp,h}
 else
-    echo 'warning: clang-format not installed; skipping formatting check' >&2
+    printf 'warning: clang-format not installed; skipping formatting check\n' >&2
 fi
 
 cargo clippy --quiet --features="all" --examples
