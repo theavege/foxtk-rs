@@ -56,6 +56,30 @@ make_widget(FXObject* parent, Args&&... args)
   return new Widget(static_cast<Parent*>(parent), std::forward<Args>(args)...);
 }
 
+template <typename T, typename U>
+inline T* as_raw(U* ptr)
+{
+  return static_cast<T*>(ptr);
+}
+
+template <typename T, typename U>
+inline const T* as_raw(const U* ptr)
+{
+  return static_cast<const T*>(ptr);
+}
+
+template <typename T>
+inline T* ensure_not_null(T* ptr, const char* name = nullptr)
+{
+  if (!ptr) {
+    fprintf(stderr,
+            "%s: null pointer in C wrapper%s\n",
+            __func__,
+            name ? name : "");
+  }
+  return ptr;
+}
+
 // ============================================================================
 // INTERNAL EXTENSION HELPERS
 // ============================================================================
@@ -155,9 +179,9 @@ public:
   {
     long result = 0;
     if (this->callback) {
-      result = this->callback(static_cast<FXApp*>(app), ctx);
-      static_cast<FXApp*>(app)->addTimeout(
-        this, CTimeout::SEL_TIMEOUT, nanosec, ctx);
+      auto app_ptr = as_raw<FXApp>(app);
+      result = this->callback(app_ptr, ctx);
+      app_ptr->addTimeout(this, CTimeout::SEL_TIMEOUT, nanosec, ctx);
     };
     return result;
   }
@@ -165,7 +189,7 @@ public:
   {
     long result = 0;
     if (this->callback)
-      result = this->callback(static_cast<FXApp*>(app), ctx);
+      result = this->callback(as_raw<FXApp>(app), ctx);
     return result;
   }
 };
@@ -207,7 +231,7 @@ public:
     if (this->callback) {
       int x = 0;
       int y = 0;
-      FXEvent* ev = static_cast<FXEvent*>(ptr);
+      auto ev = as_raw<FXEvent>(ptr);
       if (ev) {
         x = ev->win_x;
         y = ev->win_y;
@@ -1534,9 +1558,9 @@ extern "C"
                                    void* ctx)
   {
     auto old = self->getTarget();
-    if (static_cast<CMouseTarget*>(old))
+    if (as_raw<CMouseTarget>(old))
       delete old;
-    self->setTarget(static_cast<FXObject*>(new CMouseTarget(cb, ctx)));
+    self->setTarget(as_raw<FXObject>(new CMouseTarget(cb, ctx)));
   }
 
   //~ FXGLVisual.h
