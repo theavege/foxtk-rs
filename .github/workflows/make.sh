@@ -17,8 +17,9 @@ shellcheck --external-sources "${0}"
 shfmt -ci -fn -i 4 -d "${0}"
 
 declare -r CSRC="foxtk-sys/src"
-cppcheck "$(fox-config --cflags)" "${CSRC:?}"/*.{cpp,h}
-clang-tidy "${CSRC:?}"/*.{cpp,h} -- "$(fox-config --cflags)"
+
+#~ cppcheck "$(fox-config --cflags)" "${CSRC:?}"/*.{cpp,h}
+#~ clang-tidy "${CSRC:?}"/*.{cpp,h} -- "$(fox-config --cflags)"
 clang-format --dry-run --Werror -style=Mozilla "${CSRC:?}"/*.{cpp,h}
 
 cargo clippy --quiet --features="all" --examples

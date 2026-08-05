@@ -1,6 +1,3 @@
-#include <cstdio>
-#include <fx.h>
-#include <fx3d.h>
 #include <FXBitmapFrame.h>
 #include <FXDockBar.h>
 #include <FXDockHandler.h>
@@ -10,6 +7,9 @@
 #include <FXStatusLine.h>
 #include <FXTable.h>
 #include <FXToolBar.h>
+#include <cstdio>
+#include <fx.h>
+#include <fx3d.h>
 
 // ============================================================================
 // ERROR HANDLING MACROS
@@ -92,104 +92,180 @@ ensure_not_null(T* ptr, const char* name = nullptr)
 // Detection helpers for member functions used in wrappers. These prevent
 // hard template instantiation errors when a FOX widget type only has a
 // forward declaration in the headers.
-template <typename, typename = void>
-struct has_getText : std::false_type {};
-template <typename T>
-struct has_getText<T, std::void_t<decltype(std::declval<const T*>()->getText())>>
-    : std::true_type {};
+template<typename, typename = void>
+struct has_getText : std::false_type
+{};
+template<typename T>
+struct has_getText<T,
+                   std::void_t<decltype(std::declval<const T*>()->getText())>>
+  : std::true_type
+{};
 
-template <typename, typename = void>
-struct has_setText : std::false_type {};
-template <typename T>
-struct has_setText<T, std::void_t<decltype(std::declval<T*>()->setText(std::declval<const char*>()))>>
-    : std::true_type {};
+template<typename, typename = void>
+struct has_setText : std::false_type
+{};
+template<typename T>
+struct has_setText<T,
+                   std::void_t<decltype(std::declval<T*>()->setText(
+                     std::declval<const char*>()))>> : std::true_type
+{};
 
-template <typename, typename = void>
-struct has_setTextColor : std::false_type {};
-template <typename T>
-struct has_setTextColor<T, std::void_t<decltype(std::declval<T*>()->setTextColor(std::declval<unsigned>()))>>
-    : std::true_type {};
+template<typename, typename = void>
+struct has_setTextColor : std::false_type
+{};
+template<typename T>
+struct has_setTextColor<T,
+                        std::void_t<decltype(std::declval<T*>()->setTextColor(
+                          std::declval<unsigned>()))>> : std::true_type
+{};
 
-template <typename, typename = void>
-struct has_getFont : std::false_type {};
-template <typename T>
-struct has_getFont<T, std::void_t<decltype(std::declval<T*>()->getFont())>> : std::true_type {};
+template<typename, typename = void>
+struct has_getFont : std::false_type
+{};
+template<typename T>
+struct has_getFont<T, std::void_t<decltype(std::declval<T*>()->getFont())>>
+  : std::true_type
+{};
 
-template <typename, typename = void>
-struct has_setFont : std::false_type {};
-template <typename T>
-struct has_setFont<T, std::void_t<decltype(std::declval<T*>()->setFont(std::declval<FXFont*>()))>>
-    : std::true_type {};
+template<typename, typename = void>
+struct has_setFont : std::false_type
+{};
+template<typename T>
+struct has_setFont<
+  T,
+  std::void_t<decltype(std::declval<T*>()->setFont(std::declval<FXFont*>()))>>
+  : std::true_type
+{};
 
-template <typename, typename = void>
-struct has_getHelpText : std::false_type {};
-template <typename T>
-struct has_getHelpText<T, std::void_t<decltype(std::declval<const T*>()->getHelpText())>> : std::true_type {};
+template<typename, typename = void>
+struct has_getHelpText : std::false_type
+{};
+template<typename T>
+struct has_getHelpText<
+  T,
+  std::void_t<decltype(std::declval<const T*>()->getHelpText())>>
+  : std::true_type
+{};
 
-template <typename, typename = void>
-struct has_getTipText : std::false_type {};
-template <typename T>
-struct has_getTipText<T, std::void_t<decltype(std::declval<const T*>()->getTipText())>> : std::true_type {};
+template<typename, typename = void>
+struct has_getTipText : std::false_type
+{};
+template<typename T>
+struct has_getTipText<
+  T,
+  std::void_t<decltype(std::declval<const T*>()->getTipText())>>
+  : std::true_type
+{};
 
-template <typename, typename = void>
-struct has_setHelpText : std::false_type {};
-template <typename T>
-struct has_setHelpText<T, std::void_t<decltype(std::declval<T*>()->setHelpText(std::declval<const char*>()))>>
-    : std::true_type {};
+template<typename, typename = void>
+struct has_setHelpText : std::false_type
+{};
+template<typename T>
+struct has_setHelpText<T,
+                       std::void_t<decltype(std::declval<T*>()->setHelpText(
+                         std::declval<const char*>()))>> : std::true_type
+{};
 
-template <typename, typename = void>
-struct has_getValue : std::false_type {};
-template <typename T>
-struct has_getValue<T, std::void_t<decltype(std::declval<const T*>()->getValue())>> : std::true_type {};
+template<typename, typename = void>
+struct has_getValue : std::false_type
+{};
+template<typename T>
+struct has_getValue<T,
+                    std::void_t<decltype(std::declval<const T*>()->getValue())>>
+  : std::true_type
+{};
 
-template <typename, typename = void>
-struct has_getRange : std::false_type {};
-template <typename T>
-struct has_getRange<T, std::void_t<decltype(std::declval<const T*>()->getRange(std::declval<FXint&>(), std::declval<FXint&>()))>>
-    : std::true_type {};
+template<typename, typename = void>
+struct has_getRange : std::false_type
+{};
+template<typename T>
+struct has_getRange<T,
+                    std::void_t<decltype(std::declval<const T*>()->getRange(
+                      std::declval<FXint&>(),
+                      std::declval<FXint&>()))>> : std::true_type
+{};
 
-template <typename, typename = void>
-struct has_setValue : std::false_type {};
-template <typename T>
-struct has_setValue<T, std::void_t<decltype(std::declval<T*>()->setValue(std::declval<int>()))>> : std::true_type {};
+template<typename, typename = void>
+struct has_setValue : std::false_type
+{};
+template<typename T>
+struct has_setValue<
+  T,
+  std::void_t<decltype(std::declval<T*>()->setValue(std::declval<int>()))>>
+  : std::true_type
+{};
 
-template <typename, typename = void>
-struct has_appendItem : std::false_type {};
-template <typename T>
-struct has_appendItem<T, std::void_t<decltype(std::declval<T*>()->appendItem(std::declval<const char*>()))>> : std::true_type {};
+template<typename, typename = void>
+struct has_appendItem : std::false_type
+{};
+template<typename T>
+struct has_appendItem<T,
+                      std::void_t<decltype(std::declval<T*>()->appendItem(
+                        std::declval<const char*>()))>> : std::true_type
+{};
 
-template <typename, typename = void>
-struct has_clearItems : std::false_type {};
-template <typename T>
-struct has_clearItems<T, std::void_t<decltype(std::declval<T*>()->clearItems())>> : std::true_type {};
+template<typename, typename = void>
+struct has_clearItems : std::false_type
+{};
+template<typename T>
+struct has_clearItems<T,
+                      std::void_t<decltype(std::declval<T*>()->clearItems())>>
+  : std::true_type
+{};
 
-template <typename, typename = void>
-struct has_setCurrentItem : std::false_type {};
-template <typename T>
-struct has_setCurrentItem<T, std::void_t<decltype(std::declval<T*>()->setCurrentItem(std::declval<int>()))>> : std::true_type {};
+template<typename, typename = void>
+struct has_setCurrentItem : std::false_type
+{};
+template<typename T>
+struct has_setCurrentItem<
+  T,
+  std::void_t<decltype(std::declval<T*>()->setCurrentItem(
+    std::declval<int>()))>> : std::true_type
+{};
 
-template <typename, typename = void>
-struct has_setNumVisible : std::false_type {};
-template <typename T>
-struct has_setNumVisible<T, std::void_t<decltype(std::declval<T*>()->setNumVisible(std::declval<int>()))>> : std::true_type {};
+template<typename, typename = void>
+struct has_setNumVisible : std::false_type
+{};
+template<typename T>
+struct has_setNumVisible<
+  T,
+  std::void_t<decltype(std::declval<T*>()->setNumVisible(std::declval<int>()))>>
+  : std::true_type
+{};
 
-template <typename, typename = void>
-struct has_getItemText : std::false_type {};
-template <typename T>
-struct has_getItemText<T, std::void_t<decltype(std::declval<const T*>()->getItemText(std::declval<int>()))>> : std::true_type {};
+template<typename, typename = void>
+struct has_getItemText : std::false_type
+{};
+template<typename T>
+struct has_getItemText<
+  T,
+  std::void_t<decltype(std::declval<const T*>()->getItemText(
+    std::declval<int>()))>> : std::true_type
+{};
 
-template <typename, typename = void>
-struct has_getCurrentItem : std::false_type {};
-template <typename T>
-struct has_getCurrentItem<T, std::void_t<decltype(std::declval<const T*>()->getCurrentItem())>> : std::true_type {};
+template<typename, typename = void>
+struct has_getCurrentItem : std::false_type
+{};
+template<typename T>
+struct has_getCurrentItem<
+  T,
+  std::void_t<decltype(std::declval<const T*>()->getCurrentItem())>>
+  : std::true_type
+{};
 
-template <typename, typename = void>
-struct has_getNumItems : std::false_type {};
-template <typename T>
-struct has_getNumItems<T, std::void_t<decltype(std::declval<const T*>()->getNumItems())>> : std::true_type {};
+template<typename, typename = void>
+struct has_getNumItems : std::false_type
+{};
+template<typename T>
+struct has_getNumItems<
+  T,
+  std::void_t<decltype(std::declval<const T*>()->getNumItems())>>
+  : std::true_type
+{};
 
-template <typename W>
-inline const char* ext_get_text(const W* self)
+template<typename W>
+inline const char*
+ext_get_text(const W* self)
 {
   if constexpr (has_getText<W>::value) {
     return string_result(self->getText());
@@ -197,24 +273,27 @@ inline const char* ext_get_text(const W* self)
   return nullptr;
 }
 
-template <typename W>
-inline void ext_set_text(W* self, const char* text)
+template<typename W>
+inline void
+ext_set_text(W* self, const char* text)
 {
   if constexpr (has_setText<W>::value) {
     self->setText(text);
   }
 }
 
-template <typename W>
-inline void ext_set_text_color(W* self, unsigned color)
+template<typename W>
+inline void
+ext_set_text_color(W* self, unsigned color)
 {
   if constexpr (has_setTextColor<W>::value) {
     self->setTextColor(color);
   }
 }
 
-template <typename W>
-inline void ext_set_font(W* self, const char* family, int size)
+template<typename W>
+inline void
+ext_set_font(W* self, const char* family, int size)
 {
   if constexpr (has_getFont<W>::value && has_setFont<W>::value) {
     auto old_font = self->getFont();
