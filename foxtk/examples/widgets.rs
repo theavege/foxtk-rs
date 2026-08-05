@@ -58,7 +58,8 @@ impl Component for WidgetsDemo {
                     foxtk::Button::new(prt, "Button 1").with_callback({
                         let sender = sender.clone();
                         move |_| {
-                            sender.send(Msg::UpdateStatus("Button 1 clicked".to_string()))
+                            sender
+                                .send(Msg::UpdateStatus("Button 1 clicked".to_string()))
                                 .unwrap();
                             false
                         }
@@ -71,7 +72,8 @@ impl Component for WidgetsDemo {
                     foxtk::Button::new(prt, "Button 2").with_callback({
                         let sender = sender.clone();
                         move |_| {
-                            sender.send(Msg::UpdateStatus("Button 2 clicked".to_string()))
+                            sender
+                                .send(Msg::UpdateStatus("Button 2 clicked".to_string()))
                                 .unwrap();
                             false
                         }

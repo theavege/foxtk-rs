@@ -42,15 +42,14 @@ mod models {
                 Self::SERVICE,
                 self.lang[self.from as usize].0,
                 self.lang[self.to as usize].0,
-                self
-                    .source
+                self.source
                     .replace("%", "%25")
                     .replace("/", "%20")
                     .replace(r#"\"#, "%20")
                     .replace(" ", "%20")
                     .replace("\n", "%0A")
                     .replace("?", "%3F")
-                )
+            )
         }
         pub fn lang(&self) -> Vec<String> {
             self.lang

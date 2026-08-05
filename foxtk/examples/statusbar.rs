@@ -27,8 +27,7 @@ impl Component for StatusBarDemo {
     }
 
     fn update(&self, model: &Self::State) {
-        self.statusbar
-            .set_text(&format!("Counter: {}", model));
+        self.statusbar.set_text(&format!("Counter: {}", model));
     }
 
     fn view(&mut self, parent: &impl CompositeExt, sender: Sender<Self::Event>) {
@@ -68,7 +67,8 @@ impl Component for StatusBarDemo {
             // Status bar at the bottom
             self.statusbar = foxtk::StatusBar::new(prt);
             self.statusbar.set_text("Ready");
-            self.statusbar.set_help_text("Shows the current counter value");
+            self.statusbar
+                .set_help_text("Shows the current counter value");
         });
     }
 }
@@ -80,5 +80,11 @@ enum Msg {
 }
 
 fn main() {
-    StatusBarDemo::run("StatusBar Demo", "FOX Toolkit", "StatusBar Example", 400, 300);
+    StatusBarDemo::run(
+        "StatusBar Demo",
+        "FOX Toolkit",
+        "StatusBar Example",
+        400,
+        300,
+    );
 }

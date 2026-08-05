@@ -1,25 +1,30 @@
-#include <fx.h>
-#include <fx3d.h>
-#include <FXDockHandler.h>
-#include <FXStatusBar.h>
-#include <FXStatusLine.h>
-#include <FXToolBar.h>
-#include <FXDockBar.h>
 #include <FXBitmapFrame.h>
+#include <FXDockBar.h>
+#include <FXDockHandler.h>
 #include <FXImageFrame.h>
 #include <FXMDIButton.h>
+#include <FXStatusBar.h>
+#include <FXStatusLine.h>
 #include <FXTable.h>
+#include <FXToolBar.h>
 #include <cstdio>
+#include <fx.h>
+#include <fx3d.h>
 
 // ============================================================================
 // ERROR HANDLING MACROS
 // ============================================================================
 
 /// Validates that a pointer is not null, logs error and returns nullptr if null
-#define VALIDATE_POINTER(ptr, name) \
-  if (!ptr) { \
-    fprintf(stderr, "%s: %s is null at %s:%d\n", __func__, name, __FILE__, __LINE__); \
-    return nullptr; \
+#define VALIDATE_POINTER(ptr, name)                                            \
+  if (!ptr) {                                                                  \
+    fprintf(stderr,                                                            \
+            "%s: %s is null at %s:%d\n",                                       \
+            __func__,                                                          \
+            name,                                                              \
+            __FILE__,                                                          \
+            __LINE__);                                                         \
+    return nullptr;                                                            \
   }
 
 /// Validates parent pointer for widget construction
@@ -56,26 +61,27 @@ make_widget(FXObject* parent, Args&&... args)
   return new Widget(static_cast<Parent*>(parent), std::forward<Args>(args)...);
 }
 
-template <typename T, typename U>
-inline T* as_raw(U* ptr)
+template<typename T, typename U>
+inline T*
+as_raw(U* ptr)
 {
   return static_cast<T*>(ptr);
 }
 
-template <typename T, typename U>
-inline const T* as_raw(const U* ptr)
+template<typename T, typename U>
+inline const T*
+as_raw(const U* ptr)
 {
   return static_cast<const T*>(ptr);
 }
 
-template <typename T>
-inline T* ensure_not_null(T* ptr, const char* name = nullptr)
+template<typename T>
+inline T*
+ensure_not_null(T* ptr, const char* name = nullptr)
 {
   if (!ptr) {
-    fprintf(stderr,
-            "%s: null pointer in C wrapper%s\n",
-            __func__,
-            name ? name : "");
+    fprintf(
+      stderr, "%s: null pointer in C wrapper%s\n", __func__, name ? name : "");
   }
   return ptr;
 }
@@ -84,26 +90,30 @@ inline T* ensure_not_null(T* ptr, const char* name = nullptr)
 // INTERNAL EXTENSION HELPERS
 // ============================================================================
 
-template <typename W>
-inline const char* ext_get_text(const W* self)
+template<typename W>
+inline const char*
+ext_get_text(const W* self)
 {
   return string_result(self->getText());
 }
 
-template <typename W>
-inline void ext_set_text(W* self, const char* text)
+template<typename W>
+inline void
+ext_set_text(W* self, const char* text)
 {
   self->setText(text);
 }
 
-template <typename W>
-inline void ext_set_text_color(W* self, unsigned color)
+template<typename W>
+inline void
+ext_set_text_color(W* self, unsigned color)
 {
   self->setTextColor(color);
 }
 
-template <typename W>
-inline void ext_set_font(W* self, const char* family, int size)
+template<typename W>
+inline void
+ext_set_font(W* self, const char* family, int size)
 {
   auto old_font = self->getFont();
   auto new_font = new FXFont(self->getApp(), family, size, 0, 0);
@@ -280,6 +290,7 @@ protected:
     : FXDockHandler(nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
   {
   }
+
 public:
   explicit CDockHandler(FXDockSite* docksite)
     : FXDockHandler(docksite, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
@@ -301,38 +312,44 @@ FXIMPLEMENT(CDockHandler,
   return result
 
 // Typed extension helpers for internal wrapper implementation.
-template <typename W>
-inline const char* ext_get_help_text(const W* self)
+template<typename W>
+inline const char*
+ext_get_help_text(const W* self)
 {
   return string_result(self->getHelpText());
 }
 
-template <typename W>
-inline const char* ext_get_tip_text(const W* self)
+template<typename W>
+inline const char*
+ext_get_tip_text(const W* self)
 {
   return string_result(self->getTipText());
 }
 
-template <typename W>
-inline void ext_set_help_text(W* self, const char* text)
+template<typename W>
+inline void
+ext_set_help_text(W* self, const char* text)
 {
   self->setHelpText(text);
 }
 
-template <typename W>
-inline void ext_set_tip_text(W* self, const char* text)
+template<typename W>
+inline void
+ext_set_tip_text(W* self, const char* text)
 {
   self->setTipText(text);
 }
 
-template <typename W, typename T>
-inline int ext_get_value(const W* self)
+template<typename W, typename T>
+inline int
+ext_get_value(const W* self)
 {
   return self->getValue();
 }
 
-template <typename W, typename T>
-inline void ext_get_range(const W* self, T* lo, T* hi)
+template<typename W, typename T>
+inline void
+ext_get_range(const W* self, T* lo, T* hi)
 {
   FXint lower, upper;
   self->getRange(lower, upper);
@@ -342,56 +359,65 @@ inline void ext_get_range(const W* self, T* lo, T* hi)
     *hi = upper;
 }
 
-template <typename W, typename T>
-inline void ext_set_value(W* self, T value)
+template<typename W, typename T>
+inline void
+ext_set_value(W* self, T value)
 {
   self->setValue(value);
 }
 
-template <typename W, typename T>
-inline void ext_set_range(W* self, T lo, T hi)
+template<typename W, typename T>
+inline void
+ext_set_range(W* self, T lo, T hi)
 {
   self->setRange(lo, hi);
 }
 
-template <typename W>
-inline void ext_append_item(W* self, const char* text)
+template<typename W>
+inline void
+ext_append_item(W* self, const char* text)
 {
   self->appendItem(text);
 }
 
-template <typename W>
-inline void ext_clear_items(W* self)
+template<typename W>
+inline void
+ext_clear_items(W* self)
 {
   self->clearItems();
 }
 
-template <typename W>
-inline void ext_set_current_item(W* self, int index)
+template<typename W>
+inline void
+ext_set_current_item(W* self, int index)
 {
   self->setCurrentItem(index);
 }
 
-template <typename W>
-inline void ext_set_num_visible(W* self, int nvis)
+template<typename W>
+inline void
+ext_set_num_visible(W* self, int nvis)
 {
   self->setNumVisible(nvis);
 }
 
-template <typename W>
-inline const char* ext_get_item_text(const W* self, int index)
+template<typename W>
+inline const char*
+ext_get_item_text(const W* self, int index)
 {
   return string_result(self->getItemText(index));
 }
 
-template <typename W>
-inline int ext_get_current_item(const W* self)
+template<typename W>
+inline int
+ext_get_current_item(const W* self)
 {
   return self->getCurrentItem();
 }
 
-template <typename W>
-inline int ext_get_num_items(const W* self)
+template<typename W>
+inline int
+ext_get_num_items(const W* self)
 {
   return self->getNumItems();
 }
@@ -425,9 +451,9 @@ extern "C"
   }
 
   // ============================================================================
-// BASE WIDGETS
-// ============================================================================
-//~ FXObject.h
+  // BASE WIDGETS
+  // ============================================================================
+  //~ FXObject.h
   void FXObject_delete(FXObject* self)
   {
     delete self;
@@ -445,9 +471,9 @@ extern "C"
   }
 
   // ============================================================================
-// DRAWING
-// ============================================================================
-//~ FXDrawable.h
+  // DRAWING
+  // ============================================================================
+  //~ FXDrawable.h
   int FXDrawable_get_height(const FXDrawable* self)
   {
     return self->getHeight();
@@ -458,9 +484,9 @@ extern "C"
   }
 
   // ============================================================================
-// WINDOW MANAGEMENT
-// ============================================================================
-//~ FXWindow.h
+  // WINDOW MANAGEMENT
+  // ============================================================================
+  //~ FXWindow.h
   FXWindow* FXWindow_get_parent(const FXWindow* self)
   {
     ASSERT_NOT_NULL(self, nullptr);
@@ -528,9 +554,9 @@ extern "C"
   }
 
   // ============================================================================
-// APPLICATION
-// ============================================================================
-//~ FXApp.h
+  // APPLICATION
+  // ============================================================================
+  //~ FXApp.h
   FXApp* FXApp_new(const char* name, const char* vendor, int argc, char** argv)
   {
     auto app = new FXApp(name, vendor);
@@ -927,9 +953,9 @@ extern "C"
   }
 
   // ============================================================================
-// INPUT WIDGETS - BUTTONS
-// ============================================================================
-//~ FXButton.h
+  // INPUT WIDGETS - BUTTONS
+  // ============================================================================
+  //~ FXButton.h
   FXButton* FXButton_new(FXComposite* prt, const char* title)
   {
     return make_widget<FXButton, FXComposite>(prt, title);
@@ -1160,9 +1186,9 @@ extern "C"
   }
 
   // ============================================================================
-// LAYOUT WIDGETS
-// ============================================================================
-//~ FXPacker.h
+  // LAYOUT WIDGETS
+  // ============================================================================
+  //~ FXPacker.h
   FXPacker* FXPacker_new(FXComposite* prt)
   {
     return make_widget<FXPacker, FXComposite>(prt);
@@ -1255,12 +1281,13 @@ extern "C"
   }
 
   // ============================================================================
-// DOCKING WIDGETS
-// ============================================================================
-//~ FXDockBar.h
+  // DOCKING WIDGETS
+  // ============================================================================
+  //~ FXDockBar.h
   FXDockBar* FXDockBar_new(FXComposite* prt)
   {
-    return make_widget<FXDockBar, FXComposite>(prt, LAYOUT_TOP | LAYOUT_LEFT | LAYOUT_FILL_X);
+    return make_widget<FXDockBar, FXComposite>(
+      prt, LAYOUT_TOP | LAYOUT_LEFT | LAYOUT_FILL_X);
   }
 
   //~ FXDockHandler.h
@@ -1546,9 +1573,9 @@ extern "C"
   }
 
   // ============================================================================
-// DRAWING WIDGETS
-// ============================================================================
-//~ FXCanvas.h
+  // DRAWING WIDGETS
+  // ============================================================================
+  //~ FXCanvas.h
   FXCanvas* FXCanvas_new(FXComposite* prt)
   {
     return make_widget<FXCanvas, FXComposite>(prt);
@@ -1570,9 +1597,9 @@ extern "C"
   }
 
   // ============================================================================
-// OPENGL WIDGETS
-// ============================================================================
-//~ FXGLCanvas.h
+  // OPENGL WIDGETS
+  // ============================================================================
+  //~ FXGLCanvas.h
   FXGLCanvas* FXGLCanvas_new(FXComposite* prt, FXGLVisual* visual)
   {
     return make_widget<FXGLCanvas, FXComposite>(prt, visual);
@@ -1641,9 +1668,9 @@ extern "C"
   }
 
   // ============================================================================
-// MENU WIDGETS
-// ============================================================================
-//~ FXMenuBar.h
+  // MENU WIDGETS
+  // ============================================================================
+  //~ FXMenuBar.h
   FXMenuBar* FXMenuBar_new(FXComposite* prt)
   {
     return make_widget<FXMenuBar, FXComposite>(prt, nullptr);
@@ -1766,9 +1793,9 @@ extern "C"
   }
 
   // ============================================================================
-// STATUS WIDGETS
-// ============================================================================
-//~ FXStatusBar.h
+  // STATUS WIDGETS
+  // ============================================================================
+  //~ FXStatusBar.h
   FXStatusBar* FXStatusBar_new(FXComposite* prt)
   {
     return make_widget<FXStatusBar, FXComposite>(prt);
@@ -1825,12 +1852,13 @@ extern "C"
   }
 
   // ============================================================================
-// TOOLBAR WIDGETS
-// ============================================================================
-//~ FXToolBar.h
+  // TOOLBAR WIDGETS
+  // ============================================================================
+  //~ FXToolBar.h
   FXToolBar* FXToolBar_new(FXComposite* prt)
   {
-    return make_widget<FXToolBar, FXComposite>(prt, LAYOUT_TOP | LAYOUT_LEFT | LAYOUT_FILL_X);
+    return make_widget<FXToolBar, FXComposite>(
+      prt, LAYOUT_TOP | LAYOUT_LEFT | LAYOUT_FILL_X);
   }
 
   //~ FXToolBarGrip.h
@@ -1960,5 +1988,4 @@ extern "C"
   {
     return new FXTableItem(text, nullptr, tbl);
   }
-
 }
