@@ -1,5 +1,14 @@
 #include <fx.h>
-#include <fx.h>
+#include <fx3d.h>
+#include <FXDockHandler.h>
+#include <FXStatusBar.h>
+#include <FXStatusLine.h>
+#include <FXToolBar.h>
+#include <FXDockBar.h>
+#include <FXBitmapFrame.h>
+#include <FXImageFrame.h>
+#include <FXMDIButton.h>
+#include <FXTable.h>
 #include <cstdio>
 
 // ============================================================================
@@ -314,23 +323,27 @@ FXIMPLEMENT(CMouseTarget,
             CMouseTargetMap,
             ARRAYNUMBER(CMouseTargetMap))
 
-template<typename Widget, typename Parent, typename... Args>
-inline Widget*
-make_widget(FXObject* parent, Args&&... args)
+class CDockHandler : public FXDockHandler
 {
-  if (!parent)
-    return nullptr;
-  return new Widget(static_cast<Parent*>(parent), std::forward<Args>(args)...);
-}
+  FXDECLARE(CDockHandler)
+protected:
+  CDockHandler()
+    : FXDockHandler(nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+  {
+  }
+public:
+  explicit CDockHandler(FXDockSite* docksite)
+    : FXDockHandler(docksite, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+  {
+  }
+};
 
-template<typename Value>
-inline const char*
-string_result(const Value& value)
-{
-  static thread_local FXString buffer;
-  buffer = value;
-  return buffer.text();
-}
+FXDEFMAP(CDockHandler)
+CDockHandlerMap[] = {};
+FXIMPLEMENT(CDockHandler,
+            FXDockHandler,
+            CDockHandlerMap,
+            ARRAYNUMBER(CDockHandlerMap))
 
 #define ASSERT_NOT_NULL(ptr, result)                                           \
   if (!ptr)                                                                    \
@@ -975,7 +988,7 @@ extern "C"
   //~ FXRuler.h
   FXRuler* FXRuler_new(FXComposite* prt, unsigned orientation)
   {
-    return make_widget<FXRuler, FXComposite>(prt, orientation);
+    return make_widget<FXRuler, FXComposite>(prt, nullptr, 0, orientation);
   }
 
   //~ FXSpring.h
@@ -1020,13 +1033,13 @@ extern "C"
 //~ FXDockBar.h
   FXDockBar* FXDockBar_new(FXComposite* prt)
   {
-    return make_widget<FXDockBar, FXComposite>(prt);
+    return make_widget<FXDockBar, FXComposite>(prt, LAYOUT_TOP | LAYOUT_LEFT | LAYOUT_FILL_X);
   }
 
   //~ FXDockHandler.h
   FXDockHandler* FXDockHandler_new(FXDockSite* docksite)
   {
-    return new FXDockHandler(docksite);
+    return new CDockHandler(docksite);
   }
 
   //~ FXDockSite.h
@@ -1230,7 +1243,7 @@ extern "C"
   //~ FXGLVisual.h
   FXGLVisual* FXGLVisual_new(FXApp* app)
   {
-    return make_widget<FXGLVisual, FXApp>(app);
+    return make_widget<FXGLVisual, FXApp>(app, 0);
   }
 
   // ============================================================================
@@ -1269,7 +1282,7 @@ extern "C"
   }
   int FXTabBook_get_num_children(const FXTabBook* self)
   {
-    return self->getNumChildren();
+    return self->numChildren();
   }
 
   //~ FXTabItem.h
@@ -1439,19 +1452,25 @@ extern "C"
   }
   void FXStatusBar_set_text(FXStatusBar* self, const char* text)
   {
-    self->setText(text);
+    if (auto status = self->getStatusLine())
+      status->setText(text);
   }
   const char* FXStatusBar_get_text(const FXStatusBar* self)
   {
-    return string_result(self->getText());
+    if (auto status = self->getStatusLine())
+      return string_result(status->getText());
+    return "";
   }
   void FXStatusBar_set_help_text(FXStatusBar* self, const char* text)
   {
-    self->setHelpText(text);
+    if (auto status = self->getStatusLine())
+      status->setNormalText(text);
   }
   const char* FXStatusBar_get_help_text(const FXStatusBar* self)
   {
-    return string_result(self->getHelpText());
+    if (auto status = self->getStatusLine())
+      return string_result(status->getNormalText());
+    return "";
   }
 
   //~ FXOption.h
@@ -1472,7 +1491,7 @@ extern "C"
 //~ FXToolBar.h
   FXToolBar* FXToolBar_new(FXComposite* prt)
   {
-    return make_widget<FXToolBar, FXComposite>(prt);
+    return make_widget<FXToolBar, FXComposite>(prt, LAYOUT_TOP | LAYOUT_LEFT | LAYOUT_FILL_X);
   }
 
   //~ FXToolBarGrip.h
@@ -1490,7 +1509,7 @@ extern "C"
   //~ FXBitmapFrame.h
   FXBitmapFrame* FXBitmapFrame_new(FXComposite* prt)
   {
-    return make_widget<FXBitmapFrame, FXComposite>(prt);
+    return make_widget<FXBitmapFrame, FXComposite>(prt, nullptr);
   }
   void FXBitmapFrame_set_justify(FXBitmapFrame* self, unsigned justify)
   {
@@ -1510,9 +1529,7 @@ extern "C"
   //~ FXImageFrame.h
   FXImageFrame* FXImageFrame_new(FXComposite* prt, FXImage* img)
   {
-    auto wgt = make_widget<FXImageFrame, FXComposite>(prt);
-    wgt->setImage(img);
-    return wgt;
+    return make_widget<FXImageFrame, FXComposite>(prt, img);
   }
   void FXImageFrame_set_justify(FXImageFrame* self, unsigned justify)
   {
@@ -1596,16 +1613,13 @@ extern "C"
   //~ FXMDIWindowButton.h
   FXMDIWindowButton* FXMDIWindowButton_new(FXComposite* prt, FXPopup* pup)
   {
-    auto wgt = make_widget<FXMDIWindowButton, FXComposite>(prt);
-    // Note: In FOX, FXMDIWindowButton constructor takes FXPopup*
-    // This needs special handling
-    return wgt;
+    return make_widget<FXMDIWindowButton, FXComposite>(prt, pup);
   }
 
   //~ FXTableItem.h
   FXTableItem* FXTableItem_new(FXTable* tbl, const char* text)
   {
-    return new FXTableItem(tbl, text);
+    return new FXTableItem(text, nullptr, tbl);
   }
 
 }

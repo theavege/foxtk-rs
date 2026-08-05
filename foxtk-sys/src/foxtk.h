@@ -126,9 +126,9 @@ extern "C"
   typedef struct FXDirSelector FXDirSelector;
   typedef struct FXDockBar FXDockBar;
   FXDockBar* FXDockBar_new(FXComposite* prt);
+  typedef struct FXDockSite FXDockSite;
   typedef struct FXDockHandler FXDockHandler;
   FXDockHandler* FXDockHandler_new(FXDockSite* docksite);
-  typedef struct FXDockSite FXDockSite;
   FXDockSite* FXDockSite_new(FXComposite* prt);
   typedef struct FXDockTitle FXDockTitle;
   FXDockTitle* FXDockTitle_new(FXDockBar* bar, const char* title);
@@ -425,11 +425,11 @@ FXId_get_id(const FXId* self);
   FXMDIWindowButton* FXMDIWindowButton_new(FXComposite* prt, FXPopup* pup);
 
   //~ FXMDIChild.h
+  typedef struct FXMDIClient FXMDIClient;
   typedef struct FXMDIChild FXMDIChild;
   FXMDIChild* FXMDIChild_new(FXMDIClient* client, const char* title);
 
   //~ FXMDIClient.h
-  typedef struct FXMDIClient FXMDIClient;
   FXMDIClient* FXMDIClient_new(FXComposite* prt);
 
   //~ FXToggleButton.h
