@@ -8,7 +8,7 @@ description = "Rust bindings for the FOX Toolkit"
 keywords = ["FOX", "foxtk"]
 categories = ["external-ffi-bindings"]
 edition = "2024"
-exclude = ["use"]
+exclude = ["example", "use"]
 
 [build-dependencies]
 bindgen = { version = "0.72" }
