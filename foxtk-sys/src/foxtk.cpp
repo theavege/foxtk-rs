@@ -457,22 +457,6 @@ FXIMPLEMENT(CMouseTarget,
             CMouseTargetMap,
             ARRAYNUMBER(CMouseTargetMap))
 
-class CDockHandler : public FXDockHandler
-{
-  FXDECLARE(CDockHandler)
-protected:
-  CDockHandler()
-    : FXDockHandler(nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-  {
-  }
-
-public:
-  explicit CDockHandler(FXDockSite* docksite)
-    : FXDockHandler(docksite, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-  {
-  }
-};
-
 } // namespace
 
 #define ASSERT_NOT_NULL(ptr, result)                                           \
@@ -1465,12 +1449,6 @@ extern "C"
   {
     return make_widget<FXDockBar, FXComposite>(
       prt, LAYOUT_TOP | LAYOUT_LEFT | LAYOUT_FILL_X);
-  }
-
-  //~ FXDockHandler.h
-  FXDockHandler* FXDockHandler_new(FXDockSite* docksite)
-  {
-    return new CDockHandler(docksite);
   }
 
   //~ FXDockSite.h
