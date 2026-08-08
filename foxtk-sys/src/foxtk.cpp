@@ -473,13 +473,6 @@ public:
   }
 };
 
-FXDEFMAP(CDockHandler)
-CDockHandlerMap[] = {};
-FXIMPLEMENT(CDockHandler,
-            FXDockHandler,
-            CDockHandlerMap,
-            ARRAYNUMBER(CDockHandlerMap))
-
 } // namespace
 
 #define ASSERT_NOT_NULL(ptr, result)                                           \
