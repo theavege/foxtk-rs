@@ -30,6 +30,7 @@ foreach(tar IN ITEMS AdvAPI32 ComCtl32 Gdi32 Imm32 Mpr MSImg32 User32 WinSpool W
 endforeach()
 
 add_compile_definitions(WIN32)
+add_compile_definitions(HAVE_VSSCANF)
 
 add_library(fox OBJECT ${FOX_SOURCE} )
 add_library(cfoxtk STATIC ${OBJS} )
