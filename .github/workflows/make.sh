@@ -35,6 +35,9 @@ else
     printf 'warning: clang-format not installed; skipping formatting check\n' >&2
 fi
 
+#~ clang++ "$(fox-config --cflags)" "${CSRC:?}/foxtk.cpp"
+#~ clang "-I${CSRC:?}" 'foxtk-sys/examples/simple.c' -o simple.exe
+
 cargo clippy --quiet --features="all" --examples
 cargo build --release --features="all" --examples
 cargo fmt --check --all

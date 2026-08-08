@@ -22,8 +22,7 @@ endforeach()
 add_library(fox OBJECT ${FOX_SOURCE} )
 add_library(cfoxtk STATIC ${OBJS} )
 
-target_compile_definitions(cfoxtk PRIVATE WIN32)
-target_compile_definitions(fox PRIVATE WIN32)
+add_compile_definitions(WIN32)
 
 target_include_directories(fox PRIVATE ${FOX_PATH}/include)
 target_include_directories(cfoxtk PRIVATE ${FOX_PATH}/include ${SDK_DIR}/Include)

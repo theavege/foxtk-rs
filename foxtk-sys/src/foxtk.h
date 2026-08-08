@@ -255,11 +255,11 @@ FXId_get_id(const FXId* self);
 
   //~ FXWizard.h
   typedef struct FXWizard FXWizard;
-  FXWizard FXWizard_new(FXWindow* owner, const char* title);
+  FXWizard* FXWizard_new(FXWindow* owner, const char* title);
 
   //~ FXPrintDialog.h
   typedef struct FXPrintDialog FXPrintDialog;
-  FXPrintDialog FXPrintDialog_new(FXWindow* owner, const char* title);
+  FXPrintDialog* FXPrintDialog_new(FXWindow* owner, const char* title);
 
   //~ FXDialogBox.h
   typedef struct FXDialogBox FXDialogBox;
@@ -661,12 +661,10 @@ FXId_get_id(const FXId* self);
   //~ FXStatusBar.h
   typedef struct FXStatusBar FXStatusBar;
   FXStatusBar* FXStatusBar_new(FXComposite* prt);
-  void FXStatusBar_set_text(FXStatusBar* self, const char* text);
   const char* FXStatusBar_get_text(const FXStatusBar* self);
-  void FXStatusBar_set_text_color(FXStatusBar* self, unsigned color);
-  void FXStatusBar_set_font(FXStatusBar* self, const char* family, int size);
   void FXStatusBar_set_help_text(FXStatusBar* self, const char* text);
   const char* FXStatusBar_get_help_text(const FXStatusBar* self);
+  EXT_TEXT(FXStatusBar)
 
   //~ FXOption.h
   typedef struct FXOption FXOption;

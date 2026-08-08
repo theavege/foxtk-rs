@@ -2000,14 +2000,7 @@ extern "C"
   }
   void FXStatusBar_set_font(FXStatusBar* self, const char* family, int size)
   {
-    if (auto status = self->getStatusLine()) {
-      auto old_font = status->getFont();
-      auto new_font = new FXFont(self->getApp(), family, size, 0, 0);
-      status->setFont(new_font);
-      if (old_font && old_font != self->getApp()->getNormalFont()) {
-        delete old_font;
-      }
-    }
+    ext_set_font(self, family, size);
   }
   void FXStatusBar_set_help_text(FXStatusBar* self, const char* text)
   {
