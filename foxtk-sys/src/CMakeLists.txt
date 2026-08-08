@@ -5,16 +5,6 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(SDK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../use/winsdk-7/v7.1A)
 
-find_program(CLANG_TIDY "clang-tidy")
-if(CLANG_TIDY)
-    message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}")
-    set(CMAKE_CXX_CLANG_TIDY ${CLANG_TIDY}
-      --warnings-as-errors=-*
-    )
-else()
-    message(WARNING "clang-tidy not found!")
-endif()
-
 if(NOT DEFINED ENV{FOX_PATH} OR "$ENV{FOX_PATH}" STREQUAL "")
     message(FATAL_ERROR "FOX_PATH environment variable is not set")
 endif()
@@ -32,6 +22,17 @@ endforeach()
 add_compile_definitions(WIN32)
 
 add_library(fox OBJECT ${FOX_SOURCE} )
+
+find_program(CLANG_TIDY "clang-tidy")
+if(CLANG_TIDY)
+    message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}")
+    set(CMAKE_CXX_CLANG_TIDY ${CLANG_TIDY}
+      --warnings-as-errors=-*
+    )
+else()
+    message(WARNING "clang-tidy not found!")
+endif()
+
 add_library(cfoxtk STATIC ${OBJS} )
 
 target_include_directories(fox PRIVATE ${FOX_PATH}/include)
