@@ -317,11 +317,6 @@ pub trait SelectorExt: PackerExt {
 }
 
 pub trait TopWindowExt: WindowExt {
-    fn set_decorations(&self, decorations: Decor) {
-        unsafe {
-            FXTopWindow_set_decorations(self.as_raw() as *mut FXTopWindow, decorations as u32);
-        }
-    }
     fn set_hspacing(&self, spacing: i32) {
         unsafe {
             FXTopWindow_set_hspacing(self.as_raw() as *mut FXTopWindow, spacing);
@@ -331,10 +326,6 @@ pub trait TopWindowExt: WindowExt {
         unsafe {
             FXTopWindow_set_vspacing(self.as_raw() as *mut FXTopWindow, spacing);
         }
-    }
-    fn with_decorations(self, decorations: Decor) -> Self {
-        self.set_decorations(decorations);
-        self
     }
     fn with_hspacing(self, spacing: i32) -> Self {
         self.set_hspacing(spacing);

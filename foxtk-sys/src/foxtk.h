@@ -128,7 +128,6 @@ extern "C"
   FXDockBar* FXDockBar_new(FXComposite* prt);
   typedef struct FXDockSite FXDockSite;
   typedef struct FXDockHandler FXDockHandler;
-  FXDockHandler* FXDockHandler_new(FXDockSite* docksite);
   FXDockSite* FXDockSite_new(FXComposite* prt);
   typedef struct FXDockTitle FXDockTitle;
   FXDockTitle* FXDockTitle_new(FXDockBar* bar, const char* title);
@@ -359,7 +358,6 @@ FXId_get_id(const FXId* self);
   FXSpinner* FXSpinner_new(FXComposite* parent);
   void FXSpinner_decrement(FXSpinner* self);
   EXT_RANGE(FXSpinner, int)
-  EXT_EDITABLE(FXSpinner)
 
   //~ FXRealSpinner.h
   typedef struct FXRealSpinner FXRealSpinner;
@@ -447,7 +445,6 @@ FXId_get_id(const FXId* self);
 
   //~ FXTopWindow.h
   typedef struct FXTopWindow FXTopWindow;
-  void FXTopWindow_set_decorations(FXTopWindow* self, unsigned decorations);
   void FXTopWindow_set_hspacing(FXTopWindow* self, int hspacing);
   void FXTopWindow_set_vspacing(FXTopWindow* self, int vspacing);
 
@@ -476,7 +473,6 @@ FXId_get_id(const FXId* self);
   int FXMatrix_get_num_columns(const FXMatrix* self);
   void FXMatrix_set_num_rows(FXMatrix* self, int rows);
   void FXMatrix_set_num_columns(FXMatrix* self, int cols);
-  EXT_STYLE(FXMatrix)
 
   //~ FXHeader.h
   typedef struct FXHeader FXHeader;
@@ -503,7 +499,6 @@ FXId_get_id(const FXId* self);
   typedef struct FXGroupBox FXGroupBox;
   FXGroupBox* FXGroupBox_new(FXComposite* prt, const char* title);
   EXT_STYLE(FXGroupBox)
-  EXT_TEXT(FXGroupBox)
 
   //~ FXVerticalFrame.h
   typedef struct FXVerticalFrame FXVerticalFrame;
@@ -553,7 +548,6 @@ FXId_get_id(const FXId* self);
   void FXTable_set_table_size(FXTable* self, int nr, int nc);
   void FXTable_set_item_text(FXTable* self, int r, int c, const char* text);
   EXT_JUSTIFY(FXTable)
-  EXT_EDITABLE(FXTable)
 
   //~ FXTableItem.h
   typedef struct FXTableItem FXTableItem;
@@ -656,7 +650,6 @@ FXId_get_id(const FXId* self);
   //~ FXStatusLine.h
   typedef struct FXStatusLine FXStatusLine;
   FXStatusLine* FXStatusLine_new(FXComposite* prt);
-  EXT_TEXT(FXStatusLine)
 
   //~ FXStatusBar.h
   typedef struct FXStatusBar FXStatusBar;

@@ -344,12 +344,6 @@ impl GroupBox {
         .with_frame(FrameStyle::Thick)
         .with_layout(Layout::FillX)
     }
-    pub fn with_style(self, style: GroupBoxStyle) -> Self {
-        unsafe {
-            FXGroupBox_set_style(self.as_raw(), style as u32);
-        }
-        self
-    }
 }
 
 impl_widget!(
@@ -406,11 +400,6 @@ impl Matrix {
         })
         .with_layout(Layout::Fill)
     }
-    pub fn set_style(&self, style: MatrixStyle) {
-        unsafe {
-            FXMatrix_set_style(self.as_raw(), style as u32);
-        }
-    }
     pub fn set_num_rows(&self, rows: i32) {
         unsafe {
             FXMatrix_set_num_rows(self.as_raw(), rows);
@@ -420,9 +409,6 @@ impl Matrix {
         unsafe {
             FXMatrix_set_num_columns(self.as_raw(), cols);
         }
-    }
-    pub fn style(&self) -> MatrixStyle {
-        unsafe { std::mem::transmute::<u32, MatrixStyle>(FXMatrix_get_style(self.as_raw()) as u32) }
     }
     pub fn num_rows(&self) -> i32 {
         unsafe { FXMatrix_get_num_rows(self.as_raw()) }
@@ -551,12 +537,6 @@ impl DialogBox {
     }
     pub fn shown(&self) -> bool {
         unsafe { FXDialogBox_shown(self.as_raw()) != 0 }
-    }
-    pub fn with_style(self, style: DialogBoxStyle) -> Self {
-        unsafe {
-            FXTopWindow_set_decorations(self.as_raw() as *mut FXTopWindow, style as u32);
-        }
-        self
     }
 }
 
@@ -1273,13 +1253,6 @@ impl DockSite {
     }
 }
 
-impl_widget!(DockHandler, IdExt);
-impl DockHandler {
-    pub fn new(docksite: &DockSite) -> Self {
-        Self::from_raw(unsafe { FXDockHandler_new(docksite.as_raw()) })
-    }
-}
-
 impl_widget!(DockTitle, IdExt, FrameExt, DrawableExt, WindowExt);
 impl DockTitle {
     pub fn new(bar: &DockBar, title: &str) -> Self {
@@ -1442,16 +1415,7 @@ impl TableItem {
     }
 }
 
-impl_textable!(
-    Button,
-    GroupBox,
-    Label,
-    StatusBar,
-    Text,
-    TextField,
-    RadioButton,
-    StatusLine
-);
+impl_textable!(Button, Label, Text, TextField, RadioButton);
 impl_selector!(ComboBox, List, ListBox);
 impl_ranger!(Dial, Knob, Slider, Spinner);
-impl_editable!(ComboBox, Spinner, Table, Text, TextField);
+impl_editable!(Text, TextField);

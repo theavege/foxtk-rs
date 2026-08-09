@@ -2041,6 +2041,12 @@ extern "C"
     return make_widget<FXBitmapView, FXComposite>(prt);
   }
 
+  //~ FXImage.h
+  FXImage* FXImage_new(FXApp* owner)
+  {
+    return make_widget<FXImage, FXApp>(owner);
+  }
+
   //~ FXImageFrame.h
   FXImageFrame* FXImageFrame_new(FXComposite* prt, FXImage* img)
   {
