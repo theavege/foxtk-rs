@@ -27,10 +27,10 @@ if(WIN32)
     target_include_directories(fox PRIVATE ${FOX_PATH}/include)
 
     add_library(cfoxtk STATIC ${OBJS} )
-    target_compile_options(cfoxtk PRIVATE
-        $<$<CXX_COMPILER_ID:MSVC>:/W4 /permissive->
-        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic>
-    )
+    #~ target_compile_options(cfoxtk PRIVATE
+        #~ $<$<CXX_COMPILER_ID:MSVC>:/W4 /permissive->
+        #~ $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic>
+    #~ )
     target_include_directories(cfoxtk PRIVATE ${FOX_PATH}/include ${SDK_DIR}/Include)
     #~ find_program(CLANG_TIDY "clang-tidy")
     #~ if(CLANG_TIDY)
