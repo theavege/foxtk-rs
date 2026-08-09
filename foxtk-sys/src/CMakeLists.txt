@@ -27,10 +27,8 @@ target_include_directories(fox PRIVATE ${FOX_PATH}/include)
 
 find_program(CLANG_TIDY "clang-tidy")
 if(CLANG_TIDY)
-    message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}")
-    set(CMAKE_CXX_CLANG_TIDY ${CLANG_TIDY}
-      --warnings-as-errors=-*
-    )
+    message(STATUS "clang-tidy found: ${CLANG_TIDY}")
+    set(CMAKE_CXX_CLANG_TIDY ${CLANG_TIDY} --warnings-as-errors=-*)
 else()
     message(WARNING "clang-tidy not found!")
 endif()
