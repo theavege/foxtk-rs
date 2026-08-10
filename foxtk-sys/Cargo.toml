@@ -14,7 +14,7 @@ exclude = ["example", "use"]
 bindgen = { version = "0.72" }
 cc = { version = "1.2", features = ["parallel"] }
 
-[target.'cfg(target_os = "windows")'.build-dependencies]
+[target.'cfg(not(target_os = "linux"))'.build-dependencies]
 reqwest = { version = "0.13", features = ["json", "native-tls", "blocking"] }
 zip-extract = "0.4"
 glob = "0.3"
