@@ -13,18 +13,17 @@ if [[ -f '/etc/os-release' ]]; then
             fedora | alma) sudo dnf install -y shfmt cppcheck shellcheck fox-devel ;;
         esac 1>/dev/null
     fi
-fi
+    if command -v shellcheck >/dev/null; then
+        shellcheck --external-sources "${0}"
+    else
+        printf 'warning: shellcheck not installed; skipping shellcheck/n' >&2
+    fi
 
-if command -v shellcheck >/dev/null; then
-    shellcheck --external-sources "${0}"
-else
-    printf 'warning: shellcheck not installed; skipping shellcheck/n' >&2
-fi
-
-if command -v shfmt >/dev/null; then
-    shfmt -ci -fn -i 4 -d "${0}"
-else
-    printf 'warning: shfmt not installed; skipping shfmt check\n' >&2
+    if command -v shfmt >/dev/null; then
+        shfmt -ci -fn -i 4 -d "${0}"
+    else
+        printf 'warning: shfmt not installed; skipping shfmt check\n' >&2
+    fi
 fi
 
 declare -r CSRC="foxtk-sys/src"
