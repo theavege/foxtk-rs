@@ -2,15 +2,17 @@
 
 set -euo pipefail
 
-if ! command -v fox-config >/dev/null; then
+if [[ -f '/etc/os-release' ]]; then
     source '/etc/os-release'
-    case ${ID:?} in
-        debian | ubuntu) sudo bash -c '
-            apt-get update
-            apt-get install -y shfmt cppcheck shellcheck libfox-1.6-dev
-        ' ;;
-        fedora | alma) sudo dnf install -y shfmt cppcheck shellcheck fox-devel ;;
-    esac 1>/dev/null
+    if ! command -v fox-config >/dev/null; then
+        case ${ID:?} in
+            debian | ubuntu) sudo bash -c '
+                apt-get update
+                apt-get install -y shfmt cppcheck shellcheck libfox-1.6-dev
+            ' ;;
+            fedora | alma) sudo dnf install -y shfmt cppcheck shellcheck fox-devel ;;
+        esac 1>/dev/null
+    fi
 fi
 
 if command -v shellcheck >/dev/null; then

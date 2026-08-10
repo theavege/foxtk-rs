@@ -27,7 +27,7 @@ fn compile() -> Vec<String> {
     includes
 }
 
-#[cfg(target_os = "windows")]
+#[cfg(not(target_os = "linux"))]
 fn compile() -> Vec<String> {
     const DIST: &str = "fox-1.6.59";
     let url = format!("http://fox-toolkit.org/ftp/{DIST}.zip");
