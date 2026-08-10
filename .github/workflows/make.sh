@@ -24,20 +24,19 @@ if [[ -f '/etc/os-release' ]]; then
     else
         printf 'warning: shfmt not installed; skipping shfmt check\n' >&2
     fi
+    declare -r CSRC="foxtk-sys/src"
+
+    #~ cppcheck "$(fox-config --cflags)" "${CSRC:?}"/*.{cpp,h}
+    clang-tidy "${CSRC:?}"/*.{cpp,h} -- "$(fox-config --cflags)"
+    if command -v clang-format >/dev/null; then
+        clang-format --dry-run --Werror -style=Mozilla "${CSRC:?}"/*.{cpp,h}
+    else
+        printf 'warning: clang-format not installed; skipping formatting check\n' >&2
+    fi
+
+    #~ clang++ "$(fox-config --cflags)" "${CSRC:?}/foxtk.cpp"
+    #~ clang "-I${CSRC:?}" 'foxtk-sys/examples/simple.c' -o simple.exe
 fi
-
-declare -r CSRC="foxtk-sys/src"
-
-#~ cppcheck "$(fox-config --cflags)" "${CSRC:?}"/*.{cpp,h}
-clang-tidy "${CSRC:?}"/*.{cpp,h} -- "$(fox-config --cflags)"
-if command -v clang-format >/dev/null; then
-    clang-format --dry-run --Werror -style=Mozilla "${CSRC:?}"/*.{cpp,h}
-else
-    printf 'warning: clang-format not installed; skipping formatting check\n' >&2
-fi
-
-#~ clang++ "$(fox-config --cflags)" "${CSRC:?}/foxtk.cpp"
-#~ clang "-I${CSRC:?}" 'foxtk-sys/examples/simple.c' -o simple.exe
 
 cargo clippy --quiet --features="all" --examples
 cargo build --release --features="all" --examples
