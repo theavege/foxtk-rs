@@ -291,6 +291,7 @@ ext_set_font(W* self, const char* family, int size)
   if constexpr (has_getFont<W>::value && has_setFont<W>::value) {
     auto old_font = self->getFont();
     auto new_font = new FXFont(self->getApp(), family, size, 0, 0);
+    new_font->create();
     self->setFont(new_font);
     if (old_font && old_font != self->getApp()->getNormalFont()) {
       delete old_font;
@@ -1264,13 +1265,19 @@ extern "C"
   }
 
   //~ FXRealSlider.h
-  FXRealSlider* FXRealSlider_new(FXComposite* parent);
+  FXRealSlider* FXRealSlider_new(FXComposite* parent)
+  {
+    return make_widget<FXRealSlider, FXComposite>(parent);
+  }
 
   //~ FXRealSpinner.h
-  FXRealSpinner* FXRealSpinner_new(FXComposite* parent);
+  FXRealSpinner* FXRealSpinner_new(FXComposite* parent)
+  {
+    return make_widget<FXRealSpinner, FXComposite>(parent, 6);
+  }
 
   //~ FXSpinner.h
-  FXSpinner* FXSpinner_new(FXComposite* parent)
+  FXSpinner* FXSpinner_new(FXRealSpinner* parent)
   {
     return make_widget<FXSpinner, FXComposite>(parent, 6);
   }

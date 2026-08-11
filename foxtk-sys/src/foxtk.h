@@ -362,13 +362,10 @@ FXId_get_id(const FXId* self);
   //~ FXRealSpinner.h
   typedef struct FXRealSpinner FXRealSpinner;
   FXRealSpinner* FXRealSpinner_new(FXComposite* parent);
-  EXT_RANGE(FXRealSpinner, double)
-  EXT_EDITABLE(FXRealSpinner)
 
   //~ FXRealSlider.h
   typedef struct FXRealSlider FXRealSlider;
   FXRealSlider* FXRealSlider_new(FXComposite* parent);
-  EXT_RANGE(FXRealSlider, double)
 
   //~ FXProgressBar.h
   typedef struct FXProgressBar FXProgressBar;
