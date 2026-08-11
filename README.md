@@ -1,5 +1,7 @@
 # FoxTK-rs
 
+![platform](https://img.shields.io/badge/platform-Linux-blue.svg) ![platform](https://img.shields.io/badge/platform-Windows-blue.svg)
+
 ![FOX-toolkit](http://www.fox-toolkit.org/art/foxlogo_small.jpg)
 
 Rust bindings for the [fox-toolkit](http://www.fox-toolkit.org).

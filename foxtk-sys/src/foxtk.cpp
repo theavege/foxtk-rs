@@ -1,16 +1,8 @@
 #include <cstdio>
 #include <fx.h>
 #include <fx3d.h>
-
-#include <FXBitmapFrame.h>
-#include <FXDockBar.h>
-#include <FXDockHandler.h>
-#include <FXImageFrame.h>
-#include <FXMDIButton.h>
-#include <FXStatusBar.h>
-#include <FXStatusLine.h>
-#include <FXTable.h>
-#include <FXToolBar.h>
+#include <type_traits>
+#include <utility>
 
 // ============================================================================
 // ERROR HANDLING MACROS
@@ -299,6 +291,7 @@ ext_set_font(W* self, const char* family, int size)
   if constexpr (has_getFont<W>::value && has_setFont<W>::value) {
     auto old_font = self->getFont();
     auto new_font = new FXFont(self->getApp(), family, size, 0, 0);
+    new_font->create();
     self->setFont(new_font);
     if (old_font && old_font != self->getApp()->getNormalFont()) {
       delete old_font;
@@ -464,29 +457,6 @@ FXIMPLEMENT(CMouseTarget,
             FXObject,
             CMouseTargetMap,
             ARRAYNUMBER(CMouseTargetMap))
-
-class CDockHandler : public FXDockHandler
-{
-  FXDECLARE(CDockHandler)
-protected:
-  CDockHandler()
-    : FXDockHandler(nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-  {
-  }
-
-public:
-  explicit CDockHandler(FXDockSite* docksite)
-    : FXDockHandler(docksite, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-  {
-  }
-};
-
-FXDEFMAP(CDockHandler)
-CDockHandlerMap[] = {};
-FXIMPLEMENT(CDockHandler,
-            FXDockHandler,
-            CDockHandlerMap,
-            ARRAYNUMBER(CDockHandlerMap))
 
 } // namespace
 
@@ -1295,13 +1265,19 @@ extern "C"
   }
 
   //~ FXRealSlider.h
-  FXRealSlider* FXRealSlider_new(FXComposite* parent);
+  FXRealSlider* FXRealSlider_new(FXComposite* parent)
+  {
+    return make_widget<FXRealSlider, FXComposite>(parent);
+  }
 
   //~ FXRealSpinner.h
-  FXRealSpinner* FXRealSpinner_new(FXComposite* parent);
+  FXRealSpinner* FXRealSpinner_new(FXComposite* parent)
+  {
+    return make_widget<FXRealSpinner, FXComposite>(parent, 6);
+  }
 
   //~ FXSpinner.h
-  FXSpinner* FXSpinner_new(FXComposite* parent)
+  FXSpinner* FXSpinner_new(FXRealSpinner* parent)
   {
     return make_widget<FXSpinner, FXComposite>(parent, 6);
   }
@@ -1480,12 +1456,6 @@ extern "C"
   {
     return make_widget<FXDockBar, FXComposite>(
       prt, LAYOUT_TOP | LAYOUT_LEFT | LAYOUT_FILL_X);
-  }
-
-  //~ FXDockHandler.h
-  FXDockHandler* FXDockHandler_new(FXDockSite* docksite)
-  {
-    return new CDockHandler(docksite);
   }
 
   //~ FXDockSite.h
@@ -2010,14 +1980,7 @@ extern "C"
   }
   void FXStatusBar_set_font(FXStatusBar* self, const char* family, int size)
   {
-    if (auto status = self->getStatusLine()) {
-      auto old_font = status->getFont();
-      auto new_font = new FXFont(self->getApp(), family, size, 0, 0);
-      status->setFont(new_font);
-      if (old_font && old_font != self->getApp()->getNormalFont()) {
-        delete old_font;
-      }
-    }
+    ext_set_font(self, family, size);
   }
   void FXStatusBar_set_help_text(FXStatusBar* self, const char* text)
   {
@@ -2083,6 +2046,12 @@ extern "C"
   FXBitmapView* FXBitmapView_new(FXComposite* prt)
   {
     return make_widget<FXBitmapView, FXComposite>(prt);
+  }
+
+  //~ FXImage.h
+  FXImage* FXImage_new(FXApp* owner)
+  {
+    return make_widget<FXImage, FXApp>(owner);
   }
 
   //~ FXImageFrame.h

@@ -1,6 +1,6 @@
 [package]
 name = "foxtk-sys"
-version = "0.0.4"
+version = "0.0.6"
 authors = ["Artem V. Ageev <artem.v.ageev@gmail.com>"]
 license = "LGPL-2.1-only"
 repository = "https://github.com/theavege/foxtk-rs"
@@ -8,13 +8,13 @@ description = "Rust bindings for the FOX Toolkit"
 keywords = ["FOX", "foxtk"]
 categories = ["external-ffi-bindings"]
 edition = "2024"
-exclude = ["use"]
+exclude = ["example", "use"]
 
 [build-dependencies]
 bindgen = { version = "0.72" }
 cc = { version = "1.2", features = ["parallel"] }
 
-[target.'cfg(target_os = "windows")'.build-dependencies]
+[target.'cfg(not(target_os = "linux"))'.build-dependencies]
 reqwest = { version = "0.13", features = ["json", "native-tls", "blocking"] }
 zip-extract = "0.4"
 glob = "0.3"
