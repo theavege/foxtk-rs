@@ -29,7 +29,7 @@ libraries; on Windows it works out of the box. No heavy runtimes to install or
 distribute.
 
 **Truly cross-platform**
-FOX runs on Linux, Windows, FreeBSD, and macOS using a single codebase. Your
+FOX runs on Linux, FreeBSD, and Windows using a single codebase. Your
 application looks and behaves consistently across all platforms.
 
 **Built-in OpenGL support**
