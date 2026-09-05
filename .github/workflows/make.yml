@@ -16,10 +16,7 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          #~ - macos-latest
           - windows-latest
-        arch:
-          - x86_64
 
     steps:
       - name: Checkout
@@ -27,14 +24,26 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Install native dependencies on Unix
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          bash '.github/workflows/make.sh' setup
+
       - name: Build on Unix
         if: runner.os != 'Windows'
         shell: bash
         run: |
-          bash '.github/workflows/make.sh'
+          bash '.github/workflows/make.sh' build
+
+      - name: Install native dependencies on on Windows
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          pwsh -File '.github/workflows/make.ps1' setup
 
       - name: Build on Windows
         if: runner.os == 'Windows'
         shell: powershell
         run: |
-          pwsh -File '.github/workflows/make.ps1'
+          pwsh -File '.github/workflows/make.ps1' build
