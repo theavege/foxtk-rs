@@ -1191,7 +1191,14 @@ impl FontSelector {
     }
 }
 
-impl_widget!(PrintDialog, IdExt, FrameExt, DrawableExt, WindowExt, TopWindowExt);
+impl_widget!(
+    PrintDialog,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    TopWindowExt
+);
 impl PrintDialog {
     pub fn new(parent: &impl WindowExt, title: &str) -> Self {
         Self::from_raw(unsafe {
@@ -1207,28 +1214,60 @@ impl DCWindow {
     }
 }
 
-impl_widget!(DriveBox, IdExt, FrameExt, DrawableExt, WindowExt, CompositeExt, PackerExt);
+impl_widget!(
+    DriveBox,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    CompositeExt,
+    PackerExt
+);
 impl DriveBox {
     pub fn new(parent: &impl CompositeExt) -> Self {
         Self::from_raw(unsafe { FXDriveBox_new(parent.as_raw() as *mut FXComposite) })
     }
 }
 
-impl_widget!(DirBox, IdExt, FrameExt, DrawableExt, WindowExt, CompositeExt, PackerExt);
+impl_widget!(
+    DirBox,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    CompositeExt,
+    PackerExt
+);
 impl DirBox {
     pub fn new(parent: &impl CompositeExt) -> Self {
         Self::from_raw(unsafe { FXDirBox_new(parent.as_raw() as *mut FXComposite) })
     }
 }
 
-impl_widget!(FileSelector, IdExt, FrameExt, DrawableExt, WindowExt, CompositeExt, PackerExt);
+impl_widget!(
+    FileSelector,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    CompositeExt,
+    PackerExt
+);
 impl FileSelector {
     pub fn new(parent: &impl CompositeExt) -> Self {
         Self::from_raw(unsafe { FXFileSelector_new(parent.as_raw() as *mut FXComposite) })
     }
 }
 
-impl_widget!(Packer, IdExt, FrameExt, DrawableExt, WindowExt, CompositeExt, PackerExt);
+impl_widget!(
+    Packer,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    CompositeExt,
+    PackerExt
+);
 impl Packer {
     pub fn new(parent: &impl CompositeExt) -> Self {
         Self::from_raw(unsafe { FXPacker_new(parent.as_raw() as *mut FXComposite) })
@@ -1249,14 +1288,28 @@ impl RealSpinner {
     }
 }
 
-impl_widget!(TreeListBox, IdExt, FrameExt, DrawableExt, WindowExt, CompositeExt);
+impl_widget!(
+    TreeListBox,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    CompositeExt
+);
 impl TreeListBox {
     pub fn new(parent: &impl CompositeExt) -> Self {
         Self::from_raw(unsafe { FXTreeListBox_new(parent.as_raw() as *mut FXComposite) })
     }
 }
 
-impl_widget!(Wizard, IdExt, FrameExt, DrawableExt, WindowExt, TopWindowExt);
+impl_widget!(
+    Wizard,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    TopWindowExt
+);
 impl Wizard {
     pub fn new(parent: &impl WindowExt, title: &str) -> Self {
         Self::from_raw(unsafe {
@@ -1269,7 +1322,10 @@ impl_widget!(MenuCaption, IdExt, FrameExt, DrawableExt, WindowExt);
 impl MenuCaption {
     pub fn new(parent: &impl CompositeExt, text: &str) -> Self {
         Self::from_raw(unsafe {
-            FXMenuCaption_new(parent.as_raw() as *mut FXComposite, to_cstring(text).as_ptr())
+            FXMenuCaption_new(
+                parent.as_raw() as *mut FXComposite,
+                to_cstring(text).as_ptr(),
+            )
         })
     }
 }
@@ -1278,7 +1334,10 @@ impl_widget!(MenuCascade, IdExt, FrameExt, DrawableExt, WindowExt);
 impl MenuCascade {
     pub fn new(parent: &impl CompositeExt, text: &str) -> Self {
         Self::from_raw(unsafe {
-            FXMenuCascade_new(parent.as_raw() as *mut FXComposite, to_cstring(text).as_ptr())
+            FXMenuCascade_new(
+                parent.as_raw() as *mut FXComposite,
+                to_cstring(text).as_ptr(),
+            )
         })
     }
 }
@@ -1318,13 +1377,7 @@ impl DockSite {
     }
 }
 
-impl_widget!(
-    DockTitle,
-    IdExt,
-    FrameExt,
-    DrawableExt,
-    WindowExt
-);
+impl_widget!(DockTitle, IdExt, FrameExt, DrawableExt, WindowExt);
 impl DockTitle {
     pub fn new(bar: &DockBar, title: &str) -> Self {
         Self::from_raw(unsafe { FXDockTitle_new(bar.as_raw(), to_cstring(title).as_ptr()) })
@@ -1359,13 +1412,7 @@ impl FoldingList {
     }
 }
 
-impl_widget!(
-    Header,
-    IdExt,
-    FrameExt,
-    DrawableExt,
-    WindowExt
-);
+impl_widget!(Header, IdExt, FrameExt, DrawableExt, WindowExt);
 impl Header {
     pub fn new(parent: &impl CompositeExt) -> Self {
         Self::from_raw(unsafe { FXHeader_new(parent.as_raw() as *mut FXComposite) })
@@ -1425,46 +1472,26 @@ impl ToolBar {
     }
 }
 
-impl_widget!(
-    ToolBarGrip,
-    IdExt,
-    FrameExt,
-    DrawableExt,
-    WindowExt
-);
+impl_widget!(ToolBarGrip, IdExt, FrameExt, DrawableExt, WindowExt);
 impl ToolBarGrip {
     pub fn new(toolbar: &ToolBar) -> Self {
         Self::from_raw(unsafe { FXToolBarGrip_new(toolbar.as_raw()) })
     }
 }
 
-impl_widget!(
-    ToolBarTab,
-    IdExt,
-    FrameExt,
-    DrawableExt,
-    WindowExt
-);
+impl_widget!(ToolBarTab, IdExt, FrameExt, DrawableExt, WindowExt);
 impl ToolBarTab {
     pub fn new(toolbar: &ToolBar) -> Self {
         Self::from_raw(unsafe { FXToolBarTab_new(toolbar.as_raw()) })
     }
 }
 
-impl_widget!(
-    Popup,
-    IdExt,
-    FrameExt,
-    DrawableExt,
-    WindowExt,
-    TopWindowExt
-);
+impl_widget!(Popup, IdExt, FrameExt, DrawableExt, WindowExt, TopWindowExt);
 impl Popup {
     pub fn new(owner: &impl WindowExt) -> Self {
         Self::from_raw(unsafe { FXPopup_new(owner.as_raw() as *mut FXWindow) })
     }
 }
-
 
 impl_widget!(
     OptionMenu,
@@ -1481,36 +1508,21 @@ impl OptionMenu {
     }
 }
 
-impl_widget!(
-    Ruler,
-    IdExt,
-    FrameExt,
-    DrawableExt,
-    WindowExt
-);
+impl_widget!(Ruler, IdExt, FrameExt, DrawableExt, WindowExt);
 impl Ruler {
     pub fn new(parent: &impl CompositeExt, orientation: u32) -> Self {
         Self::from_raw(unsafe { FXRuler_new(parent.as_raw() as *mut FXComposite, orientation) })
     }
 }
 
-impl_widget!(
-    Spring,
-    IdExt,
-    FrameExt,
-    DrawableExt,
-    WindowExt
-);
+impl_widget!(Spring, IdExt, FrameExt, DrawableExt, WindowExt);
 impl Spring {
     pub fn new(parent: &impl CompositeExt) -> Self {
         Self::from_raw(unsafe { FXSpring_new(parent.as_raw() as *mut FXComposite) })
     }
 }
 
-impl_widget!(
-    TableItem,
-    IdExt
-);
+impl_widget!(TableItem, IdExt);
 impl TableItem {
     pub fn new(table: &Table, text: &str) -> Self {
         Self::from_raw(unsafe { FXTableItem_new(table.as_raw(), to_cstring(text).as_ptr()) })
@@ -1541,84 +1553,46 @@ impl_widget!(
 );
 impl MDIChild {
     pub fn new(client: &MDIClient, title: &str) -> Self {
-        Self::from_raw(unsafe {
-            FXMDIChild_new(client.as_raw(), to_cstring(title).as_ptr())
-        })
+        Self::from_raw(unsafe { FXMDIChild_new(client.as_raw(), to_cstring(title).as_ptr()) })
     }
 }
 
-impl_widget!(
-    MDIMenu,
-    IdExt,
-    FrameExt,
-    DrawableExt,
-    WindowExt
-);
+impl_widget!(MDIMenu, IdExt, FrameExt, DrawableExt, WindowExt);
 impl MDIMenu {
     pub fn new(parent: &impl CompositeExt) -> Self {
         Self::from_raw(unsafe { FXMDIMenu_new(parent.as_raw() as *mut FXComposite) })
     }
 }
 
-impl_widget!(
-    MDIDeleteButton,
-    IdExt,
-    FrameExt,
-    DrawableExt,
-    WindowExt
-);
+impl_widget!(MDIDeleteButton, IdExt, FrameExt, DrawableExt, WindowExt);
 impl MDIDeleteButton {
     pub fn new(parent: &impl CompositeExt) -> Self {
         Self::from_raw(unsafe { FXMDIDeleteButton_new(parent.as_raw() as *mut FXComposite) })
     }
 }
 
-impl_widget!(
-    MDIMaximizeButton,
-    IdExt,
-    FrameExt,
-    DrawableExt,
-    WindowExt
-);
+impl_widget!(MDIMaximizeButton, IdExt, FrameExt, DrawableExt, WindowExt);
 impl MDIMaximizeButton {
     pub fn new(parent: &impl CompositeExt) -> Self {
         Self::from_raw(unsafe { FXMDIMaximizeButton_new(parent.as_raw() as *mut FXComposite) })
     }
 }
 
-impl_widget!(
-    MDIMinimizeButton,
-    IdExt,
-    FrameExt,
-    DrawableExt,
-    WindowExt
-);
+impl_widget!(MDIMinimizeButton, IdExt, FrameExt, DrawableExt, WindowExt);
 impl MDIMinimizeButton {
     pub fn new(parent: &impl CompositeExt) -> Self {
         Self::from_raw(unsafe { FXMDIMinimizeButton_new(parent.as_raw() as *mut FXComposite) })
     }
 }
 
-impl_widget!(
-    MDIRestoreButton,
-    IdExt,
-    FrameExt,
-    DrawableExt,
-    WindowExt
-);
+impl_widget!(MDIRestoreButton, IdExt, FrameExt, DrawableExt, WindowExt);
 impl MDIRestoreButton {
     pub fn new(parent: &impl CompositeExt) -> Self {
         Self::from_raw(unsafe { FXMDIRestoreButton_new(parent.as_raw() as *mut FXComposite) })
     }
 }
 
-impl_widget!(
-    MDIWindowButton,
-    IdExt,
-    FrameExt,
-    DrawableExt,
-    WindowExt
-);
+impl_widget!(MDIWindowButton, IdExt, FrameExt, DrawableExt, WindowExt);
 impl MDIWindowButton {
     pub fn new(parent: &impl CompositeExt, popup: &Popup) -> Self {
         Self::from_raw(unsafe {
