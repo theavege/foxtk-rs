@@ -1170,6 +1170,13 @@ impl ImageView {
     }
 }
 
+impl_widget!(Icon, IdExt);
+impl Icon {
+    pub fn new(app: &App) -> Self {
+        Self::from_raw(unsafe { FXIcon_new(app.as_raw()) })
+    }
+}
+
 impl_widget!(GLVisual, IdExt);
 impl GLVisual {
     pub fn new(app: &App) -> Self {
