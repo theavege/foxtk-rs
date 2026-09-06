@@ -13,15 +13,8 @@ function _setup
                 fedora | alma) sudo dnf install -y shfmt shellcheck fox-devel ;;
             esac 1>/dev/null
         fi
-        shellcheck --external-sources "${0}"
-        shfmt -ci -fn -i 4 -d "${0}"
-
-        declare -r CSRC="foxtk-sys/src"
-        clang-tidy "${CSRC:?}"/*.{cpp,h} -- "$(fox-config --cflags)"
-        clang-format --dry-run --Werror -style=Mozilla "${CSRC:?}"/*.{cpp,h}
     fi
 )
-
 
 set -euo pipefail
 
@@ -29,9 +22,16 @@ if ((${#})); then
     case ${1} in
         setup) _setup ;;
         build)
+            shellcheck --external-sources "${0}"
+            shfmt -ci -fn -i 4 -d "${0}"
+
+            declare -r CSRC="foxtk-sys/src"
+            clang-tidy "${CSRC:?}"/*.{cpp,h} -- "$(fox-config --cflags)"
+            clang-format --dry-run --Werror -style=Mozilla "${CSRC:?}"/*.{cpp,h}
+
             cargo clippy --quiet --features="all" --examples
             cargo build --release --features="all" --examples
             cargo fmt --check --all
-        ;;
+            ;;
     esac
 fi
