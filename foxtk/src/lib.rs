@@ -1375,7 +1375,7 @@ impl Header {
 impl_widget!(GLVisual, IdExt);
 impl GLVisual {
     pub fn new(app: &App) -> Self {
-        Self::from_raw(unsafe { FXGLVisual_new(app.as_raw() as *mut FXApp) })
+        Self::from_raw(unsafe { FXGLVisual_new(app.as_raw()) })
     }
 }
 
@@ -1390,7 +1390,7 @@ impl_widget!(
 impl GLCanvas {
     pub fn new(parent: &impl CompositeExt, visual: &GLVisual) -> Self {
         Self::from_raw(unsafe {
-            FXGLCanvas_new(parent.as_raw() as *mut FXComposite, visual.as_raw() as *mut FXGLVisual)
+            FXGLCanvas_new(parent.as_raw() as *mut FXComposite, visual.as_raw())
         })
     }
 }
@@ -1406,7 +1406,7 @@ impl_widget!(
 impl GLViewer {
     pub fn new(parent: &impl CompositeExt, visual: &GLVisual) -> Self {
         Self::from_raw(unsafe {
-            FXGLViewer_new(parent.as_raw() as *mut FXComposite, visual.as_raw() as *mut FXGLVisual)
+            FXGLViewer_new(parent.as_raw() as *mut FXComposite, visual.as_raw())
         })
     }
 }
@@ -1434,7 +1434,7 @@ impl_widget!(
 );
 impl ToolBarGrip {
     pub fn new(toolbar: &ToolBar) -> Self {
-        Self::from_raw(unsafe { FXToolBarGrip_new(toolbar.as_raw() as *mut FXToolBar) })
+        Self::from_raw(unsafe { FXToolBarGrip_new(toolbar.as_raw()) })
     }
 }
 
@@ -1447,7 +1447,7 @@ impl_widget!(
 );
 impl ToolBarTab {
     pub fn new(toolbar: &ToolBar) -> Self {
-        Self::from_raw(unsafe { FXToolBarTab_new(toolbar.as_raw() as *mut FXToolBar) })
+        Self::from_raw(unsafe { FXToolBarTab_new(toolbar.as_raw()) })
     }
 }
 
@@ -1478,6 +1478,19 @@ impl_widget!(
 impl OptionMenu {
     pub fn new(parent: &impl CompositeExt) -> Self {
         Self::from_raw(unsafe { FXOptionMenu_new(parent.as_raw() as *mut FXComposite) })
+    }
+}
+
+impl_widget!(
+    Ruler,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt
+);
+impl Ruler {
+    pub fn new(parent: &impl CompositeExt, orientation: u32) -> Self {
+        Self::from_raw(unsafe { FXRuler_new(parent.as_raw() as *mut FXComposite, orientation) })
     }
 }
 
