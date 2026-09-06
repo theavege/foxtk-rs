@@ -1184,6 +1184,22 @@ impl ColorSelector {
     }
 }
 
+impl_widget!(FontSelector, IdExt, FrameExt, DrawableExt, WindowExt);
+impl FontSelector {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        Self::from_raw(unsafe { FXFontSelector_new(parent.as_raw() as *mut FXComposite) })
+    }
+}
+
+impl_widget!(PrintDialog, IdExt, FrameExt, DrawableExt, WindowExt, TopWindowExt);
+impl PrintDialog {
+    pub fn new(parent: &impl WindowExt, title: &str) -> Self {
+        Self::from_raw(unsafe {
+            FXPrintDialog_new(parent.as_raw() as *mut FXWindow, to_cstring(title).as_ptr())
+        })
+    }
+}
+
 impl_widget!(GLVisual, IdExt);
 impl GLVisual {
     pub fn new(app: &App) -> Self {
