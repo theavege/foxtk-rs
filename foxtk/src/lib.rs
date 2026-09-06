@@ -1451,6 +1451,36 @@ impl ToolBarTab {
     }
 }
 
+impl_widget!(
+    Popup,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    TopWindowExt
+);
+impl Popup {
+    pub fn new(owner: &impl WindowExt) -> Self {
+        Self::from_raw(unsafe { FXPopup_new(owner.as_raw() as *mut FXWindow) })
+    }
+}
+
+
+impl_widget!(
+    OptionMenu,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    PackerExt,
+    CompositeExt
+);
+impl OptionMenu {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        Self::from_raw(unsafe { FXOptionMenu_new(parent.as_raw() as *mut FXComposite) })
+    }
+}
+
 impl_textable!(Button, Label, Text, TextField, RadioButton);
 impl_selector!(ComboBox, List, ListBox);
 impl_ranger!(Dial, Knob, Slider, Spinner);
