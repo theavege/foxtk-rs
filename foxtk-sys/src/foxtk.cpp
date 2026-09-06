@@ -1,7 +1,7 @@
 #include <cstdio>
 #include <fx.h>
-#include "foxtk.h"
 #include <fx3d.h>
+#include "foxtk.h"
 #include <type_traits>
 #include <utility>
 
@@ -33,6 +33,13 @@ namespace {
 // INTERNAL STRING UTILITIES
 // ============================================================================
 
+// Returns a pointer into a single thread_local buffer that is overwritten
+// on every call. Safe for the common "call, use immediately" pattern, but
+// a caller holding two of these pointers at once (e.g. from two calls
+// before consuming either) will find the first one's contents changed
+// underneath it. Callers that need to keep a value around — including any
+// FFI binding — should copy it out (e.g. to an owned std::string/CString)
+// before making another call on the same thread.
 inline const char*
 string_result(const FXString& value)
 {
@@ -67,17 +74,6 @@ inline const T*
 as_raw(const U* ptr)
 {
   return static_cast<const T*>(ptr);
-}
-
-template<typename T>
-inline T*
-ensure_not_null(T* ptr, const char* name = nullptr)
-{
-  if (!ptr) {
-    fprintf(
-      stderr, "%s: null pointer in C wrapper%s\n", __func__, name ? name : "");
-  }
-  return ptr;
 }
 
 // ============================================================================
@@ -301,7 +297,10 @@ ext_set_font(W* self, const char* family, int size)
 }
 
 // OPAQUE HANDLE TYPES used only by internal implementation.
-typedef long (*CbWidget)(FXObject* wgt, void* ctx);
+// CbWidget itself comes from foxtk.h — the sender FOX hands to handle()
+// is a bare FXObject*, but every widget constructible through this API is
+// an FXWindow, so the public callback type takes FXWindow* and callBack()
+// below casts accordingly instead of keeping a second, mismatched alias.
 typedef long (*CbTimer)(FXApp* app, void* c);
 
 class CTarget : public FXObject
@@ -329,7 +328,7 @@ public:
   {
     long result = 0;
     if (this->callback)
-      result = this->callback(wgt, this->context);
+      result = this->callback(as_raw<FXWindow>(wgt), this->context);
     return result;
   }
 };
@@ -395,7 +394,10 @@ protected:
   CMouseTarget() {}
 
 private:
-  long (*callback)(FXObject*, int, int, int, void*) = nullptr;
+  // CbMouse comes from foxtk.h; its first parameter is the FXCanvas*, cast
+  // below from the FXObject* sender that handle() actually delivers (see
+  // the CTarget/CbWidget note above for why this cast is safe here).
+  CbMouse callback = nullptr;
   void* context = nullptr;
 
 public:
@@ -407,7 +409,7 @@ public:
     SEL_RBP = SEL_RIGHTBUTTONPRESS,
     SEL_RBR = SEL_RIGHTBUTTONRELEASE
   };
-  CMouseTarget(long (*cb)(FXObject*, int, int, int, void*), void* ctx)
+  CMouseTarget(CbMouse cb, void* ctx)
     : callback(cb)
     , context(ctx)
   {
@@ -434,7 +436,7 @@ public:
         code = 4;
       else if (sel == SEL_RIGHTBUTTONRELEASE)
         code = 5;
-      result = this->callback(wgt, code, x, y, this->context);
+      result = this->callback(as_raw<FXCanvas>(wgt), code, x, y, this->context);
     }
     return result;
   }
@@ -495,7 +497,7 @@ ext_set_tip_text(W* self, const char* text)
 }
 
 template<typename W, typename T>
-inline int
+inline T
 ext_get_value(const W* self)
 {
   return self->getValue();
@@ -505,7 +507,7 @@ template<typename W, typename T>
 inline void
 ext_get_range(const W* self, T* lo, T* hi)
 {
-  FXint lower, upper;
+  T lower, upper;
   self->getRange(lower, upper);
   if (lo)
     *lo = lower;
@@ -732,6 +734,10 @@ extern "C"
   {
     self->setFrameStyle(style);
   }
+  unsigned FXFrame_get_style(const FXFrame* self)
+  {
+    return self->getFrameStyle();
+  }
   void FXFrame_set_pad_bottom(FXFrame* self, int pad)
   {
     self->setPadBottom(pad);
@@ -814,6 +820,10 @@ extern "C"
   {
     self->setJustify(justify);
   }
+  unsigned FXLabel_get_justify(const FXLabel* self)
+  {
+    return self->getJustify();
+  }
   const char* FXLabel_get_text(const FXLabel* self)
   {
     return ext_get_text(self);
@@ -844,6 +854,22 @@ extern "C"
   void FXArrowButton_set_arrow_color(FXArrowButton* self, unsigned color)
   {
     self->setArrowColor(color);
+  }
+  unsigned FXArrowButton_get_justify(const FXArrowButton* self)
+  {
+    return self->getJustify();
+  }
+  void FXArrowButton_set_justify(FXArrowButton* self, unsigned justify)
+  {
+    self->setJustify(justify);
+  }
+  unsigned FXArrowButton_get_state(const FXArrowButton* self)
+  {
+    return self->getState();
+  }
+  void FXArrowButton_set_state(FXArrowButton* self, unsigned check)
+  {
+    self->setState(check);
   }
   const char* FXArrowButton_get_help_text(const FXArrowButton* self)
   {
@@ -1040,6 +1066,22 @@ extern "C"
     return make_widget<FXColorDialog, FXWindow>(owner, title);
   }
 
+  //~ FXTopWindow.h
+  // NOTE: FXTopWindow has no _new of its own (it's the common base of
+  // FXMainWindow/FXDialogBox/FXWizard) and this wrapper's opaque types
+  // don't model that inheritance, so a caller holding an FXMainWindow*
+  // or FXDialogBox* has no direct way to obtain the FXTopWindow* these
+  // take. Implemented to satisfy the link, but treat as needing either
+  // a cast helper or a per-subclass overload before real use.
+  void FXTopWindow_set_hspacing(FXTopWindow* self, int hspacing)
+  {
+    self->setHSpacing(hspacing);
+  }
+  void FXTopWindow_set_vspacing(FXTopWindow* self, int vspacing)
+  {
+    self->setVSpacing(vspacing);
+  }
+
   //~ FXDialogBox.h
   FXDialogBox* FXDialogBox_new(FXWindow* owner, const char* title)
   {
@@ -1118,9 +1160,17 @@ extern "C"
   {
     self->setState(state);
   }
+  unsigned FXButton_get_state(const FXButton* self)
+  {
+    return self->getState();
+  }
   void FXButton_set_style(FXButton* self, unsigned style)
   {
     self->setButtonStyle(style);
+  }
+  unsigned FXButton_get_style(const FXButton* self)
+  {
+    return self->getButtonStyle();
   }
   const char* FXButton_get_text(const FXButton* self)
   {
@@ -1162,9 +1212,9 @@ extern "C"
   {
     return self->getCheck();
   }
-  void FXRadioButton_set_check(FXRadioButton* self)
+  void FXRadioButton_set_check(FXRadioButton* self, unsigned char check)
   {
-    self->setCheck();
+    self->setCheck(check);
   }
   const char* FXRadioButton_get_text(const FXRadioButton* self)
   {
@@ -1190,15 +1240,27 @@ extern "C"
   {
     return make_widget<FXToggleButton, FXComposite>(prt, text1, text2);
   }
+  unsigned FXToggleButton_get_state(const FXToggleButton* self)
+  {
+    return self->getState();
+  }
+  void FXToggleButton_set_state(FXToggleButton* self, unsigned state)
+  {
+    self->setState(state);
+  }
 
   //~ FXText.h
   FXText* FXText_new(FXComposite* prt)
   {
     return make_widget<FXText, FXComposite>(prt);
   }
-  void FXText_set_editable(FXText* self, long editable)
+  void FXText_set_editable(FXText* self, unsigned char editable)
   {
     self->setEditable(editable != 0);
+  }
+  unsigned char FXText_is_editable(const FXText* self)
+  {
+    return self->isEditable();
   }
   const char* FXText_get_text(const FXText* self)
   {
@@ -1222,9 +1284,21 @@ extern "C"
   {
     return make_widget<FXTextField, FXComposite>(prt, 8);
   }
-  void FXTextField_set_editable(FXTextField* self, long val)
+  void FXTextField_set_editable(FXTextField* self, unsigned char val)
   {
     self->setEditable(val != 0);
+  }
+  unsigned char FXTextField_is_editable(const FXTextField* self)
+  {
+    return self->isEditable();
+  }
+  unsigned FXTextField_get_justify(const FXTextField* self)
+  {
+    return self->getJustify();
+  }
+  void FXTextField_set_justify(FXTextField* self, unsigned justify)
+  {
+    self->setJustify(justify);
   }
   const char* FXTextField_get_text(const FXTextField* self)
   {
@@ -1270,15 +1344,47 @@ extern "C"
   {
     return make_widget<FXRealSlider, FXComposite>(parent);
   }
+  double FXRealSlider_get_value(const FXRealSlider* self)
+  {
+    return ext_get_value<FXRealSlider, double>(self);
+  }
+  void FXRealSlider_get_range(const FXRealSlider* self, double* lo, double* hi)
+  {
+    ext_get_range<FXRealSlider, double>(self, lo, hi);
+  }
+  void FXRealSlider_set_value(FXRealSlider* self, double value)
+  {
+    ext_set_value<FXRealSlider, double>(self, value);
+  }
+  void FXRealSlider_set_range(FXRealSlider* self, double lo, double hi)
+  {
+    ext_set_range<FXRealSlider, double>(self, lo, hi);
+  }
 
   //~ FXRealSpinner.h
   FXRealSpinner* FXRealSpinner_new(FXComposite* parent)
   {
     return make_widget<FXRealSpinner, FXComposite>(parent, 6);
   }
+  double FXRealSpinner_get_value(const FXRealSpinner* self)
+  {
+    return ext_get_value<FXRealSpinner, double>(self);
+  }
+  void FXRealSpinner_get_range(const FXRealSpinner* self, double* lo, double* hi)
+  {
+    ext_get_range<FXRealSpinner, double>(self, lo, hi);
+  }
+  void FXRealSpinner_set_value(FXRealSpinner* self, double value)
+  {
+    ext_set_value<FXRealSpinner, double>(self, value);
+  }
+  void FXRealSpinner_set_range(FXRealSpinner* self, double lo, double hi)
+  {
+    ext_set_range<FXRealSpinner, double>(self, lo, hi);
+  }
 
   //~ FXSpinner.h
-  FXSpinner* FXSpinner_new(FXRealSpinner* parent)
+  FXSpinner* FXSpinner_new(FXComposite* parent)
   {
     return make_widget<FXSpinner, FXComposite>(parent, 6);
   }
@@ -1499,6 +1605,10 @@ extern "C"
   {
     self->setGroupBoxStyle(style);
   }
+  unsigned FXGroupBox_get_style(const FXGroupBox* self)
+  {
+    return self->getGroupBoxStyle();
+  }
   void FXGroupBox_set_text(FXGroupBox* self, const char* text)
   {
     self->setText(text);
@@ -1532,29 +1642,56 @@ extern "C"
   {
     return make_widget<FXDCWindow, FXDrawable>(drawable);
   }
-
-  //~ FXDC.h
-  void FXDC_set_foreground(FXDCWindow* self, unsigned color)
+  void FXDCWindow_set_foreground(FXDCWindow* self, unsigned color)
   {
     self->setForeground(color);
   }
-  void FXDC_set_line_width(FXDCWindow* self, int width)
+  void FXDCWindow_set_line_width(FXDCWindow* self, int width)
   {
     self->setLineWidth(width);
   }
-  void FXDC_draw_line(FXDCWindow* self, int x1, int y1, int x2, int y2)
+  void FXDCWindow_draw_line(FXDCWindow* self, int x1, int y1, int x2, int y2)
   {
     self->drawLine(x1, y1, x2, y2);
   }
-  void FXDC_draw_point(FXDCWindow* self, int x, int y)
+  void FXDCWindow_draw_point(FXDCWindow* self, int x, int y)
   {
     self->drawPoint(x, y);
   }
-  void FXDC_draw_rect(FXDCWindow* self, int x, int y, int w, int h)
+  void FXDCWindow_draw_rect(FXDCWindow* self, int x, int y, int w, int h)
   {
     self->drawRectangle(x, y, w, h);
   }
-  void FXDC_fill_rect(FXDCWindow* self, int x, int y, int w, int h)
+  void FXDCWindow_fill_rect(FXDCWindow* self, int x, int y, int w, int h)
+  {
+    self->fillRectangle(x, y, w, h);
+  }
+
+  //~ FXDCPrint.h
+  // No _new here yet — FXDCPrint's constructor needs a print-job argument
+  // this wrapper doesn't model. These are implemented and ready to wire up
+  // to a constructor later.
+  void FXDCPrint_set_foreground(FXDCPrint* self, unsigned color)
+  {
+    self->setForeground(color);
+  }
+  void FXDCPrint_set_line_width(FXDCPrint* self, int width)
+  {
+    self->setLineWidth(width);
+  }
+  void FXDCPrint_draw_line(FXDCPrint* self, int x1, int y1, int x2, int y2)
+  {
+    self->drawLine(x1, y1, x2, y2);
+  }
+  void FXDCPrint_draw_point(FXDCPrint* self, int x, int y)
+  {
+    self->drawPoint(x, y);
+  }
+  void FXDCPrint_draw_rect(FXDCPrint* self, int x, int y, int w, int h)
+  {
+    self->drawRectangle(x, y, w, h);
+  }
+  void FXDCPrint_fill_rect(FXDCPrint* self, int x, int y, int w, int h)
   {
     self->fillRectangle(x, y, w, h);
   }
@@ -1579,6 +1716,15 @@ extern "C"
     self->show(PLACEMENT_SCREEN);
   }
 
+  //~ FXWizard.h
+  FXWizard* FXWizard_new(FXWindow* owner, const char* title)
+  {
+    // FXWizard's real constructor requires an FXImage* (no default), which
+    // this API's 2-arg signature doesn't expose. Passing nullptr gives a
+    // wizard with no side image; extend the header if callers need one.
+    return make_widget<FXWizard, FXWindow>(owner, title, nullptr);
+  }
+
   //~ FXComboBox.h
   FXComboBox* FXComboBox_new(FXComposite* prt, int cols)
   {
@@ -1599,6 +1745,22 @@ extern "C"
   void FXComboBox_set_num_visible(FXComboBox* self, int nvis)
   {
     ext_set_num_visible(self, nvis);
+  }
+  unsigned FXComboBox_get_justify(const FXComboBox* self)
+  {
+    return self->getJustify();
+  }
+  void FXComboBox_set_justify(FXComboBox* self, unsigned justify)
+  {
+    self->setJustify(justify);
+  }
+  unsigned char FXComboBox_is_editable(const FXComboBox* self)
+  {
+    return self->isEditable();
+  }
+  void FXComboBox_set_editable(FXComboBox* self, unsigned char editable)
+  {
+    self->setEditable(editable != 0);
   }
   const char* FXComboBox_get_item_text(const FXComboBox* self, int index)
   {
@@ -1630,13 +1792,17 @@ extern "C"
   }
 
   //~ FXList.h
-  FXList* FXList_new(FXList* prt)
+  FXList* FXList_new(FXComposite* prt)
   {
     return make_widget<FXList, FXComposite>(prt);
   }
   void FXList_set_style(FXList* self, unsigned style)
   {
     self->setListStyle(style);
+  }
+  unsigned FXList_get_style(const FXList* self)
+  {
+    return self->getListStyle();
   }
   void FXList_append_item(FXList* self, const char* text)
   {
@@ -1668,7 +1834,7 @@ extern "C"
   }
 
   //~ FXListBox.h
-  FXListBox* FXListBox_new(FXListBox* prt)
+  FXListBox* FXListBox_new(FXComposite* prt)
   {
     return make_widget<FXListBox, FXComposite>(prt);
   }
@@ -1734,6 +1900,13 @@ extern "C"
   {
     return string_result(self->getItemText(r, c));
   }
+  // NOTE: EXT_JUSTIFY(FXTable) is declared in the header, but FXTable has
+  // no table-wide justify in the real FOX API — justification is a
+  // per-cell property on FXTableItem, not the table itself. Left
+  // unimplemented rather than mapping it to the wrong thing (e.g.
+  // getTableStyle/setTableStyle, which is a different concept entirely).
+  // Either drop EXT_JUSTIFY(FXTable) from the header, or replace it with
+  // a per-cell FXTable_get/set_item_justify(self, r, c, justify) pair.
 
   // ============================================================================
   // DRAWING WIDGETS
@@ -1743,12 +1916,9 @@ extern "C"
   {
     return make_widget<FXCanvas, FXComposite>(prt);
   }
-  void FXCanvas_set_mouse_callback(FXCanvas* self,
-                                   long (*cb)(FXObject*, int, int, int, void*),
-                                   void* ctx)
+  void FXCanvas_set_mouse_callback(FXCanvas* self, CbMouse cb, void* ctx)
   {
-    auto old = self->getTarget();
-    if (as_raw<CMouseTarget>(old))
+    if (auto old = dynamic_cast<CMouseTarget*>(self->getTarget()))
       delete old;
     self->setTarget(as_raw<FXObject>(new CMouseTarget(cb, ctx)));
   }
@@ -1864,6 +2034,10 @@ extern "C"
   {
     self->setButtonStyle(style);
   }
+  unsigned FXMenuButton_get_style(const FXMenuButton* self)
+  {
+    return self->getButtonStyle();
+  }
   void FXMenuButton_set_popup_style(FXMenuButton* self, FXuint style)
   {
     self->setPopupStyle(style);
@@ -1902,9 +2076,9 @@ extern "C"
   {
     return self->getCheck();
   }
-  void FXMenuRadio_set_check(FXMenuRadio* self)
+  void FXMenuRadio_set_check(FXMenuRadio* self, unsigned char check)
   {
-    self->setCheck();
+    self->setCheck(check);
   }
 
   //~ FXMenuCheck.h
@@ -2053,6 +2227,12 @@ extern "C"
   FXImage* FXImage_new(FXApp* owner)
   {
     return make_widget<FXImage, FXApp>(owner);
+  }
+
+  //~ FXIcon.h
+  FXIcon* FXIcon_new(FXApp* app)
+  {
+    return make_widget<FXIcon, FXApp>(app);
   }
 
   //~ FXImageFrame.h
