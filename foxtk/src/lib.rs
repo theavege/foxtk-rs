@@ -1290,6 +1290,127 @@ impl MenuSeparator {
     }
 }
 
+impl_widget!(
+    DockBar,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    CompositeExt
+);
+impl DockBar {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        Self::from_raw(unsafe { FXDockBar_new(parent.as_raw() as *mut FXComposite) })
+    }
+}
+
+impl_widget!(
+    DockSite,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    CompositeExt
+);
+impl DockSite {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        Self::from_raw(unsafe { FXDockSite_new(parent.as_raw() as *mut FXComposite) })
+    }
+}
+
+impl_widget!(
+    DockTitle,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt
+);
+impl DockTitle {
+    pub fn new(bar: &DockBar, title: &str) -> Self {
+        Self::from_raw(unsafe { FXDockTitle_new(bar.as_raw(), to_cstring(title).as_ptr()) })
+    }
+    pub fn set_justify(&self, justify: Justify) {
+        unsafe {
+            FXDockTitle_set_justify(self.as_raw(), justify as u32);
+        }
+    }
+    pub fn justify(&self) -> Justify {
+        unsafe {
+            std::mem::transmute::<u32, Justify>(FXDockTitle_get_justify(self.as_raw()) as u32)
+        }
+    }
+    pub fn with_justify(self, justify: Justify) -> Self {
+        self.set_justify(justify);
+        self
+    }
+}
+
+impl_widget!(
+    FoldingList,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    CompositeExt
+);
+impl FoldingList {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        Self::from_raw(unsafe { FXFoldingList_new(parent.as_raw() as *mut FXComposite) })
+    }
+}
+
+impl_widget!(
+    Header,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt
+);
+impl Header {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        Self::from_raw(unsafe { FXHeader_new(parent.as_raw() as *mut FXComposite) })
+    }
+}
+
+impl_widget!(GLVisual, IdExt);
+impl GLVisual {
+    pub fn new(app: &App) -> Self {
+        Self::from_raw(unsafe { FXGLVisual_new(app.as_raw() as *mut FXApp) })
+    }
+}
+
+impl_widget!(
+    GLCanvas,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    CompositeExt
+);
+impl GLCanvas {
+    pub fn new(parent: &impl CompositeExt, visual: &GLVisual) -> Self {
+        Self::from_raw(unsafe {
+            FXGLCanvas_new(parent.as_raw() as *mut FXComposite, visual.as_raw() as *mut FXGLVisual)
+        })
+    }
+}
+
+impl_widget!(
+    GLViewer,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    CompositeExt
+);
+impl GLViewer {
+    pub fn new(parent: &impl CompositeExt, visual: &GLVisual) -> Self {
+        Self::from_raw(unsafe {
+            FXGLViewer_new(parent.as_raw() as *mut FXComposite, visual.as_raw() as *mut FXGLVisual)
+        })
+    }
+}
+
 impl_textable!(Button, Label, Text, TextField, RadioButton);
 impl_selector!(ComboBox, List, ListBox);
 impl_ranger!(Dial, Knob, Slider, Spinner);
