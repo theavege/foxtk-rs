@@ -1177,6 +1177,13 @@ impl Icon {
     }
 }
 
+impl_widget!(ColorSelector, IdExt, FrameExt, DrawableExt, WindowExt);
+impl ColorSelector {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        Self::from_raw(unsafe { FXColorSelector_new(parent.as_raw() as *mut FXComposite) })
+    }
+}
+
 impl_widget!(GLVisual, IdExt);
 impl GLVisual {
     pub fn new(app: &App) -> Self {
