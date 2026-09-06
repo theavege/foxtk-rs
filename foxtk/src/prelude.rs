@@ -7,6 +7,16 @@ use {
     },
 };
 
+/// Helper function to convert a string to CString, handling null bytes gracefully
+/// by replacing them with a placeholder character.
+#[allow(dead_code)]
+pub(crate) fn to_cstring(s: &str) -> CString {
+    CString::new(s).unwrap_or_else(|_| {
+        // Replace null bytes with underscore
+        CString::new(s.replace('\0', "_")).unwrap()
+    })
+}
+
 unsafe extern "C" fn ccallback<T: WindowExt>(ptr: *mut FXWindow, context: *mut c_void) -> c_long {
     unsafe {
         let func: &mut Box<dyn FnMut(T) -> bool> =
@@ -91,9 +101,9 @@ pub trait WindowExt: DrawableExt {
         unsafe {
             let ptr = FXFileDialog_get_open_filename(
                 self.root().as_raw() as *mut FXWindow,
-                CString::new(caption).unwrap().as_ptr(),
-                CString::new(path).unwrap().as_ptr(),
-                CString::new(patterns).unwrap().as_ptr(),
+                to_cstring(caption).as_ptr(),
+                to_cstring(path).as_ptr(),
+                to_cstring(patterns).as_ptr(),
                 initial,
             );
             std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
@@ -103,9 +113,9 @@ pub trait WindowExt: DrawableExt {
         unsafe {
             let ptr = FXFileDialog_get_save_filename(
                 self.root().as_raw() as *mut FXWindow,
-                CString::new(caption).unwrap().as_ptr(),
-                CString::new(path).unwrap().as_ptr(),
-                CString::new(patterns).unwrap().as_ptr(),
+                to_cstring(caption).as_ptr(),
+                to_cstring(path).as_ptr(),
+                to_cstring(patterns).as_ptr(),
                 initial,
             );
             std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
@@ -172,26 +182,26 @@ pub trait WindowExt: DrawableExt {
                 Message::Error => FXMessageBox_error(
                     self.root().as_raw() as *mut FXWindow,
                     opts as u32,
-                    CString::new("Error").unwrap().as_ptr(),
-                    CString::new(message).unwrap().as_ptr(),
+                    to_cstring("Error").as_ptr(),
+                    to_cstring(message).as_ptr(),
                 ),
                 Message::Information => FXMessageBox_information(
                     self.root().as_raw() as *mut FXWindow,
                     opts as u32,
-                    CString::new("Information").unwrap().as_ptr(),
-                    CString::new(message).unwrap().as_ptr(),
+                    to_cstring("Information").as_ptr(),
+                    to_cstring(message).as_ptr(),
                 ),
                 Message::Question => FXMessageBox_question(
                     self.root().as_raw() as *mut FXWindow,
                     opts as u32,
-                    CString::new("Question").unwrap().as_ptr(),
-                    CString::new(message).unwrap().as_ptr(),
+                    to_cstring("Question").as_ptr(),
+                    to_cstring(message).as_ptr(),
                 ),
                 Message::Warning => FXMessageBox_warning(
                     self.root().as_raw() as *mut FXWindow,
                     opts as u32,
-                    CString::new("Warning").unwrap().as_ptr(),
-                    CString::new(message).unwrap().as_ptr(),
+                    to_cstring("Warning").as_ptr(),
+                    to_cstring(message).as_ptr(),
                 ),
             }
         }
