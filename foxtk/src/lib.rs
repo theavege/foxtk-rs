@@ -2054,6 +2054,105 @@ impl MDIWindowButton {
     }
 }
 
+impl_widget!(
+    ToolBar,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    CompositeExt
+);
+impl ToolBar {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        Self::from_raw(unsafe { FXToolBar_new(parent.as_raw() as *mut FXComposite) })
+    }
+}
+
+impl_widget!(TabBar, IdExt, FrameExt, DrawableExt, WindowExt, PackerExt, CompositeExt);
+impl TabBar {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        unsafe { Self::from_raw(FXTabBar_new(parent.as_raw() as *mut FXComposite)) }
+    }
+}
+
+impl_widget!(
+    TabBook,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    PackerExt,
+    CompositeExt
+);
+impl TabBook {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        unsafe { Self::from_raw(FXTabBook_new(parent.as_raw() as *mut FXComposite)) }
+    }
+    pub fn set_current(&self, index: i32) {
+        unsafe {
+            FXTabBook_set_current(self.as_raw(), index);
+        }
+    }
+    pub fn current(&self) -> i32 {
+        unsafe { FXTabBook_get_current(self.as_raw()) }
+    }
+    pub fn num_children(&self) -> i32 {
+        unsafe { FXTabBook_get_num_children(self.as_raw()) }
+    }
+    pub fn with_current(self, index: i32) -> Self {
+        self.set_current(index);
+        self
+    }
+}
+
+impl_widget!(
+    TabItem,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    PackerExt,
+    CompositeExt
+);
+impl TabItem {
+    pub fn new(parent: &TabBook, text: &str) -> Self {
+        let c_text = to_cstring(text);
+        unsafe { Self::from_raw(FXTabItem_new(parent.as_raw(), c_text.as_ptr())) }
+    }
+    pub fn set_text(&self, text: &str) {
+        unsafe {
+            FXTabItem_set_text(self.as_raw(), to_cstring(text).as_ptr());
+        }
+    }
+    pub fn text(&self) -> String {
+        unsafe {
+            let ptr = FXTabItem_get_text(self.as_raw());
+            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+        }
+    }
+}
+
+impl_widget!(TreeList, IdExt, FrameExt, DrawableExt, WindowExt, CompositeExt);
+impl TreeList {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        unsafe { Self::from_raw(FXTreeList_new(parent.as_raw() as *mut FXComposite)) }
+    }
+    pub fn add_item_first(&self, prt: &TreeItem, text: &str) -> TreeItem {
+        unsafe {
+            TreeItem::from_raw(FXTreeList_append_item(
+                self.as_raw(),
+                prt.as_raw(),
+                to_cstring(text).as_ptr(),
+            ))
+        }
+    }
+    pub fn clear_items(&self) {
+        unsafe {
+            FXTreeList_clear_items(self.as_raw());
+        }
+    }
+}
+
 impl_widget!(TableItem, IdExt, FrameExt, DrawableExt, WindowExt);
 impl TableItem {
     pub fn new(table: &Table, text: &str) -> Self {
