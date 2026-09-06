@@ -88,7 +88,7 @@ macro_rules! impl_selector {
             impl SelectorExt for $name {
                 fn append_item(&self, text: &str) {
                     unsafe {
-                        [<FX $name _append_item>](self.as_raw(), CString::new(text).unwrap().as_ptr());
+                        [<FX $name _append_item>](self.as_raw(), to_cstring(text).unwrap().as_ptr());
                     }
                 }
                 fn clear_items(&self) {
@@ -138,7 +138,7 @@ macro_rules! impl_textable {
                 }
                 fn set_text(&self, text: &str) {
                     unsafe {
-                        [<FX $name _set_text>](self.as_raw(), CString::new(text).unwrap().as_ptr());
+                        [<FX $name _set_text>](self.as_raw(), to_cstring(text).unwrap().as_ptr());
                     }
                 }
                 fn set_text_color(&self, color: Color) {
@@ -148,7 +148,7 @@ macro_rules! impl_textable {
                 }
                 fn set_font(&self, family: &str, size: i32) {
                     unsafe {
-                        [<FX $name _set_font>](self.as_raw(), CString::new(family).unwrap().as_ptr(), size);
+                        [<FX $name _set_font>](self.as_raw(), to_cstring(family).unwrap().as_ptr(), size);
                     }
                 }
             }
@@ -177,13 +177,13 @@ impl_widget!(App,);
 impl App {
     pub fn new(name: &str, vendor: &str) -> Self {
         let args = std::env::args()
-            .map(|arg| CString::new(arg).unwrap())
+            .map(|arg| to_cstring(to_cstring(arg).unwrap()arg).unwrap())
             .map(|arg| arg.as_ptr())
             .collect::<Vec<*const i8>>();
         Self::from_raw(unsafe {
             FXApp_new(
-                CString::new(name).unwrap().as_ptr(),
-                CString::new(vendor).unwrap().as_ptr(),
+                to_cstring(name).unwrap().as_ptr(),
+                to_cstring(vendor).unwrap().as_ptr(),
                 args.len() as i32,
                 args.as_ptr() as *mut *mut i8,
             )
@@ -230,7 +230,7 @@ impl Button {
         Self::from_raw(unsafe {
             FXButton_new(
                 parent.as_raw() as *mut FXComposite,
-                CString::new(format!("&{title}").as_str()).unwrap().as_ptr(),
+                to_cstring(&format!("&{title}")).unwrap().as_ptr(),
             )
         })
         .with_layout(Layout::FillX)
@@ -289,7 +289,7 @@ impl CheckButton {
         Self::from_raw(unsafe {
             FXCheckButton_new(
                 parent.as_raw() as *mut FXComposite,
-                CString::new(title).unwrap().as_ptr(),
+                to_cstring(title).unwrap().as_ptr(),
             )
         })
         .with_layout(Layout::FillX)
@@ -338,7 +338,7 @@ impl GroupBox {
         Self::from_raw(unsafe {
             FXGroupBox_new(
                 parent.as_raw() as *mut FXComposite,
-                CString::new(title_).unwrap().as_ptr(),
+                to_cstring(title_).unwrap().as_ptr(),
             )
         })
         .with_frame(FrameStyle::Thick)
@@ -485,7 +485,7 @@ impl StatusBar {
     }
     pub fn set_text(&self, text: &str) {
         unsafe {
-            FXStatusBar_set_text(self.as_raw(), CString::new(text).unwrap().as_ptr());
+            FXStatusBar_set_text(self.as_raw(), to_cstring(text).unwrap().as_ptr());
         }
     }
     pub fn text(&self) -> String {
@@ -496,7 +496,7 @@ impl StatusBar {
     }
     pub fn set_help_text(&self, text: &str) {
         unsafe {
-            FXStatusBar_set_help_text(self.as_raw(), CString::new(text).unwrap().as_ptr());
+            FXStatusBar_set_help_text(self.as_raw(), to_cstring(text).unwrap().as_ptr());
         }
     }
     pub fn help_text(&self) -> String {
@@ -521,7 +521,7 @@ impl DialogBox {
         Self::from_raw(unsafe {
             FXDialogBox_new(
                 parent.as_raw() as *mut FXWindow,
-                CString::new(title).unwrap().as_ptr(),
+                to_cstring(title).unwrap().as_ptr(),
             )
         })
     }
@@ -554,7 +554,7 @@ impl FileDialog {
         Self::from_raw(unsafe {
             FXFileDialog_new(
                 parent.as_raw() as *mut FXWindow,
-                CString::new(title).unwrap().as_ptr(),
+                to_cstring(title).unwrap().as_ptr(),
             )
         })
     }
@@ -565,7 +565,7 @@ impl FileDialog {
     }
     pub fn set_directory(&self, directory: &str) {
         unsafe {
-            FXFileDialog_set_directory(self.as_raw(), CString::new(directory).unwrap().as_ptr());
+            FXFileDialog_set_directory(self.as_raw(), to_cstring(directory).unwrap().as_ptr());
         }
     }
     pub fn directory(&self) -> String {
@@ -576,7 +576,7 @@ impl FileDialog {
     }
     pub fn set_filename(&self, filename: &str) {
         unsafe {
-            FXFileDialog_set_filename(self.as_raw(), CString::new(filename).unwrap().as_ptr());
+            FXFileDialog_set_filename(self.as_raw(), to_cstring(filename).unwrap().as_ptr());
         }
     }
     pub fn filename(&self) -> String {
@@ -587,7 +587,7 @@ impl FileDialog {
     }
     pub fn set_pattern(&self, pattern: &str) {
         unsafe {
-            FXFileDialog_set_pattern(self.as_raw(), CString::new(pattern).unwrap().as_ptr());
+            FXFileDialog_set_pattern(self.as_raw(), to_cstring(pattern).unwrap().as_ptr());
         }
     }
     pub fn pattern(&self) -> String {
@@ -624,7 +624,7 @@ impl Label {
         Self::from_raw(unsafe {
             FXLabel_new(
                 parent.as_raw() as *mut FXComposite,
-                CString::new(format!("&{title}").as_str()).unwrap().as_ptr(),
+                to_cstring(&format!("&{title}")).unwrap().as_ptr(),
             )
         })
         .with_height(HEIGHT)
@@ -734,9 +734,9 @@ impl TriStateButton {
         Self::from_raw(unsafe {
             FXTriStateButton_new(
                 parent.as_raw() as *mut FXComposite,
-                CString::new(text1).unwrap().as_ptr(),
-                CString::new(text2).unwrap().as_ptr(),
-                CString::new(text3).unwrap().as_ptr(),
+                to_cstring(text1).unwrap().as_ptr(),
+                to_cstring(text2).unwrap().as_ptr(),
+                to_cstring(text3).unwrap().as_ptr(),
             )
         })
         .with_layout(Layout::FillX)
@@ -749,8 +749,8 @@ impl ToggleButton {
         Self::from_raw(unsafe {
             FXToggleButton_new(
                 parent.as_raw() as *mut FXComposite,
-                CString::new(title).unwrap().as_ptr(),
-                CString::new(title_).unwrap().as_ptr(),
+                to_cstring(title).unwrap().as_ptr(),
+                to_cstring(title_).unwrap().as_ptr(),
             )
         })
         .with_layout(Layout::FillX)
@@ -763,7 +763,7 @@ impl RadioButton {
         Self::from_raw(unsafe {
             FXRadioButton_new(
                 parent.as_raw() as *mut FXComposite,
-                CString::new(title).unwrap().as_ptr(),
+                to_cstring(title).unwrap().as_ptr(),
             )
         })
         .with_layout(Layout::FillX)
@@ -882,12 +882,12 @@ impl_widget!(
 
 impl TabItem {
     pub fn new(parent: &TabBook, text: &str) -> Self {
-        let c_text = CString::new(text).unwrap();
+        let c_text = to_cstring(text).unwrap();
         unsafe { Self::from_raw(FXTabItem_new(parent.as_raw(), c_text.as_ptr())) }
     }
     pub fn set_text(&self, text: &str) {
         unsafe {
-            FXTabItem_set_text(self.as_raw(), CString::new(text).unwrap().as_ptr());
+            FXTabItem_set_text(self.as_raw(), to_cstring(text).unwrap().as_ptr());
         }
     }
     pub fn text(&self) -> String {
@@ -911,12 +911,7 @@ impl Table {
 
     pub fn set_item_text(&self, row: i32, col: i32, text: &str) {
         unsafe {
-            FXTable_set_item_text(
-                self.as_raw(),
-                row,
-                col,
-                CString::new(text).unwrap().as_ptr(),
-            );
+            FXTable_set_item_text(self.as_raw(), row, col, to_cstring(text).unwrap().as_ptr());
         }
     }
 
@@ -963,7 +958,7 @@ impl TreeList {
             TreeItem::from_raw(FXTreeList_append_item(
                 self.as_raw(),
                 prt.as_raw(),
-                CString::new(text).unwrap().as_ptr(),
+                to_cstring(text).unwrap().as_ptr(),
             ))
         }
     }
@@ -998,7 +993,7 @@ impl_widget!(
 impl MainWindow {
     pub fn new(app: &App, title_: &str, w: i32, h: i32) -> Self {
         Self::from_raw(unsafe {
-            FXMainWindow_new(app.as_raw(), CString::new(title_).unwrap().as_ptr(), w, h)
+            FXMainWindow_new(app.as_raw(), to_cstring(title_).unwrap().as_ptr(), w, h)
         })
         .with_pad(0)
     }
@@ -1043,7 +1038,7 @@ impl MenuButton {
         Self::from_raw(unsafe {
             foxtk_sys::FXMenuButton_new(
                 prt.as_raw() as *mut FXComposite,
-                CString::new(text_).unwrap().as_ptr(),
+                to_cstring(text_).unwrap().as_ptr(),
                 pane.as_raw() as *mut FXPopup,
             )
         })
@@ -1057,7 +1052,7 @@ impl MenuTitle {
         Self::from_raw(unsafe {
             foxtk_sys::FXMenuTitle_new(
                 prt.as_raw() as *mut FXComposite,
-                CString::new(text_).unwrap().as_ptr(),
+                to_cstring(text_).unwrap().as_ptr(),
                 pane.as_raw() as *mut FXPopup,
             )
         })
@@ -1071,7 +1066,7 @@ impl MenuRadio {
         Self::from_raw(unsafe {
             FXMenuRadio_new(
                 parent.as_raw() as *mut FXComposite,
-                CString::new(text).unwrap().as_ptr(),
+                to_cstring(text).unwrap().as_ptr(),
             )
         })
     }
@@ -1083,7 +1078,7 @@ impl MenuCheck {
         Self::from_raw(unsafe {
             FXMenuCheck_new(
                 parent.as_raw() as *mut FXComposite,
-                CString::new(text).unwrap().as_ptr(),
+                to_cstring(text).unwrap().as_ptr(),
             )
         })
     }
@@ -1095,7 +1090,7 @@ impl MenuCommand {
         Self::from_raw(unsafe {
             FXMenuCommand_new(
                 parent.as_raw() as *mut FXComposite,
-                CString::new(text).unwrap().as_ptr(),
+                to_cstring(text).unwrap().as_ptr(),
             )
         })
     }
@@ -1257,7 +1252,7 @@ impl_widget!(DockTitle, IdExt, FrameExt, DrawableExt, WindowExt);
 impl DockTitle {
     pub fn new(bar: &DockBar, title: &str) -> Self {
         Self::from_raw(unsafe {
-            FXDockTitle_new(bar.as_raw(), CString::new(title).unwrap().as_ptr())
+            FXDockTitle_new(bar.as_raw(), to_cstring(title).unwrap().as_ptr())
         })
     }
     pub fn set_justify(&self, justify: Justify) {
@@ -1343,7 +1338,7 @@ impl_widget!(
 impl MDIChild {
     pub fn new(client: &MDIClient, title: &str) -> Self {
         Self::from_raw(unsafe {
-            FXMDIChild_new(client.as_raw(), CString::new(title).unwrap().as_ptr())
+            FXMDIChild_new(client.as_raw(), to_cstring(title).unwrap().as_ptr())
         })
     }
 }
@@ -1410,7 +1405,7 @@ impl_widget!(TableItem, IdExt, FrameExt, DrawableExt, WindowExt);
 impl TableItem {
     pub fn new(table: &Table, text: &str) -> Self {
         Self::from_raw(unsafe {
-            FXTableItem_new(table.as_raw(), CString::new(text).unwrap().as_ptr())
+            FXTableItem_new(table.as_raw(), to_cstring(text).unwrap().as_ptr())
         })
     }
 }
