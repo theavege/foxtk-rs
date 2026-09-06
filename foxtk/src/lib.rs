@@ -1411,6 +1411,46 @@ impl GLViewer {
     }
 }
 
+impl_widget!(
+    ToolBar,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    CompositeExt
+);
+impl ToolBar {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        Self::from_raw(unsafe { FXToolBar_new(parent.as_raw() as *mut FXComposite) })
+    }
+}
+
+impl_widget!(
+    ToolBarGrip,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt
+);
+impl ToolBarGrip {
+    pub fn new(toolbar: &ToolBar) -> Self {
+        Self::from_raw(unsafe { FXToolBarGrip_new(toolbar.as_raw() as *mut FXToolBar) })
+    }
+}
+
+impl_widget!(
+    ToolBarTab,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt
+);
+impl ToolBarTab {
+    pub fn new(toolbar: &ToolBar) -> Self {
+        Self::from_raw(unsafe { FXToolBarTab_new(toolbar.as_raw() as *mut FXToolBar) })
+    }
+}
+
 impl_textable!(Button, Label, Text, TextField, RadioButton);
 impl_selector!(ComboBox, List, ListBox);
 impl_ranger!(Dial, Knob, Slider, Spinner);
