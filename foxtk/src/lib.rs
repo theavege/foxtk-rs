@@ -1507,6 +1507,16 @@ impl Spring {
     }
 }
 
+impl_widget!(
+    TableItem,
+    IdExt
+);
+impl TableItem {
+    pub fn new(table: &Table, text: &str) -> Self {
+        Self::from_raw(unsafe { FXTableItem_new(table.as_raw(), to_cstring(text).as_ptr()) })
+    }
+}
+
 impl_textable!(Button, Label, Text, TextField, RadioButton);
 impl_selector!(ComboBox, List, ListBox);
 impl_ranger!(Dial, Knob, Slider, Spinner);
