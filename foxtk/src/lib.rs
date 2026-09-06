@@ -1200,6 +1200,112 @@ impl PrintDialog {
     }
 }
 
+impl_widget!(DCWindow, IdExt, DCWindowExt);
+impl DCWindow {
+    pub fn new(drawable: &impl DrawableExt) -> Self {
+        Self::from_raw(unsafe { FXDCWindow_new(drawable.as_raw() as *mut FXDrawable) })
+    }
+}
+
+impl_widget!(DriveBox, IdExt, FrameExt, DrawableExt, WindowExt, CompositeExt, PackerExt);
+impl DriveBox {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        Self::from_raw(unsafe { FXDriveBox_new(parent.as_raw() as *mut FXComposite) })
+    }
+}
+
+impl_widget!(DirBox, IdExt, FrameExt, DrawableExt, WindowExt, CompositeExt, PackerExt);
+impl DirBox {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        Self::from_raw(unsafe { FXDirBox_new(parent.as_raw() as *mut FXComposite) })
+    }
+}
+
+impl_widget!(FileSelector, IdExt, FrameExt, DrawableExt, WindowExt, CompositeExt, PackerExt);
+impl FileSelector {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        Self::from_raw(unsafe { FXFileSelector_new(parent.as_raw() as *mut FXComposite) })
+    }
+}
+
+impl_widget!(Packer, IdExt, FrameExt, DrawableExt, WindowExt, CompositeExt, PackerExt);
+impl Packer {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        Self::from_raw(unsafe { FXPacker_new(parent.as_raw() as *mut FXComposite) })
+    }
+}
+
+impl_widget!(RealSlider, IdExt, FrameExt, DrawableExt, WindowExt);
+impl RealSlider {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        Self::from_raw(unsafe { FXRealSlider_new(parent.as_raw() as *mut FXComposite) })
+    }
+}
+
+impl_widget!(RealSpinner, IdExt, FrameExt, DrawableExt, WindowExt);
+impl RealSpinner {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        Self::from_raw(unsafe { FXRealSpinner_new(parent.as_raw() as *mut FXComposite) })
+    }
+}
+
+impl_widget!(TreeListBox, IdExt, FrameExt, DrawableExt, WindowExt, CompositeExt);
+impl TreeListBox {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        Self::from_raw(unsafe { FXTreeListBox_new(parent.as_raw() as *mut FXComposite) })
+    }
+}
+
+impl_widget!(Wizard, IdExt, FrameExt, DrawableExt, WindowExt, TopWindowExt);
+impl Wizard {
+    pub fn new(parent: &impl WindowExt, title: &str) -> Self {
+        Self::from_raw(unsafe {
+            FXWizard_new(parent.as_raw() as *mut FXWindow, to_cstring(title).as_ptr())
+        })
+    }
+}
+
+impl_widget!(MenuCaption, IdExt, FrameExt, DrawableExt, WindowExt);
+impl MenuCaption {
+    pub fn new(parent: &impl CompositeExt, text: &str) -> Self {
+        Self::from_raw(unsafe {
+            FXMenuCaption_new(parent.as_raw() as *mut FXComposite, to_cstring(text).as_ptr())
+        })
+    }
+}
+
+impl_widget!(MenuCascade, IdExt, FrameExt, DrawableExt, WindowExt);
+impl MenuCascade {
+    pub fn new(parent: &impl CompositeExt, text: &str) -> Self {
+        Self::from_raw(unsafe {
+            FXMenuCascade_new(parent.as_raw() as *mut FXComposite, to_cstring(text).as_ptr())
+        })
+    }
+}
+
+impl_widget!(MenuSeparator, IdExt, FrameExt, DrawableExt, WindowExt);
+impl MenuSeparator {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        Self::from_raw(unsafe { FXMenuSeparator_new(parent.as_raw() as *mut FXComposite) })
+    }
+}
+
+impl_widget!(Option, IdExt, FrameExt, DrawableExt, WindowExt);
+impl Option {
+    pub fn new(parent: &impl CompositeExt, text: &str) -> Self {
+        Self::from_raw(unsafe {
+            FXOption_new(parent.as_raw() as *mut FXComposite, to_cstring(text).as_ptr())
+        })
+    }
+}
+
+impl_widget!(OptionMenu, IdExt, FrameExt, DrawableExt, WindowExt, CompositeExt);
+impl OptionMenu {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        Self::from_raw(unsafe { FXOptionMenu_new(parent.as_raw() as *mut FXComposite) })
+    }
+}
+
 impl_widget!(GLVisual, IdExt);
 impl GLVisual {
     pub fn new(app: &App) -> Self {
