@@ -33,7 +33,7 @@
   void widget##_set_style(widget* self, unsigned style);
 
 #define EXT_RANGE(widget, type)                                                \
-  int widget##_get_value(const widget* self);                                  \
+  type widget##_get_value(const widget* self);                                 \
   void widget##_get_range(const widget* self, type* lo, type* hi);             \
   void widget##_set_value(widget* self, type value);                           \
   void widget##_set_range(widget* self, type lo, type hi);
@@ -48,7 +48,6 @@
   void widget##_set_num_visible(widget* self, int nvis);
 
 #define EXT_DRAWING(widget)                                                    \
-  const char* widget##_get_item_text(const widget* self, int index);           \
   void widget##_set_foreground(widget* self, unsigned color);                  \
   void widget##_set_line_width(widget* self, int width);                       \
   void widget##_draw_line(widget* self, int x1, int y1, int x2, int y2);       \
@@ -75,7 +74,7 @@ extern "C"
   // borrowed data.
 
   //~ FXObject.h
-  typedef void FXObject;
+  typedef struct FXObject FXObject;
   void FXObject_delete(FXObject* self);
 
   //~ FXComposite.h
@@ -84,6 +83,9 @@ extern "C"
   int FXComposite_child_height(const FXComposite* self);
 
   typedef struct FX4Splitter FX4Splitter;
+  // NOTE: FX7Segment has no _new entry point yet, so the accessors below
+  // are declared but currently unreachable — add a constructor before
+  // relying on them.
   typedef struct FX7Segment FX7Segment;
   EXT_JUSTIFY(FX7Segment)
   EXT_HELP(FX7Segment)
@@ -98,6 +100,8 @@ extern "C"
   typedef struct FXBMPIcon FXBMPIcon;
   typedef struct FXBMPImage FXBMPImage;
 
+  // NOTE: FXColorBar/FXColorRing/FXColorWell/FXColorWheel below likewise
+  // have no _new entry points yet — same caveat as FX7Segment above.
   //~ FXColorBar.h
   typedef struct FXColorBar FXColorBar;
   EXT_HELP(FXColorBar)
@@ -134,8 +138,6 @@ extern "C"
   EXT_JUSTIFY(FXDockTitle)
 
   typedef struct FXDragCorner FXDragCorner;
-  typedef struct FXDragCorner FXDragCorner;
-  typedef struct FXFileDialog FXFileDialog;
   typedef struct FXFileList FXFileList;
   typedef struct FXFoldingList FXFoldingList;
   FXFoldingList* FXFoldingList_new(FXComposite* prt);
@@ -195,10 +197,16 @@ FXId_get_id(const FXId* self);
   int FXDrawable_get_width(const FXDrawable* self);
 
   //~ FXDC.h
+  // FXDC is an abstract base with no public constructor, so it's never
+  // reachable through this API as a standalone opaque handle. Drawing
+  // entry points live on the concrete subclasses below (FXDCWindow,
+  // FXDCPrint) instead.
   typedef struct FXDC FXDC;
-  EXT_DRAWING(FXDC)
 
   //~ FXDCPrint.h
+  // NOTE: no _new entry point yet either (needs a print-job argument this
+  // wrapper doesn't model). Drawing accessors are implemented and ready
+  // to use once a constructor is added.
   typedef struct FXDCPrint FXDCPrint;
   EXT_DRAWING(FXDCPrint)
 
@@ -362,10 +370,12 @@ FXId_get_id(const FXId* self);
   //~ FXRealSpinner.h
   typedef struct FXRealSpinner FXRealSpinner;
   FXRealSpinner* FXRealSpinner_new(FXComposite* parent);
+  EXT_RANGE(FXRealSpinner, double)
 
   //~ FXRealSlider.h
   typedef struct FXRealSlider FXRealSlider;
   FXRealSlider* FXRealSlider_new(FXComposite* parent);
+  EXT_RANGE(FXRealSlider, double)
 
   //~ FXProgressBar.h
   typedef struct FXProgressBar FXProgressBar;
