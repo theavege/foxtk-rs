@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <fx.h>
+#include <foxtk.h>
 #include <fx3d.h>
 #include <type_traits>
 #include <utility>
