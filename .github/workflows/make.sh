@@ -16,7 +16,7 @@ function _setup
     fi
 )
 
-set -euo pipefail
+set -xeuo pipefail
 
 if ((${#})); then
     case ${1} in
