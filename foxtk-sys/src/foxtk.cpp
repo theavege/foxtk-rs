@@ -1,7 +1,7 @@
+#include "foxtk.h"
 #include <cstdio>
 #include <fx.h>
 #include <fx3d.h>
-#include "foxtk.h"
 #include <type_traits>
 #include <utility>
 
@@ -1370,7 +1370,9 @@ extern "C"
   {
     return ext_get_value<FXRealSpinner, double>(self);
   }
-  void FXRealSpinner_get_range(const FXRealSpinner* self, double* lo, double* hi)
+  void FXRealSpinner_get_range(const FXRealSpinner* self,
+                               double* lo,
+                               double* hi)
   {
     ext_get_range<FXRealSpinner, double>(self, lo, hi);
   }
