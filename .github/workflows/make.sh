@@ -12,6 +12,8 @@ function _setup
                 ' ;;
                 fedora | alma) sudo dnf install -y shfmt shellcheck fox-devel ;;
             esac 1>/dev/null
+            shellcheck --external-sources "${0}"
+            shfmt -ci -fn -i 4 -d "${0}"
         fi
     fi
 )
@@ -22,9 +24,6 @@ if ((${#})); then
     case ${1} in
         setup) _setup ;;
         build)
-            shellcheck --external-sources "${0}"
-            shfmt -ci -fn -i 4 -d "${0}"
-
             declare -r CSRC="foxtk-sys/src"
             clang-tidy "${CSRC:?}"/*.{cpp,h} -- "$(fox-config --cflags)"
             clang-format --dry-run --Werror -style=Mozilla "${CSRC:?}"/*.{cpp,h}
