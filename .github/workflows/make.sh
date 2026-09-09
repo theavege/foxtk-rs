@@ -5,7 +5,9 @@ function _setup
     if [[ -f '/etc/os-release' ]]; then
         source '/etc/os-release'
         if ! command -v fox-config >/dev/null; then
-            declare -ra DEPS=(sh{fmt,ell}check)
+            declare -ra DEPS=(
+                sh{fmt,ell}check
+            )
             case ${ID:?} in
                 debian | ubuntu) sudo bash -c '
                     apt-get update
