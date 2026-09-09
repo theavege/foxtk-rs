@@ -5,11 +5,10 @@ function _setup
     if [[ -f '/etc/os-release' ]]; then
         source '/etc/os-release'
         if ! command -v fox-config >/dev/null; then
-            declare -ra DEPS=(shfmt shellcheck)
             case ${ID:?} in
                 debian | ubuntu) sudo bash -c '
                     apt-get update
-                    apt-get install -y "${DEPS[@]}" libfox-1.6-dev
+                    apt-get install -y sh{fmt,ellcheck} libfox-1.6-dev
                 ' ;;
                 fedora | alma) sudo dnf install -y "${DEPS[@]}" fox-devel ;;
             esac 1>/dev/null
