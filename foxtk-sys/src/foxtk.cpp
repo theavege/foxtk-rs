@@ -11,7 +11,7 @@
 
 /// Validates that a pointer is not null, logs error and returns nullptr if null
 #define VALIDATE_POINTER(ptr, name)                                            \
-  if (!ptr) {                                                                  \
+  if (!(ptr)) {                                                                \
     fprintf(stderr,                                                            \
             "%s: %s is null at %s:%d\n",                                       \
             __func__,                                                          \
@@ -303,7 +303,25 @@ ext_set_font(W* self, const char* family, int size)
 // below casts accordingly instead of keeping a second, mismatched alias.
 typedef long (*CbTimer)(FXApp* app, void* c);
 
-class CTarget : public FXObject
+// Common tag base for internal target objects this wrapper attaches to a
+// widget via setTarget() (CTarget, CMouseTarget below). FXWindow does not
+// own or free its target — plain FOX leaves that to the caller — so
+// FXObject_delete uses this base to find and free a wrapper-owned target
+// before destroying the widget it's attached to. See FXObject_delete.
+class CWrapperTarget : public FXObject
+{
+public:
+  CWrapperTarget(const CWrapperTarget&) = delete;
+  CWrapperTarget& operator=(const CWrapperTarget&) = delete;
+  CWrapperTarget(CWrapperTarget&&) = delete;
+  CWrapperTarget& operator=(CWrapperTarget&&) = delete;
+  ~CWrapperTarget() override = default;
+
+protected:
+  CWrapperTarget() = default;
+};
+
+class CTarget : public CWrapperTarget
 {
   FXDECLARE(CTarget)
 protected:
@@ -387,7 +405,7 @@ CTimeoutMap[] = {
 };
 FXIMPLEMENT(CTimeout, FXObject, CTimeoutMap, ARRAYNUMBER(CTimeoutMap))
 
-class CMouseTarget : public FXObject
+class CMouseTarget : public CWrapperTarget
 {
   FXDECLARE(CMouseTarget)
 protected:
@@ -464,7 +482,7 @@ FXIMPLEMENT(CMouseTarget,
 } // namespace
 
 #define ASSERT_NOT_NULL(ptr, result)                                           \
-  if (!ptr)                                                                    \
+  if (!(ptr))                                                                  \
   return result
 
 // Typed extension helpers for internal wrapper implementation.
@@ -612,6 +630,14 @@ extern "C"
   //~ FXObject.h
   void FXObject_delete(FXObject* self)
   {
+    // Plain FOX widgets don't own or free their target — free a
+    // wrapper-owned one (set via FXWindow_set_target /
+    // FXCanvas_set_mouse_callback) before destroying the widget itself,
+    // or it leaks. See CWrapperTarget above.
+    if (auto win = dynamic_cast<FXWindow*>(self)) {
+      if (auto tgt = dynamic_cast<CWrapperTarget*>(win->getTarget()))
+        delete tgt;
+    }
     delete self;
   }
 
@@ -724,9 +750,21 @@ extern "C"
     self->create();
     return self->run();
   }
-  void FXApp_add_timeout(FXApp* self, CbTimer cb, unsigned ns, void* ctx)
+  FXTimeout* FXApp_add_timeout(FXApp* self, CbTimer cb, unsigned ns, void* ctx)
   {
-    self->addTimeout(new CTimeout(cb, ns), CTimeout::SEL_TIMEOUT, ns, ctx);
+    auto timeout = new CTimeout(cb, ns);
+    self->addTimeout(timeout, CTimeout::SEL_TIMEOUT, ns, ctx);
+    // FXTimeout is a synthetic opaque handle with no real FOX counterpart
+    // to alias (unlike the other typedefs in this file), so it isn't
+    // related to CTimeout by inheritance — as_raw's static_cast doesn't
+    // apply; reinterpret_cast is the correct tool for this one.
+    return reinterpret_cast<FXTimeout*>(timeout);
+  }
+  void FXApp_remove_timeout(FXApp* self, FXTimeout* handle)
+  {
+    auto timeout = reinterpret_cast<CTimeout*>(handle);
+    self->removeTimeout(timeout, CTimeout::SEL_TIMEOUT);
+    delete timeout;
   }
 
   //~ FXFrame.h
@@ -918,6 +956,33 @@ extern "C"
     return FXMessageBox::information(owner, opts, caption, "%s", message);
   }
 
+  //~ FXInputDialog.h
+  const char* FXInputDialog_get_string(FXWindow* owner,
+                                       const char* caption,
+                                       const char* label,
+                                       const char* initial)
+  {
+    FXString result = initial ? initial : "";
+    if (FXInputDialog::getString(result, owner, caption, label))
+      return string_result(result);
+    return nullptr;
+  }
+  unsigned char FXInputDialog_get_integer(int* result,
+                                          FXWindow* owner,
+                                          const char* caption,
+                                          const char* label,
+                                          int lo,
+                                          int hi)
+  {
+    FXint value = (result) ? *result : 0;
+    if (!FXInputDialog::getInteger(
+          value, owner, caption, label, nullptr, lo, hi))
+      return 0;
+    if (result)
+      *result = value;
+    return 1;
+  }
+
   //~ FXChoiceBox.h
   int FXChoiceBox_ask(FXWindow* owner,
                       unsigned opts,
@@ -1035,11 +1100,43 @@ extern "C"
   {
     return make_widget<FXColorWell, FXComposite>(prt);
   }
+  const char* FXColorWell_get_help_text(const FXColorWell* self)
+  {
+    return ext_get_help_text(self);
+  }
+  const char* FXColorWell_get_tip_text(const FXColorWell* self)
+  {
+    return ext_get_tip_text(self);
+  }
+  void FXColorWell_set_help_text(FXColorWell* self, const char* text)
+  {
+    ext_set_help_text(self, text);
+  }
+  void FXColorWell_set_tip_text(FXColorWell* self, const char* text)
+  {
+    ext_set_tip_text(self, text);
+  }
 
   //~ FXColorWheel.h
   FXColorWheel* FXColorWheel_new(FXComposite* prt)
   {
     return make_widget<FXColorWheel, FXComposite>(prt);
+  }
+  const char* FXColorWheel_get_help_text(const FXColorWheel* self)
+  {
+    return ext_get_help_text(self);
+  }
+  const char* FXColorWheel_get_tip_text(const FXColorWheel* self)
+  {
+    return ext_get_tip_text(self);
+  }
+  void FXColorWheel_set_help_text(FXColorWheel* self, const char* text)
+  {
+    ext_set_help_text(self, text);
+  }
+  void FXColorWheel_set_tip_text(FXColorWheel* self, const char* text)
+  {
+    ext_set_tip_text(self, text);
   }
 
   //~ FXColorRing.h
@@ -1047,17 +1144,79 @@ extern "C"
   {
     return make_widget<FXColorRing, FXComposite>(prt);
   }
+  const char* FXColorRing_get_help_text(const FXColorRing* self)
+  {
+    return ext_get_help_text(self);
+  }
+  const char* FXColorRing_get_tip_text(const FXColorRing* self)
+  {
+    return ext_get_tip_text(self);
+  }
+  void FXColorRing_set_help_text(FXColorRing* self, const char* text)
+  {
+    ext_set_help_text(self, text);
+  }
+  void FXColorRing_set_tip_text(FXColorRing* self, const char* text)
+  {
+    ext_set_tip_text(self, text);
+  }
 
   //~ FXColorBar.h
   FXColorBar* FXColorBar_new(FXComposite* prt)
   {
     return make_widget<FXColorBar, FXComposite>(prt);
   }
+  const char* FXColorBar_get_help_text(const FXColorBar* self)
+  {
+    return ext_get_help_text(self);
+  }
+  const char* FXColorBar_get_tip_text(const FXColorBar* self)
+  {
+    return ext_get_tip_text(self);
+  }
+  void FXColorBar_set_help_text(FXColorBar* self, const char* text)
+  {
+    ext_set_help_text(self, text);
+  }
+  void FXColorBar_set_tip_text(FXColorBar* self, const char* text)
+  {
+    ext_set_tip_text(self, text);
+  }
 
   //~ FX7Segment.h
   FX7Segment* FX7Segment_new(FXComposite* prt, const char* text)
   {
     return make_widget<FX7Segment, FXComposite>(prt, text);
+  }
+  void FX7Segment_set_justify(FX7Segment* self, unsigned justify)
+  {
+    self->setJustify(justify);
+  }
+  unsigned FX7Segment_get_justify(const FX7Segment* self)
+  {
+    return self->getJustify();
+  }
+  const char* FX7Segment_get_help_text(const FX7Segment* self)
+  {
+    return ext_get_help_text(self);
+  }
+  const char* FX7Segment_get_tip_text(const FX7Segment* self)
+  {
+    return ext_get_tip_text(self);
+  }
+  void FX7Segment_set_help_text(FX7Segment* self, const char* text)
+  {
+    ext_set_help_text(self, text);
+  }
+  void FX7Segment_set_tip_text(FX7Segment* self, const char* text)
+  {
+    ext_set_tip_text(self, text);
+  }
+
+  //~ FXDCPrint.h
+  FXDCPrint* FXDCPrint_new(FXApp* app)
+  {
+    return make_widget<FXDCPrint, FXApp>(app);
   }
 
   //~ FXColorDialog.h
@@ -1453,6 +1612,51 @@ extern "C"
     return self->getBarSize();
   }
 
+  //~ FXProgressDialog.h
+  FXProgressDialog* FXProgressDialog_new(FXWindow* owner,
+                                         const char* caption,
+                                         const char* label)
+  {
+    return make_widget<FXProgressDialog, FXWindow>(owner, caption, label);
+  }
+  void FXProgressDialog_show(FXProgressDialog* self)
+  {
+    self->show();
+  }
+  void FXProgressDialog_hide(FXProgressDialog* self)
+  {
+    self->hide();
+  }
+  void FXProgressDialog_set_message(FXProgressDialog* self, const char* message)
+  {
+    self->setMessage(message);
+  }
+  void FXProgressDialog_set_bar_style(FXProgressDialog* self, unsigned style)
+  {
+    self->setBarStyle(style);
+  }
+  void FXProgressDialog_set_progress(FXProgressDialog* self, unsigned value)
+  {
+    self->setProgress(value);
+  }
+  void FXProgressDialog_set_total(FXProgressDialog* self, unsigned total)
+  {
+    self->setTotal(total);
+  }
+  void FXProgressDialog_increment(FXProgressDialog* self, unsigned value)
+  {
+    self->increment(value);
+  }
+  unsigned char FXProgressDialog_is_cancelled(const FXProgressDialog* self)
+  {
+    return self->isCancelled();
+  }
+  void FXProgressDialog_set_cancelled(FXProgressDialog* self,
+                                      unsigned char cancelled)
+  {
+    self->setCancelled(cancelled);
+  }
+
   // ============================================================================
   // LAYOUT WIDGETS
   // ============================================================================
@@ -1516,6 +1720,20 @@ extern "C"
   FXSpring* FXSpring_new(FXComposite* prt)
   {
     return make_widget<FXSpring, FXComposite>(prt);
+  }
+
+  //~ FXSeparator.h
+  FXSeparator* FXSeparator_new(FXComposite* prt)
+  {
+    return make_widget<FXSeparator, FXComposite>(prt);
+  }
+  void FXSeparator_set_style(FXSeparator* self, unsigned style)
+  {
+    self->setSeparatorStyle(style);
+  }
+  unsigned FXSeparator_get_style(const FXSeparator* self)
+  {
+    return self->getSeparatorStyle();
   }
 
   //~ FXSplitter.h
@@ -1587,17 +1805,6 @@ extern "C"
     return self->getJustify();
   }
 
-  //~ FXScrollWindow.h
-  FXScrollWindow* FXScrollWindow_new(FXComposite* prt,
-                                     unsigned opts,
-                                     int x,
-                                     int y,
-                                     int w,
-                                     int h)
-  {
-    return make_widget<FXScrollWindow, FXComposite>(prt, opts, x, y, w, h);
-  }
-
   //~ FXGroupBox.h
   FXGroupBox* FXGroupBox_new(FXComposite* prt, const char* title)
   {
@@ -1637,6 +1844,46 @@ extern "C"
   void FXSwitcher_set_current(FXSwitcher* self, int index)
   {
     self->setCurrent(index);
+  }
+
+  //~ FXShutter.h
+  FXShutter* FXShutter_new(FXComposite* prt)
+  {
+    return make_widget<FXShutter, FXComposite>(prt);
+  }
+  int FXShutter_get_current(const FXShutter* self)
+  {
+    return self->getCurrent();
+  }
+  void FXShutter_set_current(FXShutter* self, int panel)
+  {
+    self->setCurrent(panel);
+  }
+
+  //~ FXShutterItem.h
+  FXShutterItem* FXShutterItem_new(FXShutter* prt, const char* text)
+  {
+    return make_widget<FXShutterItem, FXShutter>(prt, text);
+  }
+  FXComposite* FXShutterItem_get_content(const FXShutterItem* self)
+  {
+    return self->getContent();
+  }
+  const char* FXShutterItem_get_help_text(const FXShutterItem* self)
+  {
+    return ext_get_help_text(self);
+  }
+  const char* FXShutterItem_get_tip_text(const FXShutterItem* self)
+  {
+    return ext_get_tip_text(self);
+  }
+  void FXShutterItem_set_help_text(FXShutterItem* self, const char* text)
+  {
+    ext_set_help_text(self, text);
+  }
+  void FXShutterItem_set_tip_text(FXShutterItem* self, const char* text)
+  {
+    ext_set_tip_text(self, text);
   }
 
   //~ FXDCWindow.h
@@ -1875,10 +2122,10 @@ extern "C"
     return make_widget<FXTreeList, FXComposite>(prt);
   }
   FXTreeItem* FXTreeList_append_item(FXTreeList* self,
-                                     FXTreeItem* item,
+                                     FXTreeItem* parent,
                                      const char* text)
   {
-    return self->appendItem(item, text);
+    return self->appendItem(parent, text);
   }
   void FXTreeList_clear_items(FXTreeList* self)
   {
@@ -2000,6 +2247,37 @@ extern "C"
   void FXScrollBar_set_range(FXScrollBar* self, int hi)
   {
     self->setRange(hi);
+  }
+
+  //~ FXScrollWindow.h
+  FXScrollWindow* FXScrollWindow_new(FXComposite* prt,
+                                     unsigned opts,
+                                     int x,
+                                     int y,
+                                     int w,
+                                     int h)
+  {
+    return make_widget<FXScrollWindow, FXComposite>(prt, opts, x, y, w, h);
+  }
+  int FXScrollWindow_get_x_position(const FXScrollWindow* self)
+  {
+    return self->getXPosition();
+  }
+  int FXScrollWindow_get_y_position(const FXScrollWindow* self)
+  {
+    return self->getYPosition();
+  }
+  void FXScrollWindow_set_position(FXScrollWindow* self, int x, int y)
+  {
+    self->setPosition(x, y);
+  }
+  unsigned FXScrollWindow_get_scroll_style(const FXScrollWindow* self)
+  {
+    return self->getScrollStyle();
+  }
+  void FXScrollWindow_set_scroll_style(FXScrollWindow* self, unsigned style)
+  {
+    self->setScrollStyle(style);
   }
 
   // ============================================================================

@@ -83,10 +83,8 @@ extern "C"
   int FXComposite_child_height(const FXComposite* self);
 
   typedef struct FX4Splitter FX4Splitter;
-  // NOTE: FX7Segment has no _new entry point yet, so the accessors below
-  // are declared but currently unreachable — add a constructor before
-  // relying on them.
   typedef struct FX7Segment FX7Segment;
+  FX7Segment* FX7Segment_new(FXComposite* prt, const char* text);
   EXT_JUSTIFY(FX7Segment)
   EXT_HELP(FX7Segment)
 
@@ -100,10 +98,9 @@ extern "C"
   typedef struct FXBMPIcon FXBMPIcon;
   typedef struct FXBMPImage FXBMPImage;
 
-  // NOTE: FXColorBar/FXColorRing/FXColorWell/FXColorWheel below likewise
-  // have no _new entry points yet — same caveat as FX7Segment above.
   //~ FXColorBar.h
   typedef struct FXColorBar FXColorBar;
+  FXColorBar* FXColorBar_new(FXComposite* prt);
   EXT_HELP(FXColorBar)
 
   typedef struct FXColorDialog FXColorDialog;
@@ -111,14 +108,17 @@ extern "C"
 
   //~ FXColorRing.h
   typedef struct FXColorRing FXColorRing;
+  FXColorRing* FXColorRing_new(FXComposite* prt);
   EXT_HELP(FXColorRing)
 
   //~ FXColorWell.h
   typedef struct FXColorWell FXColorWell;
+  FXColorWell* FXColorWell_new(FXComposite* prt);
   EXT_HELP(FXColorWell)
 
   //~ FXColorWheel.h
   typedef struct FXColorWheel FXColorWheel;
+  FXColorWheel* FXColorWheel_new(FXComposite* prt);
   EXT_HELP(FXColorWheel)
 
   typedef struct FXComposeContext FXComposeContext;
@@ -148,7 +148,15 @@ extern "C"
   typedef long (*CbTimer)(FXApp* app, void* ctx);
   FXApp* FXApp_new(const char* name, const char* vendor, int argc, char** argv);
   int FXApp_run(FXApp* self);
-  void FXApp_add_timeout(FXApp* self, CbTimer cb, unsigned ns, void* ctx);
+  // The callback re-arms itself on every firing (a repeating interval
+  // timer, not one-shot). FXApp_add_timeout returns a handle that must be
+  // passed to FXApp_remove_timeout to cancel it and free the internal
+  // target object — there is no other way to stop or free one, so a
+  // caller that never calls FXApp_remove_timeout leaks it for the
+  // lifetime of the app.
+  typedef struct FXTimeout FXTimeout;
+  FXTimeout* FXApp_add_timeout(FXApp* self, CbTimer cb, unsigned ns, void* ctx);
+  void FXApp_remove_timeout(FXApp* self, FXTimeout* handle);
 
   //~ FXId.h
   typedef struct FXId FXId;
@@ -204,10 +212,8 @@ FXId_get_id(const FXId* self);
   typedef struct FXDC FXDC;
 
   //~ FXDCPrint.h
-  // NOTE: no _new entry point yet either (needs a print-job argument this
-  // wrapper doesn't model). Drawing accessors are implemented and ready
-  // to use once a constructor is added.
   typedef struct FXDCPrint FXDCPrint;
+  FXDCPrint* FXDCPrint_new(FXApp* app);
   EXT_DRAWING(FXDCPrint)
 
   //~ FXDCWindow.h
@@ -221,10 +227,10 @@ FXId_get_id(const FXId* self);
   FXWindow* FXWindow_get_parent(const FXWindow* self);
   FXWindow* FXWindow_get_root(const FXWindow* self);
   long FXWindow_has_focus(const FXWindow* self);
-  void FXWindow_set_target(FXWindow* self, CbWidget callback, void* context);
+  void FXWindow_set_target(FXWindow* self, CbWidget cb, void* ctx);
   void FXWindow_set_selector(FXWindow* self, int val);
-  void FXWindow_set_width(FXWindow* self, int val);
-  void FXWindow_set_height(FXWindow* self, int val);
+  void FXWindow_set_width(FXWindow* self, int width);
+  void FXWindow_set_height(FXWindow* self, int height);
   void FXWindow_set_layout_hints(FXWindow* self, unsigned val);
   void FXWindow_set_x(FXWindow* self, int x);
   void FXWindow_set_y(FXWindow* self, int y);
@@ -233,7 +239,7 @@ FXId_get_id(const FXId* self);
 
   //~ FXImage.h
   typedef struct FXImage FXImage;
-  FXImage* FXImage_new(FXApp* app);
+  FXImage* FXImage_new(FXApp* owner);
 
   //~ FXImageView.h
   typedef struct FXImageView FXImageView;
@@ -313,6 +319,24 @@ FXId_get_id(const FXId* self);
                                     const char* caption,
                                     const char* message);
 
+  //~ FXInputDialog.h
+  // Distinct from FXFileDialog's "empty string means cancelled" convention
+  // above: an empty string is a meaningful, confirmed answer here, so
+  // cancellation is signaled by returning nullptr instead of collapsing
+  // it into the same value as an intentionally empty confirmed answer.
+  const char* FXInputDialog_get_string(FXWindow* owner,
+                                       const char* caption,
+                                       const char* label,
+                                       const char* initial);
+  // Returns 0 if the user cancelled (result is left untouched) or 1 if
+  // they confirmed (result holds the entered value, clamped to [lo, hi]).
+  unsigned char FXInputDialog_get_integer(int* result,
+                                          FXWindow* owner,
+                                          const char* caption,
+                                          const char* label,
+                                          int lo,
+                                          int hi);
+
   //~ FXDial.h
   typedef struct FXDial FXDial;
   FXDial* FXDial_new(FXComposite* prt);
@@ -333,13 +357,13 @@ FXId_get_id(const FXId* self);
 
   //~ FXKnob.h
   typedef struct FXKnob FXKnob;
-  FXKnob* FXKnob_new(FXComposite* prt);
+  FXKnob* FXKnob_new(FXComposite* parent);
   EXT_RANGE(FXKnob, int)
   EXT_HELP(FXKnob)
 
   //~ FXLabel.h
   typedef struct FXLabel FXLabel;
-  FXLabel* FXLabel_new(FXComposite* prt, const char* title);
+  FXLabel* FXLabel_new(FXComposite* parent, const char* title);
   EXT_JUSTIFY(FXLabel)
   EXT_TEXT(FXLabel)
 
@@ -351,7 +375,7 @@ FXId_get_id(const FXId* self);
 
   //~ FXTextField.h
   typedef struct FXTextField FXTextField;
-  FXTextField* FXTextField_new(FXComposite* frm);
+  FXTextField* FXTextField_new(FXComposite* prt);
   EXT_TEXT(FXTextField)
   EXT_JUSTIFY(FXTextField)
   EXT_EDITABLE(FXTextField)
@@ -390,6 +414,23 @@ FXId_get_id(const FXId* self);
   void FXProgressBar_show_number(FXProgressBar* self);
   void FXProgressBar_hide_number(FXProgressBar* self);
 
+  //~ FXProgressDialog.h
+  typedef struct FXProgressDialog FXProgressDialog;
+  FXProgressDialog* FXProgressDialog_new(FXWindow* owner,
+                                         const char* caption,
+                                         const char* label);
+  void FXProgressDialog_show(FXProgressDialog* self);
+  void FXProgressDialog_hide(FXProgressDialog* self);
+  void FXProgressDialog_set_message(FXProgressDialog* self,
+                                    const char* message);
+  void FXProgressDialog_set_bar_style(FXProgressDialog* self, unsigned style);
+  void FXProgressDialog_set_progress(FXProgressDialog* self, unsigned value);
+  void FXProgressDialog_set_total(FXProgressDialog* self, unsigned total);
+  void FXProgressDialog_increment(FXProgressDialog* self, unsigned value);
+  unsigned char FXProgressDialog_is_cancelled(const FXProgressDialog* self);
+  void FXProgressDialog_set_cancelled(FXProgressDialog* self,
+                                      unsigned char cancelled);
+
   //~ FXArrowButton.h
   typedef struct FXArrowButton FXArrowButton;
   FXArrowButton* FXArrowButton_new(FXComposite* parent);
@@ -401,7 +442,7 @@ FXId_get_id(const FXId* self);
 
   //~ FXButton.h
   typedef struct FXButton FXButton;
-  FXButton* FXButton_new(FXComposite* parent, const char* title);
+  FXButton* FXButton_new(FXComposite* prt, const char* title);
   EXT_STYLE(FXButton)
   EXT_TEXT(FXButton)
   EXT_STATE(FXButton)
@@ -493,6 +534,11 @@ FXId_get_id(const FXId* self);
   typedef struct FXSpring FXSpring;
   FXSpring* FXSpring_new(FXComposite* prt);
 
+  //~ FXSeparator.h
+  typedef struct FXSeparator FXSeparator;
+  FXSeparator* FXSeparator_new(FXComposite* prt);
+  EXT_STYLE(FXSeparator)
+
   //~ FXSplitter.h
   typedef struct FXSplitter FXSplitter;
   FXSplitter* FXSplitter_new(FXComposite* prt, unsigned opts);
@@ -520,6 +566,23 @@ FXId_get_id(const FXId* self);
   FXSwitcher* FXSwitcher_new(FXComposite* prt);
   void FXSwitcher_set_current(FXSwitcher* self, int index);
 
+  //~ FXShutter.h
+  typedef struct FXShutter FXShutter;
+  FXShutter* FXShutter_new(FXComposite* prt);
+  int FXShutter_get_current(const FXShutter* self);
+  void FXShutter_set_current(FXShutter* self, int panel);
+
+  // FXShutterItem is itself a composite (FXVerticalFrame) that other
+  // widgets can be added into. Unlike the FXTopWindow_set_hspacing note
+  // above (a general limitation of this API's distinct opaque types),
+  // this one has a real fix: FXShutterItem_get_content below returns the
+  // item's content pane upcast to FXComposite*, so it's usable directly
+  // as another widget's parent — e.g. FXButton_new(content, "OK").
+  typedef struct FXShutterItem FXShutterItem;
+  FXShutterItem* FXShutterItem_new(FXShutter* prt, const char* text);
+  FXComposite* FXShutterItem_get_content(const FXShutterItem* self);
+  EXT_HELP(FXShutterItem)
+
   //~ FXComboBox.h
   typedef struct FXComboBox FXComboBox;
   FXComboBox* FXComboBox_new(FXComposite* prt, int cols);
@@ -544,7 +607,7 @@ FXId_get_id(const FXId* self);
   typedef struct FXTreeList FXTreeList;
   FXTreeList* FXTreeList_new(FXComposite* prt);
   FXTreeItem* FXTreeList_append_item(FXTreeList* self,
-                                     FXTreeItem* prt,
+                                     FXTreeItem* parent,
                                      const char* text);
   void FXTreeList_clear_items(FXTreeList* self);
 
@@ -602,6 +665,20 @@ FXId_get_id(const FXId* self);
   int FXScrollBar_get_position(const FXScrollBar* self);
   void FXScrollBar_set_position(FXScrollBar* self, int pos);
   void FXScrollBar_set_range(FXScrollBar* self, int hi);
+
+  //~ FXScrollWindow.h
+  typedef struct FXScrollWindow FXScrollWindow;
+  FXScrollWindow* FXScrollWindow_new(FXComposite* prt,
+                                     unsigned opts,
+                                     int x,
+                                     int y,
+                                     int w,
+                                     int h);
+  int FXScrollWindow_get_x_position(const FXScrollWindow* self);
+  int FXScrollWindow_get_y_position(const FXScrollWindow* self);
+  void FXScrollWindow_set_position(FXScrollWindow* self, int x, int y);
+  unsigned FXScrollWindow_get_scroll_style(const FXScrollWindow* self);
+  void FXScrollWindow_set_scroll_style(FXScrollWindow* self, unsigned style);
 
   //~ FXMenuBar.h
   typedef struct FXMenuBar FXMenuBar;
