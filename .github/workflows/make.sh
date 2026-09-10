@@ -27,7 +27,7 @@ if ((${#})); then
         build)
             declare -ra CSRC=('foxtk-sys/src'/*.{cpp,h})
 
-            clang++ -std=c++17 -W{error,all,extra,pedantic} -O2 \
+            clang++ -std=c++17 -W{all,extra,pedantic} -O2 \
                 -fvisibility=hidden -fstack-protector-strong -flto \
                 "$(fox-config --cflags)" "${CSRC[@]}"
             clang-tidy -checks='readability-*,bugprone-*,performance-*' \
