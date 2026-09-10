@@ -121,6 +121,19 @@ extern "C"
   FXColorWheel* FXColorWheel_new(FXComposite* prt);
   EXT_HELP(FXColorWheel)
 
+  //~ FXGradientBar.h
+  typedef struct FXGradientBar FXGradientBar;
+  FXGradientBar* FXGradientBar_new(FXComposite* prt);
+  int FXGradientBar_get_num_segments(const FXGradientBar* self);
+  int FXGradientBar_get_current_segment(const FXGradientBar* self);
+  void FXGradientBar_set_current_segment(FXGradientBar* self, int index);
+  void FXGradientBar_set_segment_lower_color(FXGradientBar* self,
+                                             int segment,
+                                             unsigned color);
+  void FXGradientBar_set_segment_upper_color(FXGradientBar* self,
+                                             int segment,
+                                             unsigned color);
+
   typedef struct FXComposeContext FXComposeContext;
   typedef struct FXCURCursor FXCURCursor;
   typedef struct FXCursor FXCursor;
@@ -157,6 +170,12 @@ extern "C"
   typedef struct FXTimeout FXTimeout;
   FXTimeout* FXApp_add_timeout(FXApp* self, CbTimer cb, unsigned ns, void* ctx);
   void FXApp_remove_timeout(FXApp* self, FXTimeout* handle);
+
+  //~ FXToolTip.h
+  typedef struct FXToolTip FXToolTip;
+  FXToolTip* FXToolTip_new(FXApp* app);
+  void FXToolTip_show(FXToolTip* self);
+  EXT_TEXT(FXToolTip)
 
   //~ FXId.h
   typedef struct FXId FXId;
@@ -281,6 +300,32 @@ FXId_get_id(const FXId* self);
   void FXDialogBox_hide(FXDialogBox* self);
   unsigned char FXDialogBox_shown(const FXDialogBox* self);
 
+  //~ FXReplaceDialog.h
+  typedef struct FXReplaceDialog FXReplaceDialog;
+  FXReplaceDialog* FXReplaceDialog_new(FXWindow* owner, const char* caption);
+  unsigned FXReplaceDialog_execute(FXReplaceDialog* self);
+  const char* FXReplaceDialog_get_search_text(const FXReplaceDialog* self);
+  void FXReplaceDialog_set_search_text(FXReplaceDialog* self, const char* text);
+  const char* FXReplaceDialog_get_replace_text(const FXReplaceDialog* self);
+  void FXReplaceDialog_set_replace_text(FXReplaceDialog* self,
+                                        const char* text);
+  unsigned FXReplaceDialog_get_search_mode(const FXReplaceDialog* self);
+  void FXReplaceDialog_set_search_mode(FXReplaceDialog* self, unsigned mode);
+
+  //~ FXSearchDialog.h
+  // FXSearchDialog is a FXReplaceDialog with the replace field hidden —
+  // same accessor set (including get/set_replace_text, which still works
+  // even though the field isn't shown), duplicated under its own type
+  // per this API's usual per-widget pattern rather than reusing
+  // FXReplaceDialog's opaque handle.
+  typedef struct FXSearchDialog FXSearchDialog;
+  FXSearchDialog* FXSearchDialog_new(FXWindow* owner, const char* caption);
+  unsigned FXSearchDialog_execute(FXSearchDialog* self);
+  const char* FXSearchDialog_get_search_text(const FXSearchDialog* self);
+  void FXSearchDialog_set_search_text(FXSearchDialog* self, const char* text);
+  unsigned FXSearchDialog_get_search_mode(const FXSearchDialog* self);
+  void FXSearchDialog_set_search_mode(FXSearchDialog* self, unsigned mode);
+
   //~ FXFileDialog.h
   typedef struct FXFileDialog FXFileDialog;
   FXFileDialog* FXFileDialog_new(FXWindow* owner, const char* title);
@@ -300,6 +345,26 @@ FXId_get_id(const FXId* self);
   const char* FXFileDialog_get_filename(const FXFileDialog* self);
   void FXFileDialog_set_pattern(FXFileDialog* self, const char* pattern);
   const char* FXFileDialog_get_pattern(const FXFileDialog* self);
+
+  //~ FXRecentFiles.h
+  // Not wired to setTarget/setSelector — a selected recent file is
+  // delivered to the target's message handler with the filename as the
+  // void* ptr argument, a different shape from CbWidget/CTarget used
+  // elsewhere in this file, and not worth inventing a one-off callback
+  // type for here. Slots are fixed (index 0..get_max_files()-1, capped
+  // at 10 by FOX itself); there's no separate "how many are set" count,
+  // so a caller enumerates and checks for empty strings.
+  typedef struct FXRecentFiles FXRecentFiles;
+  FXRecentFiles* FXRecentFiles_new(FXApp* app);
+  int FXRecentFiles_get_max_files(const FXRecentFiles* self);
+  void FXRecentFiles_set_max_files(FXRecentFiles* self, int mx);
+  const char* FXRecentFiles_get_file(const FXRecentFiles* self, int index);
+  void FXRecentFiles_set_file(FXRecentFiles* self,
+                              int index,
+                              const char* filename);
+  void FXRecentFiles_append_file(FXRecentFiles* self, const char* filename);
+  void FXRecentFiles_remove_file(FXRecentFiles* self, const char* filename);
+  void FXRecentFiles_clear(FXRecentFiles* self);
 
   //~ FXMessageBox.h
   unsigned FXMessageBox_error(FXWindow* owner,

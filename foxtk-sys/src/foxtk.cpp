@@ -1,4 +1,5 @@
 #include "foxtk.h"
+#include <FXGradientBar.h>
 #include <cstdio>
 #include <fx.h>
 #include <fx3d.h>
@@ -767,6 +768,32 @@ extern "C"
     delete timeout;
   }
 
+  //~ FXToolTip.h
+  FXToolTip* FXToolTip_new(FXApp* app)
+  {
+    return make_widget<FXToolTip, FXApp>(app);
+  }
+  void FXToolTip_show(FXToolTip* self)
+  {
+    self->show();
+  }
+  const char* FXToolTip_get_text(const FXToolTip* self)
+  {
+    return ext_get_text(self);
+  }
+  void FXToolTip_set_text(FXToolTip* self, const char* text)
+  {
+    ext_set_text(self, text);
+  }
+  void FXToolTip_set_text_color(FXToolTip* self, unsigned color)
+  {
+    ext_set_text_color(self, color);
+  }
+  void FXToolTip_set_font(FXToolTip* self, const char* family, int size)
+  {
+    ext_set_font(self, family, size);
+  }
+
   //~ FXFrame.h
   void FXFrame_set_style(FXFrame* self, unsigned style)
   {
@@ -1139,6 +1166,36 @@ extern "C"
     ext_set_tip_text(self, text);
   }
 
+  //~ FXGradientBar.h
+  FXGradientBar* FXGradientBar_new(FXComposite* prt)
+  {
+    return make_widget<FXGradientBar, FXComposite>(prt);
+  }
+  int FXGradientBar_get_num_segments(const FXGradientBar* self)
+  {
+    return self->getNumSegments();
+  }
+  int FXGradientBar_get_current_segment(const FXGradientBar* self)
+  {
+    return self->getCurrentSegment();
+  }
+  void FXGradientBar_set_current_segment(FXGradientBar* self, int index)
+  {
+    self->setCurrentSegment(index);
+  }
+  void FXGradientBar_set_segment_lower_color(FXGradientBar* self,
+                                             int segment,
+                                             unsigned color)
+  {
+    self->setSegmentLowerColor(segment, color);
+  }
+  void FXGradientBar_set_segment_upper_color(FXGradientBar* self,
+                                             int segment,
+                                             unsigned color)
+  {
+    self->setSegmentUpperColor(segment, color);
+  }
+
   //~ FXColorRing.h
   FXColorRing* FXColorRing_new(FXComposite* prt)
   {
@@ -1259,6 +1316,66 @@ extern "C"
     return self->shown();
   }
 
+  //~ FXReplaceDialog.h
+  FXReplaceDialog* FXReplaceDialog_new(FXWindow* owner, const char* caption)
+  {
+    return make_widget<FXReplaceDialog, FXWindow>(owner, caption);
+  }
+  unsigned FXReplaceDialog_execute(FXReplaceDialog* self)
+  {
+    return self->execute();
+  }
+  const char* FXReplaceDialog_get_search_text(const FXReplaceDialog* self)
+  {
+    return string_result(self->getSearchText());
+  }
+  void FXReplaceDialog_set_search_text(FXReplaceDialog* self, const char* text)
+  {
+    self->setSearchText(text);
+  }
+  const char* FXReplaceDialog_get_replace_text(const FXReplaceDialog* self)
+  {
+    return string_result(self->getReplaceText());
+  }
+  void FXReplaceDialog_set_replace_text(FXReplaceDialog* self, const char* text)
+  {
+    self->setReplaceText(text);
+  }
+  unsigned FXReplaceDialog_get_search_mode(const FXReplaceDialog* self)
+  {
+    return self->getSearchMode();
+  }
+  void FXReplaceDialog_set_search_mode(FXReplaceDialog* self, unsigned mode)
+  {
+    self->setSearchMode(mode);
+  }
+
+  //~ FXSearchDialog.h
+  FXSearchDialog* FXSearchDialog_new(FXWindow* owner, const char* caption)
+  {
+    return make_widget<FXSearchDialog, FXWindow>(owner, caption);
+  }
+  unsigned FXSearchDialog_execute(FXSearchDialog* self)
+  {
+    return self->execute();
+  }
+  const char* FXSearchDialog_get_search_text(const FXSearchDialog* self)
+  {
+    return string_result(self->getSearchText());
+  }
+  void FXSearchDialog_set_search_text(FXSearchDialog* self, const char* text)
+  {
+    self->setSearchText(text);
+  }
+  unsigned FXSearchDialog_get_search_mode(const FXSearchDialog* self)
+  {
+    return self->getSearchMode();
+  }
+  void FXSearchDialog_set_search_mode(FXSearchDialog* self, unsigned mode)
+  {
+    self->setSearchMode(mode);
+  }
+
   //~ FXFileDialog.h
   FXFileDialog* FXFileDialog_new(FXWindow* owner, const char* title)
   {
@@ -1305,6 +1422,42 @@ extern "C"
   const char* FXFileDialog_get_pattern(const FXFileDialog* self)
   {
     return string_result(self->getPattern());
+  }
+
+  //~ FXRecentFiles.h
+  FXRecentFiles* FXRecentFiles_new(FXApp* app)
+  {
+    return make_widget<FXRecentFiles, FXApp>(app);
+  }
+  int FXRecentFiles_get_max_files(const FXRecentFiles* self)
+  {
+    return self->getMaxFiles();
+  }
+  void FXRecentFiles_set_max_files(FXRecentFiles* self, int mx)
+  {
+    self->setMaxFiles(mx);
+  }
+  const char* FXRecentFiles_get_file(const FXRecentFiles* self, int index)
+  {
+    return string_result(self->getFile(index));
+  }
+  void FXRecentFiles_set_file(FXRecentFiles* self,
+                              int index,
+                              const char* filename)
+  {
+    self->setFile(index, filename);
+  }
+  void FXRecentFiles_append_file(FXRecentFiles* self, const char* filename)
+  {
+    self->appendFile(filename);
+  }
+  void FXRecentFiles_remove_file(FXRecentFiles* self, const char* filename)
+  {
+    self->removeFile(filename);
+  }
+  void FXRecentFiles_clear(FXRecentFiles* self)
+  {
+    self->clear();
   }
 
   // ============================================================================
@@ -1917,9 +2070,6 @@ extern "C"
   }
 
   //~ FXDCPrint.h
-  // No _new here yet — FXDCPrint's constructor needs a print-job argument
-  // this wrapper doesn't model. These are implemented and ready to wire up
-  // to a constructor later.
   void FXDCPrint_set_foreground(FXDCPrint* self, unsigned color)
   {
     self->setForeground(color);
