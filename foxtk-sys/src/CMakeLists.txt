@@ -29,7 +29,7 @@ else()
             #~ $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -O2>
         #~ )
         target_include_directories(cfoxtk PRIVATE ${FOX_PATH}/include)
-        find_program(CLANG_TIDY "clang-tidy")
+        #~ find_program(CLANG_TIDY "clang-tidy")
         #~ if(CLANG_TIDY)
             #~ message(STATUS "clang-tidy found: ${CLANG_TIDY}")
             #~ set(CMAKE_CXX_CLANG_TIDY ${CLANG_TIDY} --warnings-as-errors=*)
