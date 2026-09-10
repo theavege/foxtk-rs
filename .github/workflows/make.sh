@@ -26,6 +26,7 @@ if ((${#})); then
         setup) _setup ;;
         build)
             declare -r CSRC='foxtk-sys/src'
+            clang++ "$(fox-config --cflags)" "${CSRC:?}/foxtk.cpp"
             clang-tidy -checks='readability-*,bugprone-*,performance-*' \
                 --warnings-as-errors='*' "${CSRC:?}"/*.{cpp,h} \
                 -- "$(fox-config --cflags)"
