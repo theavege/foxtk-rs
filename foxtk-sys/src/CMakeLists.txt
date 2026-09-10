@@ -26,7 +26,7 @@ else()
         add_library(cfoxtk STATIC ${OBJS} )
         #~ target_compile_options(cfoxtk PRIVATE
             #~ $<$<CXX_COMPILER_ID:MSVC>:/W4 /permissive->
-            #~ $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic>
+            #~ $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -O2>
         #~ )
         target_include_directories(cfoxtk PRIVATE ${FOX_PATH}/include)
         find_program(CLANG_TIDY "clang-tidy")

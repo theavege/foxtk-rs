@@ -29,14 +29,14 @@ if ((${#})); then
 
             clang++ -std=c++17 -W{all,extra,pedantic} -O2 \
                 -fvisibility=hidden -fstack-protector-strong -flto \
-                "$(fox-config --cflags)" "${CSRC[@]}"
+                "$(fox-config --libs)" "${CSRC[@]}"
             clang-tidy -checks='readability-*,bugprone-*,performance-*' \
                 --warnings-as-errors='*' "${CSRC[@]}" \
                 -- "$(fox-config --cflags)"
             clang-format --dry-run --Werror -style=Mozilla "${CSRC[@]}"
 
-            cargo clippy --quiet --features='all' --examples
             cargo build --release --features='all' --examples
+            cargo clippy --quiet --features='all' --examples
             cargo fmt --check --all
             ;;
     esac

@@ -60,6 +60,27 @@ extern "C"
 {
 #endif
 
+  // In C++ mode this is a no-op: by the time this header is parsed in
+  // foxtk.cpp, the real FOX headers (fx.h/fx3d.h/FXGradientBar.h) are
+  // already included, so every one of these classes is already fully
+  // declared and visible via FOX's own `using namespace FX;`. A bare
+  // `struct name;` re-declaration here previously triggered
+  // -Wmismatched-tags (a real risk under the Microsoft C++ ABI, which --
+  // unlike Itanium -- distinguishes struct/class in some contexts,
+  // reportedly causing type-identity issues at link time); a bare
+  // `class name;` instead creates an *ambiguous* redeclaration against
+  // the already-visible real class. Declaring nothing avoids both.
+  // NOTE: this means a hypothetical pure-C++ consumer including *only*
+  // this header, without first including FOX's own headers, would not
+  // get these types declared at all. That's not this project's actual
+  // usage (foxtk.cpp always includes the real FOX headers first) but is
+  // worth knowing as a constraint of this approach.
+#ifdef __cplusplus
+#define FOXTK_OPAQUE(name)
+#else
+#define FOXTK_OPAQUE(name) typedef struct name name;
+#endif
+
   //~ fxdefs.h
   unsigned fx_rgb(unsigned r, unsigned g, unsigned b);
   unsigned fx_rgba(unsigned r, unsigned g, unsigned b, unsigned a);
@@ -74,55 +95,55 @@ extern "C"
   // borrowed data.
 
   //~ FXObject.h
-  typedef struct FXObject FXObject;
+  FOXTK_OPAQUE(FXObject)
   void FXObject_delete(FXObject* self);
 
   //~ FXComposite.h
-  typedef struct FXComposite FXComposite;
+  FOXTK_OPAQUE(FXComposite)
   int FXComposite_child_width(const FXComposite* self);
   int FXComposite_child_height(const FXComposite* self);
 
-  typedef struct FX4Splitter FX4Splitter;
-  typedef struct FX7Segment FX7Segment;
+  FOXTK_OPAQUE(FX4Splitter)
+  FOXTK_OPAQUE(FX7Segment)
   FX7Segment* FX7Segment_new(FXComposite* prt, const char* text);
   EXT_JUSTIFY(FX7Segment)
   EXT_HELP(FX7Segment)
 
-  typedef struct FXBitmap FXBitmap;
-  typedef struct FXBitmapFrame FXBitmapFrame;
+  FOXTK_OPAQUE(FXBitmap)
+  FOXTK_OPAQUE(FXBitmapFrame)
   FXBitmapFrame* FXBitmapFrame_new(FXComposite* prt);
   EXT_JUSTIFY(FXBitmapFrame)
 
-  typedef struct FXBitmapView FXBitmapView;
+  FOXTK_OPAQUE(FXBitmapView)
   FXBitmapView* FXBitmapView_new(FXComposite* prt);
-  typedef struct FXBMPIcon FXBMPIcon;
-  typedef struct FXBMPImage FXBMPImage;
+  FOXTK_OPAQUE(FXBMPIcon)
+  FOXTK_OPAQUE(FXBMPImage)
 
   //~ FXColorBar.h
-  typedef struct FXColorBar FXColorBar;
+  FOXTK_OPAQUE(FXColorBar)
   FXColorBar* FXColorBar_new(FXComposite* prt);
   EXT_HELP(FXColorBar)
 
-  typedef struct FXColorDialog FXColorDialog;
-  typedef struct FXColorList FXColorList;
+  FOXTK_OPAQUE(FXColorDialog)
+  FOXTK_OPAQUE(FXColorList)
 
   //~ FXColorRing.h
-  typedef struct FXColorRing FXColorRing;
+  FOXTK_OPAQUE(FXColorRing)
   FXColorRing* FXColorRing_new(FXComposite* prt);
   EXT_HELP(FXColorRing)
 
   //~ FXColorWell.h
-  typedef struct FXColorWell FXColorWell;
+  FOXTK_OPAQUE(FXColorWell)
   FXColorWell* FXColorWell_new(FXComposite* prt);
   EXT_HELP(FXColorWell)
 
   //~ FXColorWheel.h
-  typedef struct FXColorWheel FXColorWheel;
+  FOXTK_OPAQUE(FXColorWheel)
   FXColorWheel* FXColorWheel_new(FXComposite* prt);
   EXT_HELP(FXColorWheel)
 
   //~ FXGradientBar.h
-  typedef struct FXGradientBar FXGradientBar;
+  FOXTK_OPAQUE(FXGradientBar)
   FXGradientBar* FXGradientBar_new(FXComposite* prt);
   int FXGradientBar_get_num_segments(const FXGradientBar* self);
   int FXGradientBar_get_current_segment(const FXGradientBar* self);
@@ -134,30 +155,30 @@ extern "C"
                                              int segment,
                                              unsigned color);
 
-  typedef struct FXComposeContext FXComposeContext;
-  typedef struct FXCURCursor FXCURCursor;
-  typedef struct FXCursor FXCursor;
-  typedef struct FXDataTarget FXDataTarget;
-  typedef struct FXDirDialog FXDirDialog;
-  typedef struct FXDirList FXDirList;
-  typedef struct FXDirSelector FXDirSelector;
-  typedef struct FXDockBar FXDockBar;
+  FOXTK_OPAQUE(FXComposeContext)
+  FOXTK_OPAQUE(FXCURCursor)
+  FOXTK_OPAQUE(FXCursor)
+  FOXTK_OPAQUE(FXDataTarget)
+  FOXTK_OPAQUE(FXDirDialog)
+  FOXTK_OPAQUE(FXDirList)
+  FOXTK_OPAQUE(FXDirSelector)
+  FOXTK_OPAQUE(FXDockBar)
   FXDockBar* FXDockBar_new(FXComposite* prt);
-  typedef struct FXDockSite FXDockSite;
-  typedef struct FXDockHandler FXDockHandler;
+  FOXTK_OPAQUE(FXDockSite)
+  FOXTK_OPAQUE(FXDockHandler)
   FXDockSite* FXDockSite_new(FXComposite* prt);
-  typedef struct FXDockTitle FXDockTitle;
+  FOXTK_OPAQUE(FXDockTitle)
   FXDockTitle* FXDockTitle_new(FXDockBar* bar, const char* title);
   EXT_JUSTIFY(FXDockTitle)
 
-  typedef struct FXDragCorner FXDragCorner;
-  typedef struct FXFileList FXFileList;
-  typedef struct FXFoldingList FXFoldingList;
+  FOXTK_OPAQUE(FXDragCorner)
+  FOXTK_OPAQUE(FXFileList)
+  FOXTK_OPAQUE(FXFoldingList)
   FXFoldingList* FXFoldingList_new(FXComposite* prt);
-  typedef struct FXFontDialog FXFontDialog;
+  FOXTK_OPAQUE(FXFontDialog)
 
   //~ FXApp.h
-  typedef struct FXApp FXApp;
+  FOXTK_OPAQUE(FXApp)
   typedef long (*CbTimer)(FXApp* app, void* ctx);
   FXApp* FXApp_new(const char* name, const char* vendor, int argc, char** argv);
   int FXApp_run(FXApp* self);
@@ -167,18 +188,23 @@ extern "C"
   // target object — there is no other way to stop or free one, so a
   // caller that never calls FXApp_remove_timeout leaks it for the
   // lifetime of the app.
+  // FXTimeout has no real FOX counterpart to alias -- it's this
+  // wrapper's own synthetic handle (see FXApp_add_timeout below) -- so
+  // it always needs a real declaration, unlike every other
+  // FOXTK_OPAQUE() type above which relies on FOX's own headers already
+  // being visible in C++ mode.
   typedef struct FXTimeout FXTimeout;
   FXTimeout* FXApp_add_timeout(FXApp* self, CbTimer cb, unsigned ns, void* ctx);
   void FXApp_remove_timeout(FXApp* self, FXTimeout* handle);
 
   //~ FXToolTip.h
-  typedef struct FXToolTip FXToolTip;
+  FOXTK_OPAQUE(FXToolTip)
   FXToolTip* FXToolTip_new(FXApp* app);
   void FXToolTip_show(FXToolTip* self);
   EXT_TEXT(FXToolTip)
 
   //~ FXId.h
-  typedef struct FXId FXId;
+  FOXTK_OPAQUE(FXId)
   FXApp* FXId_get_app(const FXId* self);
 #ifdef _WIN32
   void* FXId_get_id(const FXId* self);
@@ -188,38 +214,38 @@ FXId_get_id(const FXId* self);
 #endif
 
   //~ FXTriStateButton.h
-  typedef struct FXTriStateButton FXTriStateButton;
+  FOXTK_OPAQUE(FXTriStateButton)
   FXTriStateButton* FXTriStateButton_new(FXComposite* prt,
                                          const char* text1,
                                          const char* text2,
                                          const char* text3);
 
   //~ FXTreeListBox.h
-  typedef struct FXTreeListBox FXTreeListBox;
+  FOXTK_OPAQUE(FXTreeListBox)
   FXTreeListBox* FXTreeListBox_new(FXComposite* prt);
 
   //~ FXDriveBox.h
-  typedef struct FXDriveBox FXDriveBox;
+  FOXTK_OPAQUE(FXDriveBox)
   FXDriveBox* FXDriveBox_new(FXComposite* prt);
 
   //~ FXDirBox.h
-  typedef struct FXDirBox FXDirBox;
+  FOXTK_OPAQUE(FXDirBox)
   FXDirBox* FXDirBox_new(FXComposite* prt);
 
   //~ FXFileSelector.h
-  typedef struct FXFileSelector FXFileSelector;
+  FOXTK_OPAQUE(FXFileSelector)
   FXFileSelector* FXFileSelector_new(FXComposite* prt);
 
   //~ FXFontSelector.h
-  typedef struct FXFontSelector FXFontSelector;
+  FOXTK_OPAQUE(FXFontSelector)
   FXFontSelector* FXFontSelector_new(FXComposite* prt);
 
   //~ FXColorSelector.h
-  typedef struct FXColorSelector FXColorSelector;
+  FOXTK_OPAQUE(FXColorSelector)
   FXColorSelector* FXColorSelector_new(FXComposite* prt);
 
   //~ FXDrawable.h
-  typedef struct FXDrawable FXDrawable;
+  FOXTK_OPAQUE(FXDrawable)
   int FXDrawable_get_height(const FXDrawable* self);
   int FXDrawable_get_width(const FXDrawable* self);
 
@@ -228,20 +254,20 @@ FXId_get_id(const FXId* self);
   // reachable through this API as a standalone opaque handle. Drawing
   // entry points live on the concrete subclasses below (FXDCWindow,
   // FXDCPrint) instead.
-  typedef struct FXDC FXDC;
+  FOXTK_OPAQUE(FXDC)
 
   //~ FXDCPrint.h
-  typedef struct FXDCPrint FXDCPrint;
+  FOXTK_OPAQUE(FXDCPrint)
   FXDCPrint* FXDCPrint_new(FXApp* app);
   EXT_DRAWING(FXDCPrint)
 
   //~ FXDCWindow.h
-  typedef struct FXDCWindow FXDCWindow;
+  FOXTK_OPAQUE(FXDCWindow)
   FXDCWindow* FXDCWindow_new(FXDrawable* drawable);
   EXT_DRAWING(FXDCWindow)
 
   //~ FXWindow.h
-  typedef struct FXWindow FXWindow;
+  FOXTK_OPAQUE(FXWindow)
   typedef long (*CbWidget)(FXWindow* wgt, void* ctx);
   FXWindow* FXWindow_get_parent(const FXWindow* self);
   FXWindow* FXWindow_get_root(const FXWindow* self);
@@ -257,24 +283,24 @@ FXId_get_id(const FXId* self);
   void FXWindow_enable(FXWindow* self);
 
   //~ FXImage.h
-  typedef struct FXImage FXImage;
+  FOXTK_OPAQUE(FXImage)
   FXImage* FXImage_new(FXApp* owner);
 
   //~ FXImageView.h
-  typedef struct FXImageView FXImageView;
+  FOXTK_OPAQUE(FXImageView)
   FXImageView* FXImageView_new(FXComposite* prt);
   void FXImageView_set_image(FXImageView* self, FXImage* img);
   FXImage* FXImageView_get_image(const FXImageView* self);
 
   //~ FXImageFrame.h
-  typedef struct FXImageFrame FXImageFrame;
+  FOXTK_OPAQUE(FXImageFrame)
   FXImageFrame* FXImageFrame_new(FXComposite* prt, FXImage* img);
   EXT_JUSTIFY(FXImageFrame)
   void FXImageFrame_set_image(FXImageFrame* self, FXImage* img);
   FXImage* FXImageFrame_get_image(const FXImageFrame* self);
 
   //~ FXIcon.h
-  typedef struct FXIcon FXIcon;
+  FOXTK_OPAQUE(FXIcon)
   FXIcon* FXIcon_new(FXApp* app);
 
   //~ FXChoiceBox.h
@@ -286,26 +312,27 @@ FXId_get_id(const FXId* self);
                       const char** choices);
 
   //~ FXWizard.h
-  typedef struct FXWizard FXWizard;
+  FOXTK_OPAQUE(FXWizard)
   FXWizard* FXWizard_new(FXWindow* owner, const char* title);
 
   //~ FXPrintDialog.h
-  typedef struct FXPrintDialog FXPrintDialog;
+  FOXTK_OPAQUE(FXPrintDialog)
   FXPrintDialog* FXPrintDialog_new(FXWindow* owner, const char* title);
 
   //~ FXDialogBox.h
-  typedef struct FXDialogBox FXDialogBox;
+  FOXTK_OPAQUE(FXDialogBox)
   FXDialogBox* FXDialogBox_new(FXWindow* owner, const char* title);
   void FXDialogBox_show(FXDialogBox* self);
   void FXDialogBox_hide(FXDialogBox* self);
   unsigned char FXDialogBox_shown(const FXDialogBox* self);
 
   //~ FXReplaceDialog.h
-  typedef struct FXReplaceDialog FXReplaceDialog;
+  FOXTK_OPAQUE(FXReplaceDialog)
   FXReplaceDialog* FXReplaceDialog_new(FXWindow* owner, const char* caption);
   unsigned FXReplaceDialog_execute(FXReplaceDialog* self);
   const char* FXReplaceDialog_get_search_text(const FXReplaceDialog* self);
-  void FXReplaceDialog_set_search_text(FXReplaceDialog* self, const char* text);
+  void FXReplaceDialog_set_search_text(FXReplaceDialog* self,
+                                       const char* text);
   const char* FXReplaceDialog_get_replace_text(const FXReplaceDialog* self);
   void FXReplaceDialog_set_replace_text(FXReplaceDialog* self,
                                         const char* text);
@@ -318,7 +345,7 @@ FXId_get_id(const FXId* self);
   // even though the field isn't shown), duplicated under its own type
   // per this API's usual per-widget pattern rather than reusing
   // FXReplaceDialog's opaque handle.
-  typedef struct FXSearchDialog FXSearchDialog;
+  FOXTK_OPAQUE(FXSearchDialog)
   FXSearchDialog* FXSearchDialog_new(FXWindow* owner, const char* caption);
   unsigned FXSearchDialog_execute(FXSearchDialog* self);
   const char* FXSearchDialog_get_search_text(const FXSearchDialog* self);
@@ -327,7 +354,7 @@ FXId_get_id(const FXId* self);
   void FXSearchDialog_set_search_mode(FXSearchDialog* self, unsigned mode);
 
   //~ FXFileDialog.h
-  typedef struct FXFileDialog FXFileDialog;
+  FOXTK_OPAQUE(FXFileDialog)
   FXFileDialog* FXFileDialog_new(FXWindow* owner, const char* title);
   const char* FXFileDialog_get_open_filename(FXWindow* owner,
                                              const char* caption,
@@ -354,7 +381,7 @@ FXId_get_id(const FXId* self);
   // type for here. Slots are fixed (index 0..get_max_files()-1, capped
   // at 10 by FOX itself); there's no separate "how many are set" count,
   // so a caller enumerates and checks for empty strings.
-  typedef struct FXRecentFiles FXRecentFiles;
+  FOXTK_OPAQUE(FXRecentFiles)
   FXRecentFiles* FXRecentFiles_new(FXApp* app);
   int FXRecentFiles_get_max_files(const FXRecentFiles* self);
   void FXRecentFiles_set_max_files(FXRecentFiles* self, int mx);
@@ -403,13 +430,13 @@ FXId_get_id(const FXId* self);
                                           int hi);
 
   //~ FXDial.h
-  typedef struct FXDial FXDial;
+  FOXTK_OPAQUE(FXDial)
   FXDial* FXDial_new(FXComposite* prt);
   EXT_RANGE(FXDial, int)
   EXT_HELP(FXDial)
 
   //~ FXFrame.h
-  typedef struct FXFrame FXFrame;
+  FOXTK_OPAQUE(FXFrame)
   void FXFrame_set_pad_bottom(FXFrame* self, int pad);
   void FXFrame_set_pad_left(FXFrame* self, int pad);
   void FXFrame_set_pad_right(FXFrame* self, int pad);
@@ -421,53 +448,53 @@ FXId_get_id(const FXId* self);
   EXT_STYLE(FXFrame)
 
   //~ FXKnob.h
-  typedef struct FXKnob FXKnob;
+  FOXTK_OPAQUE(FXKnob)
   FXKnob* FXKnob_new(FXComposite* parent);
   EXT_RANGE(FXKnob, int)
   EXT_HELP(FXKnob)
 
   //~ FXLabel.h
-  typedef struct FXLabel FXLabel;
+  FOXTK_OPAQUE(FXLabel)
   FXLabel* FXLabel_new(FXComposite* parent, const char* title);
   EXT_JUSTIFY(FXLabel)
   EXT_TEXT(FXLabel)
 
   //~ FXText.h
-  typedef struct FXText FXText;
+  FOXTK_OPAQUE(FXText)
   FXText* FXText_new(FXComposite* prt);
   EXT_TEXT(FXText)
   EXT_EDITABLE(FXText)
 
   //~ FXTextField.h
-  typedef struct FXTextField FXTextField;
+  FOXTK_OPAQUE(FXTextField)
   FXTextField* FXTextField_new(FXComposite* prt);
   EXT_TEXT(FXTextField)
   EXT_JUSTIFY(FXTextField)
   EXT_EDITABLE(FXTextField)
 
   //~ FXSlider.h
-  typedef struct FXSlider FXSlider;
+  FOXTK_OPAQUE(FXSlider)
   FXSlider* FXSlider_new(FXComposite* parent);
   EXT_RANGE(FXSlider, int)
 
   //~ FXSpinner.h
-  typedef struct FXSpinner FXSpinner;
+  FOXTK_OPAQUE(FXSpinner)
   FXSpinner* FXSpinner_new(FXComposite* parent);
   void FXSpinner_decrement(FXSpinner* self);
   EXT_RANGE(FXSpinner, int)
 
   //~ FXRealSpinner.h
-  typedef struct FXRealSpinner FXRealSpinner;
+  FOXTK_OPAQUE(FXRealSpinner)
   FXRealSpinner* FXRealSpinner_new(FXComposite* parent);
   EXT_RANGE(FXRealSpinner, double)
 
   //~ FXRealSlider.h
-  typedef struct FXRealSlider FXRealSlider;
+  FOXTK_OPAQUE(FXRealSlider)
   FXRealSlider* FXRealSlider_new(FXComposite* parent);
   EXT_RANGE(FXRealSlider, double)
 
   //~ FXProgressBar.h
-  typedef struct FXProgressBar FXProgressBar;
+  FOXTK_OPAQUE(FXProgressBar)
   FXProgressBar* FXProgressBar_new(FXComposite* prt);
   unsigned FXProgressBar_get_progress(const FXProgressBar* self);
   unsigned FXProgressBar_get_total(const FXProgressBar* self);
@@ -480,7 +507,7 @@ FXId_get_id(const FXId* self);
   void FXProgressBar_hide_number(FXProgressBar* self);
 
   //~ FXProgressDialog.h
-  typedef struct FXProgressDialog FXProgressDialog;
+  FOXTK_OPAQUE(FXProgressDialog)
   FXProgressDialog* FXProgressDialog_new(FXWindow* owner,
                                          const char* caption,
                                          const char* label);
@@ -497,7 +524,7 @@ FXId_get_id(const FXId* self);
                                       unsigned char cancelled);
 
   //~ FXArrowButton.h
-  typedef struct FXArrowButton FXArrowButton;
+  FOXTK_OPAQUE(FXArrowButton)
   FXArrowButton* FXArrowButton_new(FXComposite* parent);
   void FXArrowButton_set_arrow_size(FXArrowButton* self, int size);
   void FXArrowButton_set_arrow_color(FXArrowButton* self, unsigned color);
@@ -506,67 +533,67 @@ FXId_get_id(const FXId* self);
   EXT_HELP(FXArrowButton)
 
   //~ FXButton.h
-  typedef struct FXButton FXButton;
+  FOXTK_OPAQUE(FXButton)
   FXButton* FXButton_new(FXComposite* prt, const char* title);
   EXT_STYLE(FXButton)
   EXT_TEXT(FXButton)
   EXT_STATE(FXButton)
 
   //~ FXPopup.h
-  typedef struct FXPopup FXPopup;
+  FOXTK_OPAQUE(FXPopup)
   FXPopup* FXPopup_new(FXWindow* owner);
 
   //~ FXCheckButton.h
-  typedef struct FXCheckButton FXCheckButton;
+  FOXTK_OPAQUE(FXCheckButton)
   FXCheckButton* FXCheckButton_new(FXComposite* prt, const char* title);
   EXT_CHECK(FXCheckButton)
 
   //~ FXMDIButton.h
-  typedef struct FXMDIDeleteButton FXMDIDeleteButton;
+  FOXTK_OPAQUE(FXMDIDeleteButton)
   FXMDIDeleteButton* FXMDIDeleteButton_new(FXComposite* prt);
-  typedef struct FXMDIMaximizeButton FXMDIMaximizeButton;
+  FOXTK_OPAQUE(FXMDIMaximizeButton)
   FXMDIMaximizeButton* FXMDIMaximizeButton_new(FXComposite* prt);
-  typedef struct FXMDIMenu FXMDIMenu;
+  FOXTK_OPAQUE(FXMDIMenu)
   FXMDIMenu* FXMDIMenu_new(FXComposite* prt);
-  typedef struct FXMDIMinimizeButton FXMDIMinimizeButton;
+  FOXTK_OPAQUE(FXMDIMinimizeButton)
   FXMDIMinimizeButton* FXMDIMinimizeButton_new(FXComposite* prt);
-  typedef struct FXMDIRestoreButton FXMDIRestoreButton;
+  FOXTK_OPAQUE(FXMDIRestoreButton)
   FXMDIRestoreButton* FXMDIRestoreButton_new(FXComposite* prt);
-  typedef struct FXMDIWindowButton FXMDIWindowButton;
+  FOXTK_OPAQUE(FXMDIWindowButton)
   FXMDIWindowButton* FXMDIWindowButton_new(FXComposite* prt, FXPopup* pup);
 
   //~ FXMDIChild.h
-  typedef struct FXMDIClient FXMDIClient;
-  typedef struct FXMDIChild FXMDIChild;
+  FOXTK_OPAQUE(FXMDIClient)
+  FOXTK_OPAQUE(FXMDIChild)
   FXMDIChild* FXMDIChild_new(FXMDIClient* client, const char* title);
 
   //~ FXMDIClient.h
   FXMDIClient* FXMDIClient_new(FXComposite* prt);
 
   //~ FXToggleButton.h
-  typedef struct FXToggleButton FXToggleButton;
+  FOXTK_OPAQUE(FXToggleButton)
   FXToggleButton* FXToggleButton_new(FXComposite* prt,
                                      const char* text1,
                                      const char* text2);
   EXT_STATE(FXToggleButton)
 
   //~ FXRadioButton.h
-  typedef struct FXRadioButton FXRadioButton;
+  FOXTK_OPAQUE(FXRadioButton)
   FXRadioButton* FXRadioButton_new(FXComposite* prt, const char* title);
   EXT_CHECK(FXRadioButton)
   EXT_TEXT(FXRadioButton)
 
   //~ FXTopWindow.h
-  typedef struct FXTopWindow FXTopWindow;
+  FOXTK_OPAQUE(FXTopWindow)
   void FXTopWindow_set_hspacing(FXTopWindow* self, int hspacing);
   void FXTopWindow_set_vspacing(FXTopWindow* self, int vspacing);
 
   //~ FXSplashWindow.h
-  typedef struct FXSplashWindow FXSplashWindow;
+  FOXTK_OPAQUE(FXSplashWindow)
   FXSplashWindow* FXSplashWindow_new(FXApp* app);
 
   //~ FXMainWindow.h
-  typedef struct FXMainWindow FXMainWindow;
+  FOXTK_OPAQUE(FXMainWindow)
   FXMainWindow* FXMainWindow_new(FXApp* app,
                                  const char* title,
                                  int width,
@@ -574,13 +601,13 @@ FXId_get_id(const FXId* self);
   void FXMainWindow_show(FXMainWindow* self);
 
   //~ FXPacker.h
-  typedef struct FXPacker FXPacker;
+  FOXTK_OPAQUE(FXPacker)
   FXPacker* FXPacker_new(FXComposite* prt);
   void FXPacker_set_hspacing(FXPacker* self, int val);
   void FXPacker_set_vspacing(FXPacker* self, int val);
 
   //~ FXMatrix.h
-  typedef struct FXMatrix FXMatrix;
+  FOXTK_OPAQUE(FXMatrix)
   FXMatrix* FXMatrix_new(FXComposite* prt, int rows, unsigned opts);
   int FXMatrix_get_num_rows(const FXMatrix* self);
   int FXMatrix_get_num_columns(const FXMatrix* self);
@@ -588,24 +615,24 @@ FXId_get_id(const FXId* self);
   void FXMatrix_set_num_columns(FXMatrix* self, int cols);
 
   //~ FXHeader.h
-  typedef struct FXHeader FXHeader;
+  FOXTK_OPAQUE(FXHeader)
   FXHeader* FXHeader_new(FXComposite* prt);
 
   //~ FXRuler.h
-  typedef struct FXRuler FXRuler;
+  FOXTK_OPAQUE(FXRuler)
   FXRuler* FXRuler_new(FXComposite* prt, unsigned orientation);
 
   //~ FXSpring.h
-  typedef struct FXSpring FXSpring;
+  FOXTK_OPAQUE(FXSpring)
   FXSpring* FXSpring_new(FXComposite* prt);
 
   //~ FXSeparator.h
-  typedef struct FXSeparator FXSeparator;
+  FOXTK_OPAQUE(FXSeparator)
   FXSeparator* FXSeparator_new(FXComposite* prt);
   EXT_STYLE(FXSeparator)
 
   //~ FXSplitter.h
-  typedef struct FXSplitter FXSplitter;
+  FOXTK_OPAQUE(FXSplitter)
   FXSplitter* FXSplitter_new(FXComposite* prt, unsigned opts);
   int FXSplitter_get_split(const FXSplitter* self, int index);
   int FXSplitter_get_bar_size(const FXSplitter* self);
@@ -614,25 +641,25 @@ FXId_get_id(const FXId* self);
   EXT_STYLE(FXSplitter)
 
   //~ FXGroupBox.h
-  typedef struct FXGroupBox FXGroupBox;
+  FOXTK_OPAQUE(FXGroupBox)
   FXGroupBox* FXGroupBox_new(FXComposite* prt, const char* title);
   EXT_STYLE(FXGroupBox)
 
   //~ FXVerticalFrame.h
-  typedef struct FXVerticalFrame FXVerticalFrame;
+  FOXTK_OPAQUE(FXVerticalFrame)
   FXVerticalFrame* FXVerticalFrame_new(FXComposite* prt);
 
   //~ FXHorizontalFrame.h
-  typedef struct FXHorizontalFrame FXHorizontalFrame;
+  FOXTK_OPAQUE(FXHorizontalFrame)
   FXHorizontalFrame* FXHorizontalFrame_new(FXComposite* prt);
 
   //~ FXSwitcher.h
-  typedef struct FXSwitcher FXSwitcher;
+  FOXTK_OPAQUE(FXSwitcher)
   FXSwitcher* FXSwitcher_new(FXComposite* prt);
   void FXSwitcher_set_current(FXSwitcher* self, int index);
 
   //~ FXShutter.h
-  typedef struct FXShutter FXShutter;
+  FOXTK_OPAQUE(FXShutter)
   FXShutter* FXShutter_new(FXComposite* prt);
   int FXShutter_get_current(const FXShutter* self);
   void FXShutter_set_current(FXShutter* self, int panel);
@@ -643,13 +670,13 @@ FXId_get_id(const FXId* self);
   // this one has a real fix: FXShutterItem_get_content below returns the
   // item's content pane upcast to FXComposite*, so it's usable directly
   // as another widget's parent — e.g. FXButton_new(content, "OK").
-  typedef struct FXShutterItem FXShutterItem;
+  FOXTK_OPAQUE(FXShutterItem)
   FXShutterItem* FXShutterItem_new(FXShutter* prt, const char* text);
   FXComposite* FXShutterItem_get_content(const FXShutterItem* self);
   EXT_HELP(FXShutterItem)
 
   //~ FXComboBox.h
-  typedef struct FXComboBox FXComboBox;
+  FOXTK_OPAQUE(FXComboBox)
   FXComboBox* FXComboBox_new(FXComposite* prt, int cols);
   EXT_JUSTIFY(FXComboBox)
   EXT_SELECTABLE(FXComboBox)
@@ -657,19 +684,19 @@ FXId_get_id(const FXId* self);
   EXT_HELP(FXComboBox)
 
   //~ FXList.h
-  typedef struct FXList FXList;
+  FOXTK_OPAQUE(FXList)
   FXList* FXList_new(FXComposite* prt);
   EXT_SELECTABLE(FXList)
   EXT_STYLE(FXList)
 
   //~ FXListBox.h
-  typedef struct FXListBox FXListBox;
+  FOXTK_OPAQUE(FXListBox)
   FXListBox* FXListBox_new(FXComposite* prt);
   EXT_SELECTABLE(FXListBox)
 
   //~ FXTreeList.h
-  typedef struct FXTreeItem FXTreeItem;
-  typedef struct FXTreeList FXTreeList;
+  FOXTK_OPAQUE(FXTreeItem)
+  FOXTK_OPAQUE(FXTreeList)
   FXTreeList* FXTreeList_new(FXComposite* prt);
   FXTreeItem* FXTreeList_append_item(FXTreeList* self,
                                      FXTreeItem* parent,
@@ -677,7 +704,7 @@ FXId_get_id(const FXId* self);
   void FXTreeList_clear_items(FXTreeList* self);
 
   //~ FXTable.h
-  typedef struct FXTable FXTable;
+  FOXTK_OPAQUE(FXTable)
   FXTable* FXTable_new(FXComposite* prt);
   const char* FXTable_get_item_text(const FXTable* self, int r, int c);
   void FXTable_set_table_size(FXTable* self, int nr, int nc);
@@ -685,54 +712,54 @@ FXId_get_id(const FXId* self);
   EXT_JUSTIFY(FXTable)
 
   //~ FXTableItem.h
-  typedef struct FXTableItem FXTableItem;
+  FOXTK_OPAQUE(FXTableItem)
   FXTableItem* FXTableItem_new(FXTable* tbl, const char* text);
 
   //~ FXCanvas.h
-  typedef struct FXCanvas FXCanvas;
+  FOXTK_OPAQUE(FXCanvas)
   typedef long (
     *CbMouse)(FXCanvas* widget, int event_code, int x, int y, void* context);
   FXCanvas* FXCanvas_new(FXComposite* prt);
   void FXCanvas_set_mouse_callback(FXCanvas* self, CbMouse cb, void* ctx);
 
   //~ FXGLVisual.h
-  typedef struct FXGLVisual FXGLVisual;
+  FOXTK_OPAQUE(FXGLVisual)
   FXGLVisual* FXGLVisual_new(FXApp* app);
 
   //~ FXGLCanvas.h
-  typedef struct FXGLCanvas FXGLCanvas;
+  FOXTK_OPAQUE(FXGLCanvas)
   FXGLCanvas* FXGLCanvas_new(FXComposite* prt, FXGLVisual* visual);
 
   //~ FXGLViewer.h
-  typedef struct FXGLViewer FXGLViewer;
+  FOXTK_OPAQUE(FXGLViewer)
   FXGLViewer* FXGLViewer_new(FXComposite* prt, FXGLVisual* visual);
 
   //~ FXTabBar.h
-  typedef struct FXTabBar FXTabBar;
+  FOXTK_OPAQUE(FXTabBar)
   FXTabBar* FXTabBar_new(FXComposite* prt);
 
   //~ FXTabBook.h
-  typedef struct FXTabBook FXTabBook;
+  FOXTK_OPAQUE(FXTabBook)
   FXTabBook* FXTabBook_new(FXComposite* prt);
   void FXTabBook_set_current(FXTabBook* self, int index);
   int FXTabBook_get_current(const FXTabBook* self);
   int FXTabBook_get_num_children(const FXTabBook* self);
 
   //~ FXTabItem.h
-  typedef struct FXTabItem FXTabItem;
+  FOXTK_OPAQUE(FXTabItem)
   FXTabItem* FXTabItem_new(FXTabBook* prt, const char* text);
   void FXTabItem_set_text(FXTabItem* self, const char* text);
   const char* FXTabItem_get_text(const FXTabItem* self);
 
   //~ FXScrollBar.h
-  typedef struct FXScrollBar FXScrollBar;
+  FOXTK_OPAQUE(FXScrollBar)
   FXScrollBar* FXScrollBar_new(FXComposite* prt);
   int FXScrollBar_get_position(const FXScrollBar* self);
   void FXScrollBar_set_position(FXScrollBar* self, int pos);
   void FXScrollBar_set_range(FXScrollBar* self, int hi);
 
   //~ FXScrollWindow.h
-  typedef struct FXScrollWindow FXScrollWindow;
+  FOXTK_OPAQUE(FXScrollWindow)
   FXScrollWindow* FXScrollWindow_new(FXComposite* prt,
                                      unsigned opts,
                                      int x,
@@ -746,11 +773,11 @@ FXId_get_id(const FXId* self);
   void FXScrollWindow_set_scroll_style(FXScrollWindow* self, unsigned style);
 
   //~ FXMenuBar.h
-  typedef struct FXMenuBar FXMenuBar;
+  FOXTK_OPAQUE(FXMenuBar)
   FXMenuBar* FXMenuBar_new(FXComposite* prt);
 
   //~ FXMenuButton.h
-  typedef struct FXMenuButton FXMenuButton;
+  FOXTK_OPAQUE(FXMenuButton)
   FXMenuButton* FXMenuButton_new(FXComposite* prt,
                                  const char* title,
                                  FXPopup* pop);
@@ -759,49 +786,49 @@ FXId_get_id(const FXId* self);
   EXT_STYLE(FXMenuButton)
 
   //~ FXMenuCaption.h
-  typedef struct FXMenuCaption FXMenuCaption;
+  FOXTK_OPAQUE(FXMenuCaption)
   FXMenuCaption* FXMenuCaption_new(FXComposite* prt, const char* text);
 
   //~ FXMenuCascade.h
-  typedef struct FXMenuCascade FXMenuCascade;
+  FOXTK_OPAQUE(FXMenuCascade)
   FXMenuCascade* FXMenuCascade_new(FXComposite* prt, const char* text);
 
   //~ FXMenuPane.h
-  typedef struct FXMenuPane FXMenuPane;
+  FOXTK_OPAQUE(FXMenuPane)
   FXMenuPane* FXMenuPane_new(FXWindow* prt);
 
   //~ FXMenuTitle.h
-  typedef struct FXMenuTitle FXMenuTitle;
+  FOXTK_OPAQUE(FXMenuTitle)
   FXMenuTitle* FXMenuTitle_new(FXComposite* prt,
                                const char* text,
                                FXPopup* pop);
 
   //~ FXMenuCommand.h
-  typedef struct FXMenuCommand FXMenuCommand;
+  FOXTK_OPAQUE(FXMenuCommand)
   FXMenuCommand* FXMenuCommand_new(FXComposite* prt, const char* text);
   void FXMenuCommand_set_accel_text(FXMenuCommand* self, const char* text);
   const char* FXMenuCommand_get_accel_text(const FXMenuCommand* self);
 
   //~ FXMenuSeparator.h
-  typedef struct FXMenuSeparator FXMenuSeparator;
+  FOXTK_OPAQUE(FXMenuSeparator)
   FXMenuSeparator* FXMenuSeparator_new(FXComposite* prt);
 
   //~ FXMenuRadio.h
-  typedef struct FXMenuRadio FXMenuRadio;
+  FOXTK_OPAQUE(FXMenuRadio)
   FXMenuRadio* FXMenuRadio_new(FXComposite* prt, const char* text);
   EXT_CHECK(FXMenuRadio)
 
   //~ FXMenuCheck.h
-  typedef struct FXMenuCheck FXMenuCheck;
+  FOXTK_OPAQUE(FXMenuCheck)
   FXMenuCheck* FXMenuCheck_new(FXComposite* prt, const char* text);
   EXT_CHECK(FXMenuCheck)
 
   //~ FXStatusLine.h
-  typedef struct FXStatusLine FXStatusLine;
+  FOXTK_OPAQUE(FXStatusLine)
   FXStatusLine* FXStatusLine_new(FXComposite* prt);
 
   //~ FXStatusBar.h
-  typedef struct FXStatusBar FXStatusBar;
+  FOXTK_OPAQUE(FXStatusBar)
   FXStatusBar* FXStatusBar_new(FXComposite* prt);
   const char* FXStatusBar_get_text(const FXStatusBar* self);
   void FXStatusBar_set_help_text(FXStatusBar* self, const char* text);
@@ -809,23 +836,23 @@ FXId_get_id(const FXId* self);
   EXT_TEXT(FXStatusBar)
 
   //~ FXOption.h
-  typedef struct FXOption FXOption;
+  FOXTK_OPAQUE(FXOption)
   FXOption* FXOption_new(FXComposite* prt, const char* text);
 
   //~ FXOptionMenu.h
-  typedef struct FXOptionMenu FXOptionMenu;
+  FOXTK_OPAQUE(FXOptionMenu)
   FXOptionMenu* FXOptionMenu_new(FXComposite* prt);
 
   //~ FXToolBar.h
-  typedef struct FXToolBar FXToolBar;
+  FOXTK_OPAQUE(FXToolBar)
   FXToolBar* FXToolBar_new(FXComposite* prt);
 
   //~ FXToolBarGrip.h
-  typedef struct FXToolBarGrip FXToolBarGrip;
+  FOXTK_OPAQUE(FXToolBarGrip)
   FXToolBarGrip* FXToolBarGrip_new(FXToolBar* toolbar);
 
   //~ FXToolBarTab.h
-  typedef struct FXToolBarTab FXToolBarTab;
+  FOXTK_OPAQUE(FXToolBarTab)
   FXToolBarTab* FXToolBarTab_new(FXToolBar* toolbar);
 
 #ifdef __cplusplus
