@@ -25,15 +25,15 @@ if ((${#})); then
     case ${1} in
         setup) _setup ;;
         build)
-            declare -r CSRC='foxtk-sys/src'
+            declare -ra CSRC=('foxtk-sys/src'/*.{cpp,h})
 
-            clang++ "$(fox-config --cflags)" "${CSRC:?}/foxtk.cpp"
-            clang "-I${CSRC:?}" "${CSRC:?}/../examples/simple.c" -o simple.exe
-
+            clang++ -std=c++17 -W{error,all,extra,pedantic} -O2 \
+                -fvisibility=hidden -fstack-protector-strong -flto \
+                "$(fox-config --cflags)" "${CSRC[@]}"
             clang-tidy -checks='readability-*,bugprone-*,performance-*' \
-                --warnings-as-errors='*' "${CSRC:?}"/*.{cpp,h} \
+                --warnings-as-errors='*' "${CSRC[@]}" \
                 -- "$(fox-config --cflags)"
-            clang-format --dry-run --Werror -style=Mozilla "${CSRC:?}"/*.{cpp,h}
+            clang-format --dry-run --Werror -style=Mozilla "${CSRC[@]}"
 
             cargo clippy --quiet --features='all' --examples
             cargo build --release --features='all' --examples
