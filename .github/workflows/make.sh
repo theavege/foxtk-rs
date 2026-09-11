@@ -30,7 +30,7 @@ if ((${#})); then
                 -fvisibility=hidden -fstack-protector-strong -fPIC \
                 "$(fox-config --cflags)" -c 'foxtk-sys/src/foxtk.cpp' -o foxtk.o
             clang -std=c17 -Wall -Wextra -Wpedantic -O2 \
-                 -I'foxtk-sys/src' foxtk.o 'foxtk-sys/examples/simple.c'
+                -I'foxtk-sys/src' foxtk.o 'foxtk-sys/examples/simple.c'
             clang-tidy -checks='readability-*,bugprone-*,performance-*' \
                 --warnings-as-errors='*' "${CSRC[@]}" \
                 -- "$(fox-config --cflags)"
