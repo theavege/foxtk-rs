@@ -1,8 +1,10 @@
+#include "foxtk.h"
+#include <FXColorList.h>
+#include <FXGradientBar.h>
 #include <cstdio>
+#include <cstring>
 #include <fx.h>
 #include <fx3d.h>
-#include <FXGradientBar.h>
-#include "foxtk.h"
 #include <type_traits>
 #include <utility>
 
@@ -1002,7 +1004,8 @@ extern "C"
                                           int hi)
   {
     FXint value = (result) ? *result : 0;
-    if (!FXInputDialog::getInteger(value, owner, caption, label, nullptr, lo, hi))
+    if (!FXInputDialog::getInteger(
+          value, owner, caption, label, nullptr, lo, hi))
       return 0;
     if (result)
       *result = value;
@@ -1061,6 +1064,38 @@ extern "C"
     return make_widget<FXDirSelector, FXComposite>(prt);
   }
 
+  //~ FXDirDialog.h
+  FXDirDialog* FXDirDialog_new(FXWindow* owner, const char* title)
+  {
+    return make_widget<FXDirDialog, FXWindow>(owner, title);
+  }
+  unsigned FXDirDialog_execute(FXDirDialog* self)
+  {
+    return self->execute();
+  }
+  void FXDirDialog_set_directory(FXDirDialog* self, const char* path)
+  {
+    self->setDirectory(path);
+  }
+  const char* FXDirDialog_get_directory(const FXDirDialog* self)
+  {
+    return string_result(self->getDirectory());
+  }
+  void FXDirDialog_show_files(FXDirDialog* self, unsigned char showing)
+  {
+    self->showFiles(showing != 0);
+  }
+  void FXDirDialog_show_hidden_files(FXDirDialog* self, unsigned char showing)
+  {
+    self->showHiddenFiles(showing != 0);
+  }
+  const char* FXDirDialog_get_open_directory(FXWindow* owner,
+                                             const char* caption,
+                                             const char* path)
+  {
+    return string_result(FXDirDialog::getOpenDirectory(owner, caption, path));
+  }
+
   //~ FXFileSelector.h
   FXFileSelector* FXFileSelector_new(FXComposite* prt)
   {
@@ -1069,6 +1104,36 @@ extern "C"
   FXFileList* FXFileList_new(FXComposite* prt)
   {
     return make_widget<FXFileList, FXComposite>(prt);
+  }
+
+  //~ FXFontDialog.h
+  FXFontDialog* FXFontDialog_new(FXWindow* owner, const char* title)
+  {
+    return make_widget<FXFontDialog, FXWindow>(owner, title);
+  }
+  unsigned FXFontDialog_execute(FXFontDialog* self)
+  {
+    return self->execute();
+  }
+  void FXFontDialog_set_font_selection(FXFontDialog* self,
+                                       const char* family,
+                                       int point_size)
+  {
+    FXFontDesc desc;
+    memset(&desc, 0, sizeof(desc));
+    if (family)
+      strncpy(desc.face, family, sizeof(desc.face) - 1);
+    desc.size = static_cast<FXushort>(point_size * 10);
+    self->setFontSelection(desc);
+  }
+  const char* FXFontDialog_get_font_selection(const FXFontDialog* self,
+                                              int* point_size_out)
+  {
+    FXFontDesc desc;
+    self->getFontSelection(desc);
+    if (point_size_out)
+      *point_size_out = desc.size / 10;
+    return string_result(FXString(desc.face));
   }
 
   //~ FXFontSelector.h
@@ -1336,8 +1401,7 @@ extern "C"
   {
     return string_result(self->getReplaceText());
   }
-  void FXReplaceDialog_set_replace_text(FXReplaceDialog* self,
-                                        const char* text)
+  void FXReplaceDialog_set_replace_text(FXReplaceDialog* self, const char* text)
   {
     self->setReplaceText(text);
   }
@@ -1682,7 +1746,9 @@ extern "C"
   {
     return ext_get_value<FXRealSpinner, double>(self);
   }
-  void FXRealSpinner_get_range(const FXRealSpinner* self, double* lo, double* hi)
+  void FXRealSpinner_get_range(const FXRealSpinner* self,
+                               double* lo,
+                               double* hi)
   {
     ext_get_range<FXRealSpinner, double>(self, lo, hi);
   }
@@ -2228,6 +2294,62 @@ extern "C"
   int FXList_get_num_items(const FXList* self)
   {
     return ext_get_num_items(self);
+  }
+
+  //~ FXColorList.h
+  FXColorList* FXColorList_new(FXComposite* prt)
+  {
+    return make_widget<FXColorList, FXComposite>(prt);
+  }
+  const char* FXColorList_get_item_text(const FXColorList* self, int index)
+  {
+    return ext_get_item_text(self, index);
+  }
+  int FXColorList_get_num_items(const FXColorList* self)
+  {
+    return ext_get_num_items(self);
+  }
+  int FXColorList_get_current_item(const FXColorList* self)
+  {
+    return ext_get_current_item(self);
+  }
+  void FXColorList_append_item(FXColorList* self, const char* text)
+  {
+    ext_append_item(self, text);
+  }
+  void FXColorList_clear_items(FXColorList* self)
+  {
+    ext_clear_items(self);
+  }
+  void FXColorList_set_current_item(FXColorList* self, int index)
+  {
+    ext_set_current_item(self, index);
+  }
+  void FXColorList_set_num_visible(FXColorList* self, int nvis)
+  {
+    ext_set_num_visible(self, nvis);
+  }
+  unsigned FXColorList_get_style(const FXColorList* self)
+  {
+    return self->getListStyle();
+  }
+  void FXColorList_set_style(FXColorList* self, unsigned style)
+  {
+    self->setListStyle(style);
+  }
+  void FXColorList_append_item_with_color(FXColorList* self,
+                                          const char* text,
+                                          unsigned color)
+  {
+    self->appendItem(text, color);
+  }
+  void FXColorList_set_item_color(FXColorList* self, int index, unsigned color)
+  {
+    self->setItemColor(index, color);
+  }
+  unsigned FXColorList_get_item_color(const FXColorList* self, int index)
+  {
+    return self->getItemColor(index);
   }
 
   //~ FXListBox.h

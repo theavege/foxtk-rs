@@ -125,7 +125,20 @@ extern "C"
   EXT_HELP(FXColorBar)
 
   FOXTK_OPAQUE(FXColorDialog)
+  FXColorDialog* FXColorDialog_new(FXWindow* owner, const char* title);
   FOXTK_OPAQUE(FXColorList)
+  FXColorList* FXColorList_new(FXComposite* prt);
+  EXT_SELECTABLE(FXColorList)
+  EXT_STYLE(FXColorList)
+  // Not folded into the generic EXT_SELECTABLE append_item (which would
+  // always insert with color 0/black) -- this widget's whole point is
+  // per-item color, so it gets its own insertion function that actually
+  // takes one.
+  void FXColorList_append_item_with_color(FXColorList* self,
+                                          const char* text,
+                                          unsigned color);
+  void FXColorList_set_item_color(FXColorList* self, int index, unsigned color);
+  unsigned FXColorList_get_item_color(const FXColorList* self, int index);
 
   //~ FXColorRing.h
   FOXTK_OPAQUE(FXColorRing)
@@ -160,8 +173,21 @@ extern "C"
   FOXTK_OPAQUE(FXCursor)
   FOXTK_OPAQUE(FXDataTarget)
   FOXTK_OPAQUE(FXDirDialog)
+  FXDirDialog* FXDirDialog_new(FXWindow* owner, const char* title);
+  unsigned FXDirDialog_execute(FXDirDialog* self);
+  void FXDirDialog_set_directory(FXDirDialog* self, const char* path);
+  const char* FXDirDialog_get_directory(const FXDirDialog* self);
+  void FXDirDialog_show_files(FXDirDialog* self, unsigned char showing);
+  void FXDirDialog_show_hidden_files(FXDirDialog* self, unsigned char showing);
+  // Convenience one-shot, matching FXFileDialog_get_open_filename above:
+  // constructs, runs, and tears down a dialog in one call.
+  const char* FXDirDialog_get_open_directory(FXWindow* owner,
+                                             const char* caption,
+                                             const char* path);
   FOXTK_OPAQUE(FXDirList)
+  FXDirList* FXDirList_new(FXComposite* prt);
   FOXTK_OPAQUE(FXDirSelector)
+  FXDirSelector* FXDirSelector_new(FXComposite* prt);
   FOXTK_OPAQUE(FXDockBar)
   FXDockBar* FXDockBar_new(FXComposite* prt);
   FOXTK_OPAQUE(FXDockSite)
@@ -173,9 +199,22 @@ extern "C"
 
   FOXTK_OPAQUE(FXDragCorner)
   FOXTK_OPAQUE(FXFileList)
+  FXFileList* FXFileList_new(FXComposite* prt);
   FOXTK_OPAQUE(FXFoldingList)
   FXFoldingList* FXFoldingList_new(FXComposite* prt);
   FOXTK_OPAQUE(FXFontDialog)
+  FXFontDialog* FXFontDialog_new(FXWindow* owner, const char* title);
+  unsigned FXFontDialog_execute(FXFontDialog* self);
+  // FXFontDesc has several more fields (weight, slant, setwidth, encoding)
+  // that this wrapper doesn't expose, matching the family+size-only
+  // convention ext_set_font already uses everywhere else in this API.
+  // point_size is whole points, converted to/from FXFontDesc's
+  // deci-points internally.
+  void FXFontDialog_set_font_selection(FXFontDialog* self,
+                                       const char* family,
+                                       int point_size);
+  const char* FXFontDialog_get_font_selection(const FXFontDialog* self,
+                                              int* point_size_out);
 
   //~ FXApp.h
   FOXTK_OPAQUE(FXApp)
@@ -331,8 +370,7 @@ FXId_get_id(const FXId* self);
   FXReplaceDialog* FXReplaceDialog_new(FXWindow* owner, const char* caption);
   unsigned FXReplaceDialog_execute(FXReplaceDialog* self);
   const char* FXReplaceDialog_get_search_text(const FXReplaceDialog* self);
-  void FXReplaceDialog_set_search_text(FXReplaceDialog* self,
-                                       const char* text);
+  void FXReplaceDialog_set_search_text(FXReplaceDialog* self, const char* text);
   const char* FXReplaceDialog_get_replace_text(const FXReplaceDialog* self);
   void FXReplaceDialog_set_replace_text(FXReplaceDialog* self,
                                         const char* text);
