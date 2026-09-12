@@ -24,17 +24,10 @@ else()
         target_include_directories(cfoxtk PRIVATE ${FOX_PATH}/include ${SDK_DIR}/Include)
     else()
         add_library(cfoxtk STATIC ${OBJS} )
-        #~ target_compile_options(cfoxtk PRIVATE
-            #~ $<$<CXX_COMPILER_ID:MSVC>:/W4 /permissive->
-            #~ $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic>
-        #~ )
+        target_compile_options(cfoxtk PRIVATE
+            $<$<CXX_COMPILER_ID:MSVC>:/W4 /permissive->
+            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -O2>
+        )
         target_include_directories(cfoxtk PRIVATE ${FOX_PATH}/include)
-        find_program(CLANG_TIDY "clang-tidy")
-        #~ if(CLANG_TIDY)
-            #~ message(STATUS "clang-tidy found: ${CLANG_TIDY}")
-            #~ set(CMAKE_CXX_CLANG_TIDY ${CLANG_TIDY} --warnings-as-errors=*)
-        #~ else()
-            #~ message(WARNING "clang-tidy not found!")
-        #~ endif()
     endif()
 endif()

@@ -7,6 +7,16 @@ use {
     },
 };
 
+/// Helper function to convert a string to CString, handling null bytes gracefully
+/// by replacing them with a placeholder character.
+#[allow(dead_code)]
+pub(crate) fn to_cstring(s: &str) -> CString {
+    CString::new(s).unwrap_or_else(|_| {
+        // Replace null bytes with underscore
+        CString::new(s.replace('\0', "_")).unwrap()
+    })
+}
+
 unsafe extern "C" fn ccallback<T: WindowExt>(ptr: *mut FXWindow, context: *mut c_void) -> c_long {
     unsafe {
         let func: &mut Box<dyn FnMut(T) -> bool> =
@@ -91,9 +101,9 @@ pub trait WindowExt: DrawableExt {
         unsafe {
             let ptr = FXFileDialog_get_open_filename(
                 self.root().as_raw() as *mut FXWindow,
-                CString::new(caption).unwrap().as_ptr(),
-                CString::new(path).unwrap().as_ptr(),
-                CString::new(patterns).unwrap().as_ptr(),
+                to_cstring(caption).as_ptr(),
+                to_cstring(path).as_ptr(),
+                to_cstring(patterns).as_ptr(),
                 initial,
             );
             std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
@@ -103,9 +113,9 @@ pub trait WindowExt: DrawableExt {
         unsafe {
             let ptr = FXFileDialog_get_save_filename(
                 self.root().as_raw() as *mut FXWindow,
-                CString::new(caption).unwrap().as_ptr(),
-                CString::new(path).unwrap().as_ptr(),
-                CString::new(patterns).unwrap().as_ptr(),
+                to_cstring(caption).as_ptr(),
+                to_cstring(path).as_ptr(),
+                to_cstring(patterns).as_ptr(),
                 initial,
             );
             std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
@@ -172,55 +182,55 @@ pub trait WindowExt: DrawableExt {
                 Message::Error => FXMessageBox_error(
                     self.root().as_raw() as *mut FXWindow,
                     opts as u32,
-                    CString::new("Error").unwrap().as_ptr(),
-                    CString::new(message).unwrap().as_ptr(),
+                    to_cstring("Error").as_ptr(),
+                    to_cstring(message).as_ptr(),
                 ),
                 Message::Information => FXMessageBox_information(
                     self.root().as_raw() as *mut FXWindow,
                     opts as u32,
-                    CString::new("Information").unwrap().as_ptr(),
-                    CString::new(message).unwrap().as_ptr(),
+                    to_cstring("Information").as_ptr(),
+                    to_cstring(message).as_ptr(),
                 ),
                 Message::Question => FXMessageBox_question(
                     self.root().as_raw() as *mut FXWindow,
                     opts as u32,
-                    CString::new("Question").unwrap().as_ptr(),
-                    CString::new(message).unwrap().as_ptr(),
+                    to_cstring("Question").as_ptr(),
+                    to_cstring(message).as_ptr(),
                 ),
                 Message::Warning => FXMessageBox_warning(
                     self.root().as_raw() as *mut FXWindow,
                     opts as u32,
-                    CString::new("Warning").unwrap().as_ptr(),
-                    CString::new(message).unwrap().as_ptr(),
+                    to_cstring("Warning").as_ptr(),
+                    to_cstring(message).as_ptr(),
                 ),
             }
         }
     }
 }
 
-pub trait DCWindowExt: ObjectExt {
-    //~ fn new_dc(&self) -> Self {
-    //~ unsafe { Self::from_raw(FXDCWindow_new(self.as_raw() as *mut FXDrawable)) }
-    //~ }
-    fn dc_set_foreground(&self, color: Color) {
-        unsafe { FXDC_set_foreground(self.as_raw() as *mut FXDC, color.bits()) }
-    }
-    fn dc_set_line_width(&self, width: i32) {
-        unsafe { FXDC_set_line_width(self.as_raw() as *mut FXDC, width) }
-    }
-    fn dc_draw_line(&self, x1: i32, y1: i32, x2: i32, y2: i32) {
-        unsafe { FXDC_draw_line(self.as_raw() as *mut FXDC, x1, y1, x2, y2) }
-    }
-    fn dc_draw_point(&self, x: i32, y: i32) {
-        unsafe { FXDC_draw_point(self.as_raw() as *mut FXDC, x, y) }
-    }
-    fn dc_draw_rect(&self, x: i32, y: i32, w: i32, h: i32) {
-        unsafe { FXDC_draw_rect(self.as_raw() as *mut FXDC, x, y, w, h) }
-    }
-    fn dc_fill_rect(&self, x: i32, y: i32, w: i32, h: i32) {
-        unsafe { FXDC_fill_rect(self.as_raw() as *mut FXDC, x, y, w, h) }
-    }
-}
+//~ pub trait DCWindowExt: ObjectExt {
+//~ fn new_dc(&self) -> Self {
+//~ unsafe { Self::from_raw(FXDCWindow_new(self.as_raw() as *mut FXDrawable)) }
+//~ }
+//~ fn dc_set_foreground(&self, color: Color) {
+//~ unsafe { FXDC_set_foreground(self.as_raw() as *mut FXDC, color.bits()) }
+//~ }
+//~ fn dc_set_line_width(&self, width: i32) {
+//~ unsafe { FXDC_set_line_width(self.as_raw() as *mut FXDC, width) }
+//~ }
+//~ fn dc_draw_line(&self, x1: i32, y1: i32, x2: i32, y2: i32) {
+//~ unsafe { FXDC_draw_line(self.as_raw() as *mut FXDC, x1, y1, x2, y2) }
+//~ }
+//~ fn dc_draw_point(&self, x: i32, y: i32) {
+//~ unsafe { FXDC_draw_point(self.as_raw() as *mut FXDC, x, y) }
+//~ }
+//~ fn dc_draw_rect(&self, x: i32, y: i32, w: i32, h: i32) {
+//~ unsafe { FXDC_draw_rect(self.as_raw() as *mut FXDC, x, y, w, h) }
+//~ }
+//~ fn dc_fill_rect(&self, x: i32, y: i32, w: i32, h: i32) {
+//~ unsafe { FXDC_fill_rect(self.as_raw() as *mut FXDC, x, y, w, h) }
+//~ }
+//~ }
 
 pub trait FrameExt: WindowExt {
     fn with_pad(self, pad: i32) -> Self {
