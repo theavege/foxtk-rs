@@ -1,10 +1,10 @@
-#include "foxtk.h"
-#include <FXColorList.h>
-#include <FXGradientBar.h>
 #include <cstdio>
 #include <cstring>
 #include <fx.h>
 #include <fx3d.h>
+#include <FXGradientBar.h>
+#include <FXColorList.h>
+#include "foxtk.h"
 #include <type_traits>
 #include <utility>
 
@@ -1033,8 +1033,7 @@ extern "C"
                                           int hi)
   {
     FXint value = (result) ? *result : 0;
-    if (!FXInputDialog::getInteger(
-          value, owner, caption, label, nullptr, lo, hi))
+    if (!FXInputDialog::getInteger(value, owner, caption, label, nullptr, lo, hi))
       return 0;
     if (result)
       *result = value;
@@ -1464,7 +1463,8 @@ extern "C"
   {
     return string_result(self->getReplaceText());
   }
-  void FXReplaceDialog_set_replace_text(FXReplaceDialog* self, const char* text)
+  void FXReplaceDialog_set_replace_text(FXReplaceDialog* self,
+                                        const char* text)
   {
     self->setReplaceText(text);
   }
@@ -1809,9 +1809,7 @@ extern "C"
   {
     return ext_get_value<FXRealSpinner, double>(self);
   }
-  void FXRealSpinner_get_range(const FXRealSpinner* self,
-                               double* lo,
-                               double* hi)
+  void FXRealSpinner_get_range(const FXRealSpinner* self, double* lo, double* hi)
   {
     ext_get_range<FXRealSpinner, double>(self, lo, hi);
   }

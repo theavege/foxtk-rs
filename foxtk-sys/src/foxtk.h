@@ -94,12 +94,28 @@ extern "C"
   // nullptr when the parent/owner argument is missing). Getter functions return
   // borrowed data.
 
-  //~ FXObject.h
+  // Foundational types used as parameter/return types throughout this
+  // header, forward-declared up front. In C++ mode (FOXTK_OPAQUE is a
+  // no-op there) this doesn't matter -- FOX's own headers already make
+  // every real class visible regardless of order. In C mode, though,
+  // FOXTK_OPAQUE expands to a real typedef'd opaque struct, and C requires
+  // declare-before-use: a widget declared earlier in this file that
+  // takes an FXApp*/FXWindow*/etc. parameter would fail to compile under
+  // a plain C compiler if that type's own typedef appeared later. Keep
+  // these seven at the top so adding a new widget elsewhere in the file
+  // can never reintroduce that class of bug.
   FOXTK_OPAQUE(FXObject)
+  FOXTK_OPAQUE(FXId)
+  FOXTK_OPAQUE(FXDrawable)
+  FOXTK_OPAQUE(FXComposite)
+  FOXTK_OPAQUE(FXWindow)
+  FOXTK_OPAQUE(FXFrame)
+  FOXTK_OPAQUE(FXApp)
+
+  //~ FXObject.h
   void FXObject_delete(FXObject* self);
 
   //~ FXComposite.h
-  FOXTK_OPAQUE(FXComposite)
   int FXComposite_child_width(const FXComposite* self);
   int FXComposite_child_height(const FXComposite* self);
 
@@ -237,7 +253,6 @@ extern "C"
                                               int* point_size_out);
 
   //~ FXApp.h
-  FOXTK_OPAQUE(FXApp)
   typedef long (*CbTimer)(FXApp* app, void* ctx);
   FXApp* FXApp_new(const char* name, const char* vendor, int argc, char** argv);
   int FXApp_run(FXApp* self);
@@ -263,7 +278,6 @@ extern "C"
   EXT_TEXT(FXToolTip)
 
   //~ FXId.h
-  FOXTK_OPAQUE(FXId)
   FXApp* FXId_get_app(const FXId* self);
 #ifdef _WIN32
   void* FXId_get_id(const FXId* self);
@@ -304,7 +318,6 @@ FXId_get_id(const FXId* self);
   FXColorSelector* FXColorSelector_new(FXComposite* prt);
 
   //~ FXDrawable.h
-  FOXTK_OPAQUE(FXDrawable)
   int FXDrawable_get_height(const FXDrawable* self);
   int FXDrawable_get_width(const FXDrawable* self);
 
@@ -326,7 +339,6 @@ FXId_get_id(const FXId* self);
   EXT_DRAWING(FXDCWindow)
 
   //~ FXWindow.h
-  FOXTK_OPAQUE(FXWindow)
   typedef long (*CbWidget)(FXWindow* wgt, void* ctx);
   FXWindow* FXWindow_get_parent(const FXWindow* self);
   FXWindow* FXWindow_get_root(const FXWindow* self);
@@ -390,7 +402,8 @@ FXId_get_id(const FXId* self);
   FXReplaceDialog* FXReplaceDialog_new(FXWindow* owner, const char* caption);
   unsigned FXReplaceDialog_execute(FXReplaceDialog* self);
   const char* FXReplaceDialog_get_search_text(const FXReplaceDialog* self);
-  void FXReplaceDialog_set_search_text(FXReplaceDialog* self, const char* text);
+  void FXReplaceDialog_set_search_text(FXReplaceDialog* self,
+                                       const char* text);
   const char* FXReplaceDialog_get_replace_text(const FXReplaceDialog* self);
   void FXReplaceDialog_set_replace_text(FXReplaceDialog* self,
                                         const char* text);
@@ -494,7 +507,6 @@ FXId_get_id(const FXId* self);
   EXT_HELP(FXDial)
 
   //~ FXFrame.h
-  FOXTK_OPAQUE(FXFrame)
   void FXFrame_set_pad_bottom(FXFrame* self, int pad);
   void FXFrame_set_pad_left(FXFrame* self, int pad);
   void FXFrame_set_pad_right(FXFrame* self, int pad);
