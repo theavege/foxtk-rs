@@ -326,7 +326,17 @@ protected:
 
 class CTarget : public CWrapperTarget
 {
+  // FXDECLARE generates friend operator<</operator>> for FXStream
+  // (de)serialization on every class that uses it -- required for FOX's
+  // message-dispatch metaclass system to work (FXMAPFUNC/handle()), but
+  // these three internal target classes are pure runtime objects that
+  // are never saved/loaded via FXStream, so the generated operators are
+  // always unused. Suppressed narrowly (just this line) rather than
+  // dropping FXDECLARE, which would break message dispatch.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
   FXDECLARE(CTarget)
+#pragma GCC diagnostic pop
 protected:
   CTarget() {}
 
@@ -363,7 +373,10 @@ FXIMPLEMENT(CTarget, FXObject, CTargetMap, ARRAYNUMBER(CTargetMap))
 
 class CTimeout : public FXObject
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
   FXDECLARE(CTimeout)
+#pragma GCC diagnostic pop
 protected:
   CTimeout() {}
 
@@ -410,7 +423,10 @@ FXIMPLEMENT(CTimeout, FXObject, CTimeoutMap, ARRAYNUMBER(CTimeoutMap))
 
 class CMouseTarget : public CWrapperTarget
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
   FXDECLARE(CMouseTarget)
+#pragma GCC diagnostic pop
 protected:
   CMouseTarget() {}
 
@@ -738,6 +754,12 @@ extern "C"
     return self->maxChildHeight();
   }
 
+  //~ FXDragCorner.h
+  FXDragCorner* FXDragCorner_new(FXComposite* prt)
+  {
+    return make_widget<FXDragCorner, FXComposite>(prt);
+  }
+
   // ============================================================================
   // APPLICATION
   // ============================================================================
@@ -768,6 +790,13 @@ extern "C"
     auto timeout = reinterpret_cast<CTimeout*>(handle);
     self->removeTimeout(timeout, CTimeout::SEL_TIMEOUT);
     delete timeout;
+  }
+
+  //~ FXCursor.h
+  FXCursor* FXCursor_new(FXApp* app, int stock_cursor_id)
+  {
+    return make_widget<FXCursor, FXApp>(
+      app, static_cast<FXStockCursor>(stock_cursor_id));
   }
 
   //~ FXToolTip.h
@@ -1302,6 +1331,40 @@ extern "C"
   void FXColorBar_set_tip_text(FXColorBar* self, const char* text)
   {
     ext_set_tip_text(self, text);
+  }
+
+  //~ FX4Splitter.h
+  FX4Splitter* FX4Splitter_new(FXComposite* prt)
+  {
+    return make_widget<FX4Splitter, FXComposite>(prt);
+  }
+  int FX4Splitter_get_h_split(const FX4Splitter* self)
+  {
+    return self->getHSplit();
+  }
+  int FX4Splitter_get_v_split(const FX4Splitter* self)
+  {
+    return self->getVSplit();
+  }
+  void FX4Splitter_set_h_split(FX4Splitter* self, int split)
+  {
+    self->setHSplit(split);
+  }
+  void FX4Splitter_set_v_split(FX4Splitter* self, int split)
+  {
+    self->setVSplit(split);
+  }
+  void FX4Splitter_set_style(FX4Splitter* self, unsigned style)
+  {
+    self->setSplitterStyle(style);
+  }
+  int FX4Splitter_get_bar_size(const FX4Splitter* self)
+  {
+    return self->getBarSize();
+  }
+  void FX4Splitter_set_bar_size(FX4Splitter* self, int size)
+  {
+    self->setBarSize(size);
   }
 
   //~ FX7Segment.h
@@ -1952,6 +2015,14 @@ extern "C"
   {
     return self->getSeparatorStyle();
   }
+  FXHorizontalSeparator* FXHorizontalSeparator_new(FXComposite* prt)
+  {
+    return make_widget<FXHorizontalSeparator, FXComposite>(prt);
+  }
+  FXVerticalSeparator* FXVerticalSeparator_new(FXComposite* prt)
+  {
+    return make_widget<FXVerticalSeparator, FXComposite>(prt);
+  }
 
   //~ FXSplitter.h
   FXSplitter* FXSplitter_new(FXComposite* prt, unsigned opts)
@@ -2296,6 +2367,40 @@ extern "C"
     return ext_get_num_items(self);
   }
 
+  //~ FXIconList.h
+  FXIconList* FXIconList_new(FXComposite* prt)
+  {
+    return make_widget<FXIconList, FXComposite>(prt);
+  }
+  int FXIconList_get_num_items(const FXIconList* self)
+  {
+    return self->getNumItems();
+  }
+  int FXIconList_get_current_item(const FXIconList* self)
+  {
+    return self->getCurrentItem();
+  }
+  void FXIconList_set_current_item(FXIconList* self, int index)
+  {
+    self->setCurrentItem(index);
+  }
+  const char* FXIconList_get_item_text(const FXIconList* self, int index)
+  {
+    return string_result(self->getItemText(index));
+  }
+  void FXIconList_set_item_text(FXIconList* self, int index, const char* text)
+  {
+    self->setItemText(index, text);
+  }
+  void FXIconList_append_item(FXIconList* self, const char* text)
+  {
+    self->appendItem(text);
+  }
+  void FXIconList_clear_items(FXIconList* self)
+  {
+    self->clearItems();
+  }
+
   //~ FXColorList.h
   FXColorList* FXColorList_new(FXComposite* prt)
   {
@@ -2517,6 +2622,18 @@ extern "C"
   void FXScrollBar_set_range(FXScrollBar* self, int hi)
   {
     self->setRange(hi);
+  }
+
+  //~ FXScrollCorner.h
+  FXScrollCorner* FXScrollCorner_new(FXComposite* prt)
+  {
+    return make_widget<FXScrollCorner, FXComposite>(prt);
+  }
+
+  //~ FXScrollPane.h
+  FXScrollPane* FXScrollPane_new(FXWindow* owner, int num_visible)
+  {
+    return make_widget<FXScrollPane, FXWindow>(owner, num_visible);
   }
 
   //~ FXScrollWindow.h
@@ -2741,6 +2858,20 @@ extern "C"
       prt, LAYOUT_TOP | LAYOUT_LEFT | LAYOUT_FILL_X);
   }
 
+  //~ FXToolBarShell.h
+  FXToolBarShell* FXToolBarShell_new(FXWindow* owner)
+  {
+    return make_widget<FXToolBarShell, FXWindow>(owner);
+  }
+  void FXToolBarShell_show(FXToolBarShell* self)
+  {
+    self->show();
+  }
+  void FXToolBarShell_hide(FXToolBarShell* self)
+  {
+    self->hide();
+  }
+
   //~ FXToolBarGrip.h
   FXToolBarGrip* FXToolBarGrip_new(FXToolBar* toolbar)
   {
@@ -2751,6 +2882,12 @@ extern "C"
   FXToolBarTab* FXToolBarTab_new(FXToolBar* toolbar)
   {
     return new FXToolBarTab(toolbar);
+  }
+
+  //~ FXBitmap.h
+  FXBitmap* FXBitmap_new(FXApp* app)
+  {
+    return make_widget<FXBitmap, FXApp>(app);
   }
 
   //~ FXBitmapFrame.h

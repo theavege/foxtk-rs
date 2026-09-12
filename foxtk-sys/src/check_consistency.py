@@ -277,6 +277,26 @@ OUT_OF_SCOPE_PATTERNS = [
                                # meant to be subclassed by application
                                # code -- same shape as the exception
                                # classes, not directly instantiable
+    r'^FXScrollArea$',        # confirmed: protected constructor in the
+                               # real FOX header, only reachable via
+                               # concrete subclasses (FXScrollWindow,
+                               # FXIconList, both already wrapped)
+    r'^FXDockHandler$',       # confirmed: FXDECLARE_ABSTRACT + protected
+                               # constructor, internal to the docking
+                               # machinery (FXDockSite/FXDockBar/
+                               # FXDockTitle), not meant for direct use
+    r'^FXPicker$',            # a bare FXButton subclass -- inherits
+                               # everything from FXButton (already
+                               # wrapped) and adds no new public members
+                               # of its own; wrapping it would just
+                               # duplicate FXButton's accessor set for
+                               # zero new functionality
+    r'^FXCURCursor$',         # loads a .cur file's raw pixel data
+                               # directly -- same category as the
+                               # already-excluded format-specific Icon/
+                               # Image loaders. FXCursor (built-in stock
+                               # cursors) is wrapped and covers the
+                               # common case.
 ]
 
 

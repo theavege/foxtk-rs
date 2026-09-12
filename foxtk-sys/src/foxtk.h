@@ -103,13 +103,25 @@ extern "C"
   int FXComposite_child_width(const FXComposite* self);
   int FXComposite_child_height(const FXComposite* self);
 
+  //~ FX4Splitter.h
   FOXTK_OPAQUE(FX4Splitter)
+  FX4Splitter* FX4Splitter_new(FXComposite* prt);
+  int FX4Splitter_get_h_split(const FX4Splitter* self);
+  int FX4Splitter_get_v_split(const FX4Splitter* self);
+  void FX4Splitter_set_h_split(FX4Splitter* self, int split);
+  void FX4Splitter_set_v_split(FX4Splitter* self, int split);
+  void FX4Splitter_set_style(FX4Splitter* self, unsigned style);
+  int FX4Splitter_get_bar_size(const FX4Splitter* self);
+  void FX4Splitter_set_bar_size(FX4Splitter* self, int size);
+
   FOXTK_OPAQUE(FX7Segment)
   FX7Segment* FX7Segment_new(FXComposite* prt, const char* text);
   EXT_JUSTIFY(FX7Segment)
   EXT_HELP(FX7Segment)
 
+  //~ FXBitmap.h
   FOXTK_OPAQUE(FXBitmap)
+  FXBitmap* FXBitmap_new(FXApp* app);
   FOXTK_OPAQUE(FXBitmapFrame)
   FXBitmapFrame* FXBitmapFrame_new(FXComposite* prt);
   EXT_JUSTIFY(FXBitmapFrame)
@@ -169,8 +181,14 @@ extern "C"
                                              unsigned color);
 
   FOXTK_OPAQUE(FXComposeContext)
+  // FXCURCursor loads a .cur file's pixel data directly -- same shape as
+  // the format-specific Icon/Image loaders already out of scope for this
+  // API. FXCursor below (built-in stock cursors) covers the common case.
   FOXTK_OPAQUE(FXCURCursor)
   FOXTK_OPAQUE(FXCursor)
+  // FXStockCursor values start at 1 (CURSOR_ARROW); pass the raw enum
+  // value from FXCursor.h since this API doesn't re-declare the enum.
+  FXCursor* FXCursor_new(FXApp* app, int stock_cursor_id);
   FOXTK_OPAQUE(FXDataTarget)
   FOXTK_OPAQUE(FXDirDialog)
   FXDirDialog* FXDirDialog_new(FXWindow* owner, const char* title);
@@ -197,7 +215,9 @@ extern "C"
   FXDockTitle* FXDockTitle_new(FXDockBar* bar, const char* title);
   EXT_JUSTIFY(FXDockTitle)
 
+  //~ FXDragCorner.h
   FOXTK_OPAQUE(FXDragCorner)
+  FXDragCorner* FXDragCorner_new(FXComposite* prt);
   FOXTK_OPAQUE(FXFileList)
   FXFileList* FXFileList_new(FXComposite* prt);
   FOXTK_OPAQUE(FXFoldingList)
@@ -669,6 +689,14 @@ FXId_get_id(const FXId* self);
   FXSeparator* FXSeparator_new(FXComposite* prt);
   EXT_STYLE(FXSeparator)
 
+  // Convenience subclasses that just preset FXSeparator's orientation-
+  // related opts flags at construction -- no accessors beyond what
+  // FXSeparator_set_style above already covers.
+  FOXTK_OPAQUE(FXHorizontalSeparator)
+  FXHorizontalSeparator* FXHorizontalSeparator_new(FXComposite* prt);
+  FOXTK_OPAQUE(FXVerticalSeparator)
+  FXVerticalSeparator* FXVerticalSeparator_new(FXComposite* prt);
+
   //~ FXSplitter.h
   FOXTK_OPAQUE(FXSplitter)
   FXSplitter* FXSplitter_new(FXComposite* prt, unsigned opts);
@@ -726,6 +754,20 @@ FXId_get_id(const FXId* self);
   FXList* FXList_new(FXComposite* prt);
   EXT_SELECTABLE(FXList)
   EXT_STYLE(FXList)
+
+  //~ FXIconList.h
+  // Custom wrappers rather than EXT_SELECTABLE: append_item takes icon
+  // params with different defaults than the generic helper assumes, and
+  // clear_items takes a notify flag the generic one doesn't model.
+  FOXTK_OPAQUE(FXIconList)
+  FXIconList* FXIconList_new(FXComposite* prt);
+  int FXIconList_get_num_items(const FXIconList* self);
+  int FXIconList_get_current_item(const FXIconList* self);
+  void FXIconList_set_current_item(FXIconList* self, int index);
+  const char* FXIconList_get_item_text(const FXIconList* self, int index);
+  void FXIconList_set_item_text(FXIconList* self, int index, const char* text);
+  void FXIconList_append_item(FXIconList* self, const char* text);
+  void FXIconList_clear_items(FXIconList* self);
 
   //~ FXListBox.h
   FOXTK_OPAQUE(FXListBox)
@@ -795,6 +837,21 @@ FXId_get_id(const FXId* self);
   int FXScrollBar_get_position(const FXScrollBar* self);
   void FXScrollBar_set_position(FXScrollBar* self, int pos);
   void FXScrollBar_set_range(FXScrollBar* self, int hi);
+
+  //~ FXScrollCorner.h
+  // Purely decorative filler for the corner where two scrollbars meet --
+  // FOX's own docs note it has no interactive behavior, so there's
+  // nothing beyond the constructor to expose.
+  FOXTK_OPAQUE(FXScrollCorner)
+  FXScrollCorner* FXScrollCorner_new(FXComposite* prt);
+
+  //~ FXScrollPane.h
+  // A specialized popup pane (used internally by e.g. combo box
+  // dropdowns), not a normal composite-layout widget. Construct-only for
+  // now, matching FXMenuPane_new's existing minimal treatment -- this
+  // widget family's popup/show mechanics aren't wired up in this API yet.
+  FOXTK_OPAQUE(FXScrollPane)
+  FXScrollPane* FXScrollPane_new(FXWindow* owner, int num_visible);
 
   //~ FXScrollWindow.h
   FOXTK_OPAQUE(FXScrollWindow)
@@ -884,6 +941,12 @@ FXId_get_id(const FXId* self);
   //~ FXToolBar.h
   FOXTK_OPAQUE(FXToolBar)
   FXToolBar* FXToolBar_new(FXComposite* prt);
+
+  //~ FXToolBarShell.h
+  FOXTK_OPAQUE(FXToolBarShell)
+  FXToolBarShell* FXToolBarShell_new(FXWindow* owner);
+  void FXToolBarShell_show(FXToolBarShell* self);
+  void FXToolBarShell_hide(FXToolBarShell* self);
 
   //~ FXToolBarGrip.h
   FOXTK_OPAQUE(FXToolBarGrip)
