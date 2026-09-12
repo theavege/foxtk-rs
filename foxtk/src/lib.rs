@@ -1207,7 +1207,7 @@ impl PrintDialog {
     }
 }
 
-impl_widget!(DCWindow, IdExt, DCWindowExt);
+impl_widget!(DCWindow, IdExt);
 impl DCWindow {
     pub fn new(drawable: &impl DrawableExt) -> Self {
         Self::from_raw(unsafe { FXDCWindow_new(drawable.as_raw() as *mut FXDrawable) })

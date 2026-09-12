@@ -208,29 +208,29 @@ pub trait WindowExt: DrawableExt {
     }
 }
 
-pub trait DCWindowExt: ObjectExt {
-    //~ fn new_dc(&self) -> Self {
-    //~ unsafe { Self::from_raw(FXDCWindow_new(self.as_raw() as *mut FXDrawable)) }
-    //~ }
-    fn dc_set_foreground(&self, color: Color) {
-        unsafe { FXDC_set_foreground(self.as_raw() as *mut FXDC, color.bits()) }
-    }
-    fn dc_set_line_width(&self, width: i32) {
-        unsafe { FXDC_set_line_width(self.as_raw() as *mut FXDC, width) }
-    }
-    fn dc_draw_line(&self, x1: i32, y1: i32, x2: i32, y2: i32) {
-        unsafe { FXDC_draw_line(self.as_raw() as *mut FXDC, x1, y1, x2, y2) }
-    }
-    fn dc_draw_point(&self, x: i32, y: i32) {
-        unsafe { FXDC_draw_point(self.as_raw() as *mut FXDC, x, y) }
-    }
-    fn dc_draw_rect(&self, x: i32, y: i32, w: i32, h: i32) {
-        unsafe { FXDC_draw_rect(self.as_raw() as *mut FXDC, x, y, w, h) }
-    }
-    fn dc_fill_rect(&self, x: i32, y: i32, w: i32, h: i32) {
-        unsafe { FXDC_fill_rect(self.as_raw() as *mut FXDC, x, y, w, h) }
-    }
-}
+//~ pub trait DCWindowExt: ObjectExt {
+//~ fn new_dc(&self) -> Self {
+//~ unsafe { Self::from_raw(FXDCWindow_new(self.as_raw() as *mut FXDrawable)) }
+//~ }
+//~ fn dc_set_foreground(&self, color: Color) {
+//~ unsafe { FXDC_set_foreground(self.as_raw() as *mut FXDC, color.bits()) }
+//~ }
+//~ fn dc_set_line_width(&self, width: i32) {
+//~ unsafe { FXDC_set_line_width(self.as_raw() as *mut FXDC, width) }
+//~ }
+//~ fn dc_draw_line(&self, x1: i32, y1: i32, x2: i32, y2: i32) {
+//~ unsafe { FXDC_draw_line(self.as_raw() as *mut FXDC, x1, y1, x2, y2) }
+//~ }
+//~ fn dc_draw_point(&self, x: i32, y: i32) {
+//~ unsafe { FXDC_draw_point(self.as_raw() as *mut FXDC, x, y) }
+//~ }
+//~ fn dc_draw_rect(&self, x: i32, y: i32, w: i32, h: i32) {
+//~ unsafe { FXDC_draw_rect(self.as_raw() as *mut FXDC, x, y, w, h) }
+//~ }
+//~ fn dc_fill_rect(&self, x: i32, y: i32, w: i32, h: i32) {
+//~ unsafe { FXDC_fill_rect(self.as_raw() as *mut FXDC, x, y, w, h) }
+//~ }
+//~ }
 
 pub trait FrameExt: WindowExt {
     fn with_pad(self, pad: i32) -> Self {
