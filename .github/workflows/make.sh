@@ -27,7 +27,7 @@ function _clang
         "$(fox-config --cflags)" \
         -c 'foxtk-sys/src/foxtk.cpp' -o foxtk.o
     clang -std=c17 -Wall -Wextra -Wpedantic -O2 \
-        -I'foxtk-sys/src' foxtk.o -lstdc++ "$(fox-config --libs)" \
+        -I'foxtk-sys/src' -lstdc++ "$(fox-config --libs)" foxtk.o \
         'foxtk-sys/examples/simple.c' -o simple
     # clang-tidy -checks='readability-*,bugprone-*,performance-*' \
     #     --warnings-as-errors='*' "${CSRC[@]}" \
