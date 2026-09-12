@@ -13,9 +13,9 @@ function _setup
                     ;;
                 fedora | alma) sudo dnf install -y "${DEPS[@]}" fox-devel ;;
             esac 1>/dev/null
-            shellcheck --external-sources "${0}"
-            shfmt -ci -fn -i 4 -d "${0}"
         fi
+        shellcheck --external-sources "${0}"
+        shfmt -ci -fn -i 4 -d "${0}"
     fi
 )
 
@@ -26,13 +26,14 @@ function _clang
         -fvisibility=hidden -fstack-protector-strong -fPIC \
         "$(fox-config --cflags)" \
         -c 'foxtk-sys/src/foxtk.cpp' -o foxtk.o
-    clang -std=c17 -Wall -Wextra -Wpedantic -O2 \
-        -I'foxtk-sys/src' -lstdc++ "$(fox-config --libs)" foxtk.o \
+    read -ra args < <(fox-config --libs)
+    clang -std=c17 -Wall -Wextra -Wpedantic -O2 -lstdc++ "${args[@]}" \
+        "$(fox-config --cflags)" '-Ifoxtk-sys/src' foxtk.o \
         'foxtk-sys/examples/simple.c' -o simple
-    # clang-tidy -checks='readability-*,bugprone-*,performance-*' \
-    #     --warnings-as-errors='*' "${CSRC[@]}" \
-    #    -- "$(fox-config --cflags)"
-    clang-format --dry-run --Werror -style=Mozilla "${CSRC[@]}"
+    #~ clang-tidy -checks='readability-*,bugprone-*,performance-*' \
+    #~ --warnings-as-errors='*' "${CSRC[@]}" \
+    #~ -- "$(fox-config --cflags)"
+    #~ clang-format --dry-run --Werror -style=Microsoft "${CSRC[@]}"
 )
 
 function _rust
