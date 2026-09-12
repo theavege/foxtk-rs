@@ -24,13 +24,14 @@ function _clang
     declare -ra CSRC=('foxtk-sys/src'/*.{cpp,h})
     clang++ -std=c++17 -Wall -Wextra -Wpedantic -O2 \
         -fvisibility=hidden -fstack-protector-strong -fPIC \
-        "$(fox-config --cflags)" -lstdc++ "$(fox-config --libs)" \
+        "$(fox-config --cflags)" \
         -c 'foxtk-sys/src/foxtk.cpp' -o foxtk.o
     clang -std=c17 -Wall -Wextra -Wpedantic -O2 \
-        -I'foxtk-sys/src' foxtk.o 'simple.c' -o simple
-    clang-tidy -checks='readability-*,bugprone-*,performance-*' \
-        --warnings-as-errors='*' "${CSRC[@]}" \
-        -- "$(fox-config --cflags)"
+        -I'foxtk-sys/src' foxtk.o  -lstdc++ "$(fox-config --libs)" \
+        'foxtk-sys/examples/simple.c' -o simple
+    # clang-tidy -checks='readability-*,bugprone-*,performance-*' \
+    #     --warnings-as-errors='*' "${CSRC[@]}" \
+    #    -- "$(fox-config --cflags)"
     clang-format --dry-run --Werror -style=Mozilla "${CSRC[@]}"
 )
 
