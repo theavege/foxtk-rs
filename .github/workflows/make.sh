@@ -19,27 +19,33 @@ function _setup
     fi
 )
 
+function _clang
+(
+    declare -ra CSRC=('foxtk-sys/src'/*.{cpp,h})
+    clang++ -std=c++17 -Wall -Wextra -Wpedantic -O2 \
+        -fvisibility=hidden -fstack-protector-strong -fPIC \
+        "$(fox-config --cflags)" \
+        -c 'foxtk-sys/src/foxtk.cpp' -o foxtk.o
+    clang -std=c17 -Wall -Wextra -Wpedantic -O2 \
+        -I'foxtk-sys/src' foxtk.o 'foxtk-sys/examples/simple.c'
+    clang-tidy -checks='readability-*,bugprone-*,performance-*' \
+        --warnings-as-errors='*' "${CSRC[@]}" \
+        -- "$(fox-config --cflags)"
+    clang-format --dry-run --Werror -style=Mozilla "${CSRC[@]}"
+)
+
+function _rust
+(
+    cargo build --release --features='all' --examples
+    cargo clippy --quiet --features='all' --examples
+    cargo fmt --check --all
+)
+
 set -xeuo pipefail
 
 if ((${#})); then
     case ${1} in
         setup) _setup ;;
-        build)
-            declare -ra CSRC=('foxtk-sys/src'/*.{cpp,h})
-            clang++ -std=c++17 -Wall -Wextra -Wpedantic -O2 \
-                -fvisibility=hidden -fstack-protector-strong -fPIC \
-                "$(fox-config --cflags)" \
-                -c 'foxtk-sys/src/foxtk.cpp' -o foxtk.o
-            clang -std=c17 -Wall -Wextra -Wpedantic -O2 \
-                -I'foxtk-sys/src' foxtk.o 'foxtk-sys/examples/simple.c'
-            clang-tidy -checks='readability-*,bugprone-*,performance-*' \
-                --warnings-as-errors='*' "${CSRC[@]}" \
-                -- "$(fox-config --cflags)"
-            clang-format --dry-run --Werror -style=Mozilla "${CSRC[@]}"
-
-            cargo build --release --features='all' --examples
-            cargo clippy --quiet --features='all' --examples
-            cargo fmt --check --all
-            ;;
+        build) _clang && _rust ;;
     esac
 fi
