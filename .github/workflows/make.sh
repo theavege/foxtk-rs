@@ -21,7 +21,7 @@ function _setup
 
 function _clang
 (
-    declare -ra CSRC=('foxtk-sys/src'/*.{cpp,h})
+    #~ declare -ra CSRC=('foxtk-sys/src'/*.{cpp,h})
     clang++ -std=c++17 -Wall -Wextra -Wpedantic -O2 \
         -fvisibility=hidden -fstack-protector-strong -fPIC \
         "$(fox-config --cflags)" \
