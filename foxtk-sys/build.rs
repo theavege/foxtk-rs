@@ -1,4 +1,4 @@
-use std::{env, path::Path, error::Error};
+use std::{env, error::Error, path::Path};
 
 const COMPILE: &str = "cfoxtk";
 const CAPI: &str = "src/foxtk.cpp";
@@ -31,11 +31,7 @@ fn compile() -> Result<Vec<String>, Box<dyn Error>> {
     if !extract_dir.exists() {
         let response = reqwest::blocking::get(url)?;
         std::fs::write(&zip, response.bytes()?)?;
-        zip_extract::extract(
-            std::fs::File::open(zip)?,
-            &extract_dir,
-            true,
-        )?;
+        zip_extract::extract(std::fs::File::open(zip)?, &extract_dir, true)?;
     }
 
     cmake::Config::new("src")
