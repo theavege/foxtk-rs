@@ -6,7 +6,7 @@ const CAPI: &str = "src/foxtk.cpp";
 #[cfg(target_os = "linux")]
 fn compile() -> Result<Vec<String>, Box<dyn Error>> {
     let library = "fox";
-    println!("cargo:rust-link-lib=dylib={library}");
+    println!("cargo:rustc-link-lib=dylib={library}");
     let mut includes = Vec::new();
     for dir in pkg_config::probe_library(library)?.include_paths {
         includes.push(format!("-I{}", dir.display()));
@@ -17,6 +17,8 @@ fn compile() -> Result<Vec<String>, Box<dyn Error>> {
         .flags(&includes)
         .compile(COMPILE);
     println!("cargo:rerun-if-changed={CAPI}");
+    println!("cargo:rerun-if-changed=src/foxtk.h");
+    println!("cargo:rerun-if-changed=build.rs");
     Ok(includes)
 }
 
