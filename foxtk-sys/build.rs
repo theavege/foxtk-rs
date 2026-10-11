@@ -1,50 +1,39 @@
-use std::{env, path::Path};
+use std::{env, error::Error, path::Path};
 
 const COMPILE: &str = "cfoxtk";
 const CAPI: &str = "src/foxtk.cpp";
 
 #[cfg(target_os = "linux")]
-fn compile() -> Vec<String> {
+fn compile() -> Result<Vec<String>, Box<dyn Error>> {
     let library = "fox";
-    println!("cargo:rust-link-lib=dylib={library}");
+    println!("cargo:rustc-link-lib=dylib={library}");
     let mut includes = Vec::new();
-    match pkg_config::probe_library(library) {
-        Ok(lib) => {
-            for dir in lib.include_paths {
-                includes.push(format!("-I{}", dir.display()));
-            }
-        }
-        Err(e) => panic!("Failed to find {library}: {e}"),
+    for dir in pkg_config::probe_library(library)?.include_paths {
+        includes.push(format!("-I{}", dir.display()));
     }
-
     cc::Build::new()
         .cpp(true)
         .file(CAPI)
         .flags(&includes)
         .compile(COMPILE);
     println!("cargo:rerun-if-changed={CAPI}");
-
-    includes
+    println!("cargo:rerun-if-changed=src/foxtk.h");
+    println!("cargo:rerun-if-changed=build.rs");
+    Ok(includes)
 }
 
 #[cfg(not(target_os = "linux"))]
-fn compile() -> Vec<String> {
+fn compile() -> Result<Vec<String>, Box<dyn Error>> {
     const DIST: &str = "fox-1.6.59";
     let url = format!("http://fox-toolkit.org/ftp/{DIST}.zip");
-    let out = env::var("OUT_DIR").unwrap();
+    let out = env::var("OUT_DIR")?;
     let zip = Path::new(&out).join(format!("{DIST}.zip"));
     let extract_dir = Path::new(&out).join(DIST);
 
     if !extract_dir.exists() {
-        let response = reqwest::blocking::get(url).expect("Failed to download fox zip");
-        std::fs::write(&zip, response.bytes().expect("Failed to read response"))
-            .expect("Failed to write zip");
-        zip_extract::extract(
-            std::fs::File::open(zip).expect("Failed to open zip"),
-            &extract_dir,
-            true,
-        )
-        .expect("Failed to extract zip");
+        let response = reqwest::blocking::get(url)?;
+        std::fs::write(&zip, response.bytes()?)?;
+        zip_extract::extract(std::fs::File::open(zip)?, &extract_dir, true)?;
     }
 
     cmake::Config::new("src")
@@ -58,15 +47,14 @@ fn compile() -> Vec<String> {
     println!("cargo:rustc-link-lib=static={COMPILE}");
     println!("cargo:rerun-if-env-changed={CAPI}");
 
-    Vec::new()
+    Ok(Vec::new())
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     bindgen::Builder::default()
         .header("src/foxtk.h")
-        .clang_args(compile())
-        .generate()
-        .expect("Unable to generate bindings")
-        .write_to_file(Path::new(&env::var("OUT_DIR").unwrap()).join("bindings.rs"))
-        .expect("Couldn't write bindings!");
+        .clang_args(compile()?)
+        .generate()?
+        .write_to_file(Path::new(&env::var("OUT_DIR").unwrap()).join("bindings.rs"))?;
+    Ok(())
 }

@@ -4,7 +4,7 @@ function _setup
 (
     if [[ -f '/etc/os-release' ]]; then
         source '/etc/os-release'
-        if ! command -v fox-config >/dev/null; then
+        if ! command -v fox-config; then
             declare -ra DEPS=(sh{fmt,ellcheck})
             case ${ID:?} in
                 debian | ubuntu)
@@ -21,7 +21,6 @@ function _setup
 
 function _clang
 (
-    #~ declare -ra CSRC=('foxtk-sys/src'/*.{cpp,h})
     clang++ -std=c++17 -Wall -Wextra -Wpedantic -O2 \
         -fvisibility=hidden -fstack-protector-strong -fPIC \
         "$(fox-config --cflags)" \
@@ -30,17 +29,18 @@ function _clang
     clang -std=c17 -Wall -Wextra -Wpedantic -O2 -lstdc++ "${args[@]}" \
         "$(fox-config --cflags)" '-Ifoxtk-sys/src' foxtk.o \
         'foxtk-sys/examples/simple.c' -o simple
-    #~ clang-tidy -checks='readability-*,bugprone-*,performance-*' \
-    #~ --warnings-as-errors='*' "${CSRC[@]}" \
-    #~ -- "$(fox-config --cflags)"
-    #~ clang-format --dry-run --Werror -style=Microsoft "${CSRC[@]}"
 )
 
 function _rust
 (
-    cargo build --release --features='all' --examples
-    cargo clippy --quiet --features='all' --examples
-    cargo fmt --check --all
+    declare cmd=cargo
+    if ! command -v cargo; then
+        sudo apt install -y rustfmt-1.91 rust-1.91-clippy cargo-1.91
+        cmd="$(command -v cargo-1.91)"
+    fi
+    "${cmd}" build --release --features='all' --examples
+    "${cmd}" clippy --quiet --features='all' --examples
+    "${cmd}" fmt --check --all
 )
 
 set -xeuo pipefail
