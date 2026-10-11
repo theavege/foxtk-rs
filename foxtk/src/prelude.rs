@@ -2,7 +2,7 @@ pub use {super::enums::*, std::sync::mpsc::Sender};
 use {
     foxtk_sys::*,
     std::{
-        ffi::{CString, c_long, c_void},
+        ffi::{c_long, c_void, CString},
         sync::mpsc::channel,
     },
 };
