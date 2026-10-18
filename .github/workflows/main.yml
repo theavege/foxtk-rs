@@ -33,6 +33,13 @@ jobs:
         run: |
           bash '.github/workflows/make.sh' setup
 
+      - name: Check Windows archive and CMake setup on Unix
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          cargo test -p foxtk-sys --test windows_build_support
+          bash '.github/workflows/check-windows-cmake.sh'
+
       - name: Build on Unix
         if: runner.os != 'Windows'
         shell: bash

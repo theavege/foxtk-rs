@@ -1,5 +1,9 @@
 use std::{env, error::Error, path::Path};
 
+#[cfg(target_os = "windows")]
+#[path = "build_support.rs"]
+mod build_support;
+
 const COMPILE: &str = "cfoxtk";
 const CAPI: &str = "src/foxtk.cpp";
 
@@ -24,10 +28,6 @@ fn compile() -> Result<Vec<String>, Box<dyn Error>> {
 
 #[cfg(target_os = "windows")]
 fn compile() -> Result<Vec<String>, Box<dyn Error>> {
-    use flate2::read::GzDecoder;
-    use sha2::{Digest, Sha256};
-    use tar::Archive;
-
     const DIST: &str = "fox-1.6.59";
     const SHA256: &str = "48f33d2dd5371c2d48f6518297f0ef5bbf3fcd37719e99f815dc6fc6e0f928ae";
     let url = format!("https://distfiles.macports.org/fox/{DIST}.tar.gz");
@@ -35,23 +35,13 @@ fn compile() -> Result<Vec<String>, Box<dyn Error>> {
     let archive_path = Path::new(&out).join(format!("{DIST}.tar.gz"));
     let extract_dir = Path::new(&out).join(DIST);
 
-    if !extract_dir.exists() {
+    let fox_path = if extract_dir.exists() {
+        build_support::fox_source_dir(&extract_dir, DIST)?
+    } else {
         let response = reqwest::blocking::get(url)?.error_for_status()?;
         let archive = response.bytes()?;
-        let digest = format!("{:x}", Sha256::digest(&archive));
-        if digest != SHA256 {
-            return Err(
-                format!("SHA-256 mismatch for {DIST}: expected {SHA256}, got {digest}").into(),
-            );
-        }
         std::fs::write(&archive_path, &archive)?;
-        let decoder = GzDecoder::new(std::fs::File::open(archive_path)?);
-        Archive::new(decoder).unpack(&out)?;
-    }
-    let fox_path = if extract_dir.join("src").is_dir() {
-        extract_dir.clone()
-    } else {
-        extract_dir.join(DIST)
+        build_support::extract_fox_archive(&archive, Path::new(&out), DIST, SHA256)?
     };
     let cmake_cache = Path::new(&out).join("build/CMakeCache.txt");
     if cmake_cache.exists() && !std::fs::read_to_string(&cmake_cache)?.contains("FOX_PATH:") {
