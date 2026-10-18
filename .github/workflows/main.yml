@@ -46,6 +46,12 @@ jobs:
         run: |
           bash '.github/workflows/make.sh' build
 
+      - name: Run FOX runtime tests
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          xvfb-run -a cargo test -p foxtk --test runtime
+
       - name: Install native dependencies on on Windows
         if: runner.os == 'Windows'
         shell: powershell

@@ -9,9 +9,11 @@ function _setup
             case ${ID:?} in
                 debian | ubuntu)
                     sudo apt-get update
-                    sudo apt-get install -y "${DEPS[@]}" libfox-1.6-dev
+                    sudo apt-get install -y "${DEPS[@]}" libfox-1.6-dev xvfb
                     ;;
-                fedora | alma) sudo dnf install -y "${DEPS[@]}" fox-devel ;;
+                fedora | alma)
+                    sudo dnf install -y "${DEPS[@]}" fox-devel xorg-x11-server-Xvfb
+                    ;;
             esac 1>/dev/null
         fi
         shellcheck --external-sources "${0}"
