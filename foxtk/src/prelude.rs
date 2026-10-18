@@ -2,7 +2,7 @@ pub use {super::enums::*, std::sync::mpsc::Sender};
 use {
     foxtk_sys::*,
     std::{
-        ffi::{c_long, c_void, CString},
+        ffi::{CString, c_long, c_void},
         sync::mpsc::channel,
     },
 };
@@ -18,22 +18,27 @@ pub(crate) fn to_cstring(s: &str) -> CString {
 }
 
 unsafe extern "C" fn ccallback<T: WindowExt>(ptr: *mut FXWindow, context: *mut c_void) -> c_long {
-    unsafe {
-        let func: &mut Box<dyn FnMut(T) -> bool> =
-            &mut *(context as *mut Box<dyn FnMut(T) -> bool>);
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| unsafe {
+        let func = &mut *(context as *mut Box<dyn FnMut(T) -> bool>);
         func(T::from_raw(ptr as *mut T::T)) as c_long
-    }
+    }));
+    result.unwrap_or(0)
 }
 
 pub trait ObjectExt: Sized {
     type T: 'static;
     fn as_raw(&self) -> *mut Self::T;
-    fn from_raw(ptr: *mut Self::T) -> Self;
+    /// Construct a wrapper around a native pointer.
+    ///
+    /// # Safety
+    /// `ptr` must be a live pointer to the native type represented by `Self`
+    /// and must remain valid for every use of the returned wrapper.
+    unsafe fn from_raw(ptr: *mut Self::T) -> Self;
 }
 
 pub trait IdExt: ObjectExt {
     fn app(&self) -> super::App {
-        super::App::from_raw(unsafe { FXId_get_app(self.as_raw() as *const FXId) })
+        unsafe { super::App::from_raw(FXId_get_app(self.as_raw() as *const FXId)) }
     }
     #[cfg(target_os = "windows")]
     fn id(&self) -> *mut c_void {
@@ -162,19 +167,20 @@ pub trait WindowExt: DrawableExt {
                 self.as_raw() as *mut FXWindow,
                 Some(ccallback::<Self>),
                 raw_ptr as *mut c_void,
+                Some(super::drop_callback_context::<Box<dyn FnMut(Self) -> bool>>),
             );
         }
         self
     }
     fn parent(&self) -> Self {
-        Self::from_raw(unsafe {
-            FXWindow_get_parent(self.as_raw() as *const FXWindow) as *mut Self::T
-        })
+        unsafe {
+            Self::from_raw(FXWindow_get_parent(self.as_raw() as *const FXWindow) as *mut Self::T)
+        }
     }
     fn root(&self) -> Self {
-        Self::from_raw(unsafe {
-            FXWindow_get_root(self.as_raw() as *const FXWindow) as *mut Self::T
-        })
+        unsafe {
+            Self::from_raw(FXWindow_get_root(self.as_raw() as *const FXWindow) as *mut Self::T)
+        }
     }
     fn message(&self, opts: MessageBox, message: &str, kind: Message) -> u32 {
         unsafe {
@@ -439,7 +445,8 @@ pub trait Component: Default + 'static {
         let mut model = Self::State::default();
         page.view(parent, sender.clone());
         page.update(&model);
-        parent.app().add_timeout(400, move |_| {
+        let app = parent.app();
+        let timeout = app.add_timeout(400, move |_| {
             let mut update = false;
             while let Ok(msg) = receiver.try_recv() {
                 update = Self::handle(msg, &mut model, sender.clone()) || update;
@@ -449,6 +456,9 @@ pub trait Component: Default + 'static {
             }
             true
         });
+        // Component timers live for the entire FOX event loop. Their callback
+        // is retained by FOX, so dropping the Rust handle here would cancel it.
+        std::mem::forget(timeout);
     }
     fn run(name: &str, vendor: &str, title: &str, width: i32, height: i32) -> i32 {
         let app = super::App::new(name, vendor);

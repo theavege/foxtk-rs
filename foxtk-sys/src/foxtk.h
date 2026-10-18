@@ -254,6 +254,7 @@ extern "C"
 
   //~ FXApp.h
   typedef long (*CbTimer)(FXApp* app, void* ctx);
+  typedef void (*CbDrop)(void* ctx);
   FXApp* FXApp_new(const char* name, const char* vendor, int argc, char** argv);
   int FXApp_run(FXApp* self);
   // The callback re-arms itself on every firing (a repeating interval
@@ -268,7 +269,8 @@ extern "C"
   // FOXTK_OPAQUE() type above which relies on FOX's own headers already
   // being visible in C++ mode.
   typedef struct FXTimeout FXTimeout;
-  FXTimeout* FXApp_add_timeout(FXApp* self, CbTimer cb, unsigned ns, void* ctx);
+  FXTimeout* FXApp_add_timeout(FXApp* self, CbTimer cb, unsigned ns, void* ctx,
+                               CbDrop drop);
   void FXApp_remove_timeout(FXApp* self, FXTimeout* handle);
 
   //~ FXToolTip.h
@@ -343,7 +345,7 @@ FXId_get_id(const FXId* self);
   FXWindow* FXWindow_get_parent(const FXWindow* self);
   FXWindow* FXWindow_get_root(const FXWindow* self);
   long FXWindow_has_focus(const FXWindow* self);
-  void FXWindow_set_target(FXWindow* self, CbWidget cb, void* ctx);
+  void FXWindow_set_target(FXWindow* self, CbWidget cb, void* ctx, CbDrop drop);
   void FXWindow_set_selector(FXWindow* self, int val);
   void FXWindow_set_width(FXWindow* self, int width);
   void FXWindow_set_height(FXWindow* self, int height);
@@ -812,7 +814,8 @@ FXId_get_id(const FXId* self);
   typedef long (
     *CbMouse)(FXCanvas* widget, int event_code, int x, int y, void* context);
   FXCanvas* FXCanvas_new(FXComposite* prt);
-  void FXCanvas_set_mouse_callback(FXCanvas* self, CbMouse cb, void* ctx);
+  void FXCanvas_set_mouse_callback(FXCanvas* self, CbMouse cb, void* ctx,
+                                   CbDrop drop);
 
   //~ FXGLVisual.h
   FOXTK_OPAQUE(FXGLVisual)

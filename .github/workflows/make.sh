@@ -40,6 +40,7 @@ function _rust
     fi
     "${cmd}" build --release --features='all' --examples
     "${cmd}" clippy --quiet --features='all' --examples
+    "${cmd}" doc --no-deps --features='all'
     "${cmd}" fmt --check --all
 )
 

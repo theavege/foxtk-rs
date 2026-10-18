@@ -48,10 +48,33 @@ You can rely on it.
 FOX is licensed under the LGPL, which means you can use it in both open-source
 and commercial applications without being required to open-source your own code.
 
-## Dependencies
+## Building
 
-- [Linux](.github/workflows/make.sh)
-- [Windows](.github/workflows/make.ps1)
+The workspace currently supports Linux and Windows. GUI examples need a
+display server to run.
+
+- **Linux:** install FOX 1.6 development files, `pkg-config`, a C++ compiler,
+  and libclang for bindgen. On Debian or Ubuntu, the project setup script
+  installs FOX and the CI build uses the same script:
+  `.github/workflows/make.sh setup`.
+- **Windows:** install Visual Studio Build Tools with the C++ workload, a
+  Windows SDK, CMake, and libclang. The build script fetches FOX 1.6.59 over
+  HTTPS, verifies its SHA-256 digest, and builds it locally. See
+  `.github/workflows/make.ps1`.
+
+Build the library and examples with `cargo build -p foxtk --examples`. The
+smallest runnable example is `cargo run -p foxtk --example simple`.
+
+## Object lifetime
+
+FOX owns widgets through their parent windows and ultimately the application.
+Keep the `App` and each widget's parent alive for as long as you use that
+widget. The current wrapper API does not encode this relationship in Rust
+lifetimes for most widgets, so storing a child wrapper beyond its parent's
+lifetime can leave a stale native pointer. `TreeItem` handles are an exception:
+they borrow their `TreeList`, and clearing the list requires mutable access.
+Creating a wrapper from an arbitrary native pointer through `ObjectExt::from_raw`
+is unsafe; callers must keep that pointer valid for the wrapper's entire use.
 
 ## Other bindings for [fox-toolkit](http://www.fox-toolkit.org)
 - [FXRuby](https://rubydoc.info/gems/fxruby)

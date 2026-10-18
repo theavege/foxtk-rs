@@ -15,13 +15,7 @@ foxtk-sys = { path = "../foxtk-sys", version = "=0.0.8"}
 paste = { version = "1.0" }
 once_cell = { version = "1.18" }
 
-reqwest = { optional = true, version = "0.13", features = ["json", "native-tls", "blocking"] }
-xlsxwriter = { optional = true, version = "0" }
-chrono = { optional = true, version = "0.4" }
-
-[features]
-default = []
-reqwest = [ "dep:reqwest" ]
-chrono = [ "dep:chrono" ]
-xlsxwriter = [ "dep:xlsxwriter" ]
-all = ["reqwest", "chrono", "xlsxwriter"]
+[dev-dependencies]
+reqwest = { version = "0.13", features = ["json", "native-tls", "blocking"] }
+xlsxwriter = { version = "0" }
+chrono = { version = "0.4" }

@@ -69,6 +69,28 @@ pub enum Justify {
     VtApart = 0x00020000 | 0x00040000,
 }
 
+pub(crate) fn justify_from_raw(value: u32) -> Justify {
+    match value {
+        x if x == Justify::Left as u32 => Justify::Left,
+        x if x == Justify::Right as u32 => Justify::Right,
+        x if x == Justify::Top as u32 => Justify::Top,
+        x if x == Justify::Bottom as u32 => Justify::Bottom,
+        x if x == Justify::HzApart as u32 => Justify::HzApart,
+        x if x == Justify::VtApart as u32 => Justify::VtApart,
+        _ => Justify::Normal,
+    }
+}
+
+pub(crate) fn splitter_style_from_raw(value: u32) -> SplitterStyle {
+    match value {
+        x if x == SplitterStyle::Vertical as u32 => SplitterStyle::Vertical,
+        x if x == SplitterStyle::Reversed as u32 => SplitterStyle::Reversed,
+        x if x == SplitterStyle::Tracking as u32 => SplitterStyle::Tracking,
+        x if x == SplitterStyle::Normal as u32 => SplitterStyle::Normal,
+        _ => SplitterStyle::Horizontal,
+    }
+}
+
 #[repr(C)]
 #[derive(Default)]
 pub enum Decor {
