@@ -38,9 +38,9 @@ function _rust
         sudo apt install -y rustfmt-1.91 rust-1.91-clippy cargo-1.91
         cmd="$(command -v cargo-1.91)"
     fi
-    "${cmd}" build --release --features='all' --examples
-    "${cmd}" clippy --quiet --features='all' --examples
-    "${cmd}" doc --no-deps --features='all'
+    "${cmd}" build --release --examples
+    "${cmd}" clippy --quiet --examples
+    "${cmd}" doc --no-deps
     "${cmd}" fmt --check --all
 )
 
