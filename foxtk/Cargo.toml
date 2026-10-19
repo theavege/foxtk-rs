@@ -8,7 +8,6 @@ description = "Rust bindings for the FOX Toolkit"
 keywords = ["FOX", "foxtk"]
 categories = ["api-bindings", "gui"]
 edition = "2024"
-exclude = ["examples"]
 
 [features]
 nobuild = ["foxtk-sys/nobuild"]

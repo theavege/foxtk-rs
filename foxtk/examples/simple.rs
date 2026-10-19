@@ -1,100 +1,84 @@
-#![forbid(unsafe_code)]
+mod models {
+    #[derive(Debug, Default)]
+    pub struct Model {
+        pub cel: Option<f64>,
+        pub far: Option<f64>,
+    }
 
-enum Msg {
-    SetVal(i32),
+    impl Model {
+        pub fn set_cel(&mut self, value: f64) {
+            self.far = Some((value * 9.0 / 5.0) + 32.0);
+            self.cel = None;
+        }
+
+        pub fn set_far(&mut self, value: f64) {
+            self.cel = Some((value - 32.0) * 5.0 / 9.0);
+            self.far = None;
+        }
+    }
 }
 
 use foxtk::prelude::*;
-mod components;
 
-#[derive(Default)]
-struct Simple {
-    switcher: foxtk::Switcher,
-    mounts: Vec<ComponentMount>,
+pub enum Msg {
+    Cel(f64),
+    Far(f64),
 }
 
-impl Component for Simple {
+#[derive(Default)]
+pub struct Converter {
+    cel: foxtk::TextField,
+    far: foxtk::TextField,
+}
+
+impl Component for Converter {
     type Event = Msg;
-    type State = i32;
+    type State = models::Model;
     fn handle(
         msg: Self::Event,
         model: &mut Self::State,
         _: Sender<Self::Event>,
     ) -> ComponentOutcome {
         match msg {
-            Msg::SetVal(val) => *model = val,
+            Msg::Cel(value) => model.set_cel(value),
+            Msg::Far(value) => model.set_far(value),
         };
         ComponentOutcome::Changed
     }
     fn update(&self, model: &Self::State) {
-        self.switcher.set_curent(*model);
+        if let Some(value) = model.cel {
+            self.cel.update(&value.to_string());
+        }
+        if let Some(value) = model.far {
+            self.far.update(&value.to_string());
+        }
     }
     fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
-        foxtk::MenuBar::new(prt).inside(|prt| {
-            foxtk::MenuPane::new(prt).inside(|mpaine| {
-                foxtk::MenuTitle::new(prt, "Nav", mpaine);
-                for (idx, item) in [
-                    "Widgets",
-                    "FOX Calculator",
-                    "Adie",
-                    "Timer",
-                    "Dialect",
-                    "NicCalc",
-                ]
-                .iter()
-                .enumerate()
-                {
-                    foxtk::MenuCommand::new(mpaine, item).with_callback({
-                        let sender = sender.clone();
-                        move |_| {
-                            sender.send(Msg::SetVal(idx as i32)).unwrap();
-                            false
-                        }
-                    });
+        foxtk::HorizontalFrame::new(prt).inside(|prt| {
+            self.cel = foxtk::TextField::new(prt).with_callback({
+                let sender = sender.clone();
+                move |wgt| {
+                    if wgt.has_focus() {
+                        let value = wgt.text().parse::<f64>().unwrap_or_default();
+                        sender.send(Msg::Cel(value)).unwrap();
+                    }
+                    false
                 }
             });
-            foxtk::MenuPane::new(prt).inside(|mpaine| {
-                foxtk::MenuTitle::new(prt, "View", mpaine);
-                foxtk::MenuCheck::new(mpaine, "Hidden files");
-                foxtk::MenuCheck::new(mpaine, "File Browser");
-                foxtk::MenuCheck::new(mpaine, "Toolbar");
-                foxtk::MenuCheck::new(mpaine, "Status line");
-                foxtk::MenuCheck::new(mpaine, "Undo Counters");
-                foxtk::MenuCheck::new(mpaine, "Clock");
-            });
-            foxtk::MenuPane::new(prt).inside(|mpaine| {
-                foxtk::MenuTitle::new(prt, "Window", mpaine);
-                foxtk::MenuRadio::new(mpaine, "1 untitled");
-                foxtk::MenuRadio::new(mpaine, "2 untitled");
-                foxtk::MenuRadio::new(mpaine, "3 untitled");
+            self.far = foxtk::TextField::new(prt).with_callback({
+                let sender = sender.clone();
+                move |wgt| {
+                    if wgt.has_focus() {
+                        let value = wgt.text().parse::<f64>().unwrap_or_default();
+                        sender.send(Msg::Far(value)).unwrap();
+                    }
+                    false
+                }
             });
         });
-        self.switcher = foxtk::Switcher::new(prt);
-        let mut mounts = Vec::new();
-        self.switcher.inside(|prt| {
-            foxtk::VerticalFrame::new(prt).inside(|prt| {
-                foxtk::TabBook::new(prt).inside(|prt| {
-                    foxtk::TabItem::new(prt, "Tab 1");
-                    foxtk::TabItem::new(prt, "Tab 2");
-                    foxtk::TabItem::new(prt, "Tab 3");
-                });
-                foxtk::GroupBox::new(prt, "Inputs").inside(|prt| {
-                    mounts.push(components::Converter::mount(prt));
-                    mounts.push(components::Nmap::mount(prt));
-                });
-                mounts.push(components::Rangers::mount(prt));
-                mounts.push(components::Selectors::mount(prt));
-            });
-            mounts.push(components::Calc::mount(prt));
-            mounts.push(components::Adie::mount(prt));
-            mounts.push(components::Timer::mount(prt));
-            mounts.push(components::Dialect::mount(prt));
-            mounts.push(components::NicCalc::mount(prt));
-        });
-        self.mounts = mounts;
     }
 }
 
 fn main() {
-    Simple::run("Name", "Vendor", "Title", 640, 400);
+    Converter::run("Name", "Vendor", "Title", 640, 400);
 }
