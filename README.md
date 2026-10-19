@@ -53,10 +53,14 @@ and commercial applications without being required to open-source your own code.
 The workspace currently supports Linux and Windows. GUI examples need a
 display server to run.
 
-- **Linux:** install FOX 1.6 development files, `pkg-config`, a C++ compiler,
-  and libclang for bindgen. On Debian or Ubuntu, the project setup script
-  installs FOX and the CI build uses the same script:
-  `.github/workflows/make.sh setup`.
+- **Linux:** the default build downloads and builds FOX 1.6.59 from source.
+  Install its native development dependencies, CMake, Ninja, `pkg-config`, a
+  C++ compiler, and libclang for bindgen. On Debian or Ubuntu, the project
+  setup script installs FOX 1.6 development files and the CI build uses the
+  same script: `.github/workflows/make.sh setup`. To link against the installed
+  shared FOX library instead, build with `--features nobuild`; FOX 1.6
+  development files and `pkg-config` are required. The `nobuild` feature is
+  currently supported on Linux only.
 - **Windows:** install Visual Studio Build Tools with the C++ workload, a
   Windows SDK, CMake, and libclang. The build script fetches FOX 1.6.59 over
   HTTPS, verifies its SHA-256 digest, and builds it locally. See

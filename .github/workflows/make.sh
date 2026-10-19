@@ -4,8 +4,8 @@ function _setup
 (
     if [[ -f '/etc/os-release' ]]; then
         source '/etc/os-release'
-        if ! command -v fox-config; then
-            declare -ra DEPS=(sh{fmt,ellcheck})
+        if ! command -v fox-config || ! command -v ninja; then
+            declare -ra DEPS=(sh{fmt,ellcheck} ninja-build)
             case ${ID:?} in
                 debian | ubuntu)
                     sudo apt-get update
@@ -41,6 +41,7 @@ function _rust
         cmd="$(command -v cargo-1.91)"
     fi
     "${cmd}" build --release --examples
+    "${cmd}" build --release --examples --features nobuild
     "${cmd}" clippy --quiet --examples
     "${cmd}" doc --no-deps
     "${cmd}" fmt --check --all

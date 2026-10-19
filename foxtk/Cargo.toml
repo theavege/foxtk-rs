@@ -10,6 +10,9 @@ categories = ["api-bindings", "gui"]
 edition = "2024"
 exclude = ["examples"]
 
+[features]
+nobuild = ["foxtk-sys/nobuild"]
+
 [dependencies]
 foxtk-sys = { path = "../foxtk-sys", version = "=0.0.8"}
 paste = { version = "1.0" }

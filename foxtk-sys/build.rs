@@ -1,18 +1,95 @@
-use std::{env, error::Error, path::Path};
+use std::error::Error;
 
-#[cfg(target_os = "windows")]
+#[cfg(any(
+    all(target_os = "linux", not(feature = "nobuild")),
+    all(target_os = "windows", not(feature = "nobuild"))
+))]
 #[path = "build_support.rs"]
 mod build_support;
 
+#[cfg(any(
+    all(target_os = "linux", not(feature = "nobuild")),
+    all(target_os = "windows", not(feature = "nobuild"))
+))]
+use std::path::Path;
+
 const COMPILE: &str = "cfoxtk";
 const CAPI: &str = "src/foxtk.cpp";
+#[cfg(any(
+    all(target_os = "linux", not(feature = "nobuild")),
+    all(target_os = "windows", not(feature = "nobuild"))
+))]
+const DIST: &str = "fox-1.6.59";
+#[cfg(any(
+    all(target_os = "linux", not(feature = "nobuild")),
+    all(target_os = "windows", not(feature = "nobuild"))
+))]
+const SHA256: &str = "48f33d2dd5371c2d48f6518297f0ef5bbf3fcd37719e99f815dc6fc6e0f928ae";
 
-#[cfg(target_os = "linux")]
+#[cfg(any(
+    all(target_os = "linux", not(feature = "nobuild")),
+    all(target_os = "windows", not(feature = "nobuild"))
+))]
+fn fox_source_dir(out: &Path) -> Result<std::path::PathBuf, Box<dyn Error>> {
+    let extract_dir = out.join(DIST);
+    if extract_dir.exists() {
+        return build_support::fox_source_dir(&extract_dir, DIST);
+    }
+
+    let archive_path = out.join(format!("{DIST}.tar.gz"));
+    let response =
+        reqwest::blocking::get(format!("https://distfiles.macports.org/fox/{DIST}.tar.gz"))?
+            .error_for_status()?;
+    let archive = response.bytes()?;
+    std::fs::write(&archive_path, &archive)?;
+    build_support::extract_fox_archive(&archive, out, DIST, SHA256)
+}
+
+#[cfg(all(target_os = "linux", not(feature = "nobuild")))]
+fn build_from_source(out: &Path) -> Result<(), Box<dyn Error>> {
+    let fox_path = fox_source_dir(out)?;
+    cmake::Config::new("src")
+        .define("FOX_PATH", fox_path)
+        .generator("Ninja")
+        .build_target("all")
+        .always_configure(false)
+        .build();
+    println!("cargo:rustc-link-search=native={}/build", out.display());
+    println!("cargo:rustc-link-lib=static={COMPILE}");
+    println!("cargo:rustc-link-lib=dylib=stdc++");
+    println!("cargo:rerun-if-changed={CAPI}");
+    println!("cargo:rerun-if-changed=src/foxtk.h");
+    println!("cargo:rerun-if-changed=src/CMakeLists.txt");
+    println!("cargo:rerun-if-changed=build.rs");
+    Ok(())
+}
+
+#[cfg(all(target_os = "linux", not(feature = "nobuild")))]
 fn compile() -> Result<Vec<String>, Box<dyn Error>> {
-    let library = "fox";
-    println!("cargo:rustc-link-lib=dylib={library}");
+    let out = std::env::var("OUT_DIR")?;
+    build_from_source(Path::new(&out))?;
+
+    let dependencies = pkg_config::Config::new()
+        .statik(true)
+        .cargo_metadata(false)
+        .probe("fox")?;
+    for path in dependencies.link_paths {
+        println!("cargo:rustc-link-search=native={}", path.display());
+    }
+    for library in dependencies
+        .libs
+        .iter()
+        .filter(|library| *library != "FOX-1.6")
+    {
+        println!("cargo:rustc-link-lib=dylib={library}");
+    }
+    Ok(Vec::new())
+}
+
+#[cfg(all(target_os = "linux", feature = "nobuild"))]
+fn compile() -> Result<Vec<String>, Box<dyn Error>> {
     let mut includes = Vec::new();
-    for dir in pkg_config::probe_library(library)?.include_paths {
+    for dir in pkg_config::probe_library("fox")?.include_paths {
         includes.push(format!("-I{}", dir.display()));
     }
     cc::Build::new()
@@ -26,23 +103,10 @@ fn compile() -> Result<Vec<String>, Box<dyn Error>> {
     Ok(includes)
 }
 
-#[cfg(target_os = "windows")]
+#[cfg(all(target_os = "windows", not(feature = "nobuild")))]
 fn compile() -> Result<Vec<String>, Box<dyn Error>> {
-    const DIST: &str = "fox-1.6.59";
-    const SHA256: &str = "48f33d2dd5371c2d48f6518297f0ef5bbf3fcd37719e99f815dc6fc6e0f928ae";
-    let url = format!("https://distfiles.macports.org/fox/{DIST}.tar.gz");
-    let out = env::var("OUT_DIR")?;
-    let archive_path = Path::new(&out).join(format!("{DIST}.tar.gz"));
-    let extract_dir = Path::new(&out).join(DIST);
-
-    let fox_path = if extract_dir.exists() {
-        build_support::fox_source_dir(&extract_dir, DIST)?
-    } else {
-        let response = reqwest::blocking::get(url)?.error_for_status()?;
-        let archive = response.bytes()?;
-        std::fs::write(&archive_path, &archive)?;
-        build_support::extract_fox_archive(&archive, Path::new(&out), DIST, SHA256)?
-    };
+    let out = std::env::var("OUT_DIR")?;
+    let fox_path = fox_source_dir(Path::new(&out))?;
     let cmake_cache = Path::new(&out).join("build/CMakeCache.txt");
     if cmake_cache.exists() && !std::fs::read_to_string(&cmake_cache)?.contains("FOX_PATH:") {
         std::fs::remove_file(&cmake_cache)?;
@@ -75,11 +139,16 @@ fn compile() -> Result<Vec<String>, Box<dyn Error>> {
     Ok(Vec::new())
 }
 
+#[cfg(all(target_os = "windows", feature = "nobuild"))]
+fn compile() -> Result<Vec<String>, Box<dyn Error>> {
+    Err("the `nobuild` feature is currently supported only on Linux".into())
+}
+
 #[cfg(not(any(target_os = "linux", target_os = "windows")))]
 fn compile() -> Result<Vec<String>, Box<dyn Error>> {
     Err(format!(
         "foxtk-sys currently supports Linux and Windows; target OS is {}",
-        env::var("CARGO_CFG_TARGET_OS")?
+        std::env::var("CARGO_CFG_TARGET_OS")?
     )
     .into())
 }
@@ -89,6 +158,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         .header("src/foxtk.h")
         .clang_args(compile()?)
         .generate()?
-        .write_to_file(Path::new(&env::var("OUT_DIR").unwrap()).join("bindings.rs"))?;
+        .write_to_file(
+            std::path::Path::new(&std::env::var("OUT_DIR").unwrap()).join("bindings.rs"),
+        )?;
     Ok(())
 }

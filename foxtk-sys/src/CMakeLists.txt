@@ -18,6 +18,21 @@ else()
         target_include_directories(cfoxtk PRIVATE ${FOX_PATH}/include)
     else()
         add_library(cfoxtk STATIC ${OBJS} )
+        if(UNIX)
+            set(FOX_UNIX_DEFINITIONS
+                HAVE_DIRENT_H
+                HAVE_UNISTD_H
+                HAVE_SYS_WAIT_H
+                HAVE_SYS_TIME_H
+                HAVE_SYS_SELECT_H
+                HAVE_VSNPRINTF
+                HAVE_VSSCANF
+                HAVE_STRTOLL
+                HAVE_STRTOULL
+            )
+            target_compile_definitions(fox PRIVATE ${FOX_UNIX_DEFINITIONS})
+            target_compile_definitions(cfoxtk PRIVATE ${FOX_UNIX_DEFINITIONS})
+        endif()
         target_compile_options(cfoxtk PRIVATE
             $<$<CXX_COMPILER_ID:MSVC>:/W4 /permissive->
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -O2>
