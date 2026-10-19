@@ -71,8 +71,13 @@ is not yet a supported platform. GUI examples need a display server to run.
   with Homebrew (`brew install fox cmake ninja pkgconf llvm`). GUI examples
   also need XQuartz. macOS support will be considered once the CI build passes.
 
-Build the library and examples with `cargo build -p foxtk --examples`. The
-smallest runnable example is `cargo run -p foxtk --example simple`.
+Build the library and examples with `cargo build -p foxtk --examples`. Run the
+standalone calculator and text editor examples with `cargo run -p foxtk
+--example calculator` and `cargo run -p foxtk --example adie`. These are compact
+Rust examples inspired by FOX Calculator and Adie; they demonstrate arithmetic,
+file open/save, and the project's `Component` trait, not full feature parity
+with the FOX applications. The component showcase is available with
+`cargo run -p foxtk --example simple`.
 
 ## Object lifetime
 
