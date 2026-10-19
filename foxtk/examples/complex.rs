@@ -34,12 +34,16 @@ pub struct Converter {
 impl Component for Converter {
     type Event = Msg;
     type State = models::Model;
-    fn handle(msg: Self::Event, model: &mut Self::State, _: Sender<Self::Event>) -> bool {
+    fn handle(
+        msg: Self::Event,
+        model: &mut Self::State,
+        _: Sender<Self::Event>,
+    ) -> ComponentOutcome {
         match msg {
             Msg::Cel(value) => model.set_cel(value),
             Msg::Far(value) => model.set_far(value),
         };
-        true
+        ComponentOutcome::Changed
     }
     fn update(&self, model: &Self::State) {
         if let Some(value) = model.cel {

@@ -50,24 +50,34 @@ and commercial applications without being required to open-source your own code.
 
 ## Building
 
-The workspace currently supports Linux and Windows. GUI examples need a
-display server to run.
+The workspace supports Linux and Windows. macOS is being validated in CI and
+is not yet a supported platform. GUI examples need a display server to run.
 
 - **Linux:** the default build downloads and builds FOX 1.6.59 from source.
-  Install its native development dependencies, CMake, Ninja, `pkg-config`, a
-  C++ compiler, and libclang for bindgen. On Debian or Ubuntu, the project
-  setup script installs FOX 1.6 development files and the CI build uses the
-  same script: `.github/workflows/make.sh setup`. To link against the installed
-  shared FOX library instead, build with `--features nobuild`; FOX 1.6
-  development files and `pkg-config` are required. The `nobuild` feature is
-  currently supported on Linux only.
+  The build also needs FOX 1.6 development files for its headers and
+  `pkg-config` metadata for native dependencies, plus CMake, Ninja, a C++
+  compiler, and libclang for bindgen. On Debian or Ubuntu, install these with
+  install these with `sudo apt install build-essential clang libclang-dev
+  cmake ninja-build pkg-config libfox-1.6-dev xvfb`. The CI setup script also
+  installs `shellcheck` and `shfmt`: `.github/workflows/make.sh setup`. To link
+  against the installed shared FOX library instead, build with
+  `--features nobuild`; FOX 1.6 development files and `pkg-config` are
+  required. The `nobuild` feature is currently supported on Linux only.
 - **Windows:** install Visual Studio Build Tools with the C++ workload, a
   Windows SDK, CMake, and libclang. The build script fetches FOX 1.6.59 over
   HTTPS, verifies its SHA-256 digest, and builds it locally. See
   `.github/workflows/make.ps1`.
+- **macOS (experimental):** install FOX, CMake, Ninja, `pkgconf`, and LLVM
+  with Homebrew (`brew install fox cmake ninja pkgconf llvm`). GUI examples
+  also need XQuartz. macOS support will be considered once the CI build passes.
 
-Build the library and examples with `cargo build -p foxtk --examples`. The
-smallest runnable example is `cargo run -p foxtk --example simple`.
+Build the library and examples with `cargo build -p foxtk --examples`. Run the
+standalone calculator and text editor examples with `cargo run -p foxtk
+--example calculator` and `cargo run -p foxtk --example adie`. These are compact
+Rust examples inspired by FOX Calculator and Adie; they demonstrate arithmetic,
+file open/save, and the project's `Component` trait, not full feature parity
+with the FOX applications. The component showcase is available with
+`cargo run -p foxtk --example simple`.
 
 ## Object lifetime
 
@@ -79,6 +89,18 @@ lifetime can leave a stale native pointer. `TreeItem` handles are an exception:
 they borrow their `TreeList`, and clearing the list requires mutable access.
 Creating a wrapper from an arbitrary native pointer through `ObjectExt::from_raw`
 is unsafe; callers must keep that pointer valid for the wrapper's entire use.
+
+## Components
+
+`Component::mount` returns a `ComponentMount`; keep it alive while the component
+is mounted. Dropping it unregisters the FOX chore and event pump. GUI-thread
+events are dispatched through FOX idle chores, while messages sent by worker
+threads are drained by a 50 ms event pump so worker threads never call FOX
+directly. `ComponentOutcome::Changed` refreshes the view,
+`ComponentOutcome::Unchanged` skips that refresh, and
+`ComponentOutcome::Stop` deactivates the component and rejects later sends.
+Nested components must retain their own mount handles for as long as their
+parent component remains mounted.
 
 ## Other bindings for [fox-toolkit](http://www.fox-toolkit.org)
 - [FXRuby](https://rubydoc.info/gems/fxruby)

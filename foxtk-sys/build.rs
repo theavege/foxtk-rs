@@ -1,34 +1,34 @@
 use std::error::Error;
 
-#[cfg(any(
-    all(target_os = "linux", not(feature = "nobuild")),
-    all(target_os = "windows", not(feature = "nobuild"))
+#[cfg(all(
+    any(target_os = "linux", target_os = "macos", target_os = "windows"),
+    not(feature = "nobuild")
 ))]
 #[path = "build_support.rs"]
 mod build_support;
 
-#[cfg(any(
-    all(target_os = "linux", not(feature = "nobuild")),
-    all(target_os = "windows", not(feature = "nobuild"))
+#[cfg(all(
+    any(target_os = "linux", target_os = "macos", target_os = "windows"),
+    not(feature = "nobuild")
 ))]
 use std::path::Path;
 
 const COMPILE: &str = "cfoxtk";
 const CAPI: &str = "src/foxtk.cpp";
-#[cfg(any(
-    all(target_os = "linux", not(feature = "nobuild")),
-    all(target_os = "windows", not(feature = "nobuild"))
+#[cfg(all(
+    any(target_os = "linux", target_os = "macos", target_os = "windows"),
+    not(feature = "nobuild")
 ))]
 const DIST: &str = "fox-1.6.59";
-#[cfg(any(
-    all(target_os = "linux", not(feature = "nobuild")),
-    all(target_os = "windows", not(feature = "nobuild"))
+#[cfg(all(
+    any(target_os = "linux", target_os = "macos", target_os = "windows"),
+    not(feature = "nobuild")
 ))]
 const SHA256: &str = "48f33d2dd5371c2d48f6518297f0ef5bbf3fcd37719e99f815dc6fc6e0f928ae";
 
-#[cfg(any(
-    all(target_os = "linux", not(feature = "nobuild")),
-    all(target_os = "windows", not(feature = "nobuild"))
+#[cfg(all(
+    any(target_os = "linux", target_os = "macos", target_os = "windows"),
+    not(feature = "nobuild")
 ))]
 fn fox_source_dir(out: &Path) -> Result<std::path::PathBuf, Box<dyn Error>> {
     let extract_dir = out.join(DIST);
@@ -45,18 +45,33 @@ fn fox_source_dir(out: &Path) -> Result<std::path::PathBuf, Box<dyn Error>> {
     build_support::extract_fox_archive(&archive, out, DIST, SHA256)
 }
 
-#[cfg(all(target_os = "linux", not(feature = "nobuild")))]
-fn build_from_source(out: &Path) -> Result<(), Box<dyn Error>> {
+#[cfg(all(
+    any(target_os = "linux", target_os = "macos"),
+    not(feature = "nobuild")
+))]
+fn build_from_source(
+    out: &Path,
+    include_paths: &[std::path::PathBuf],
+) -> Result<(), Box<dyn Error>> {
     let fox_path = fox_source_dir(out)?;
+    let include_paths = include_paths
+        .iter()
+        .map(|path| path.display().to_string())
+        .collect::<Vec<_>>()
+        .join(";");
     cmake::Config::new("src")
         .define("FOX_PATH", fox_path)
+        .define("FOX_INCLUDE_DIRS", include_paths)
         .generator("Ninja")
         .build_target("all")
         .always_configure(false)
         .build();
     println!("cargo:rustc-link-search=native={}/build", out.display());
     println!("cargo:rustc-link-lib=static={COMPILE}");
+    #[cfg(target_os = "linux")]
     println!("cargo:rustc-link-lib=dylib=stdc++");
+    #[cfg(target_os = "macos")]
+    println!("cargo:rustc-link-lib=dylib=c++");
     println!("cargo:rerun-if-changed={CAPI}");
     println!("cargo:rerun-if-changed=src/foxtk.h");
     println!("cargo:rerun-if-changed=src/CMakeLists.txt");
@@ -64,15 +79,17 @@ fn build_from_source(out: &Path) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[cfg(all(target_os = "linux", not(feature = "nobuild")))]
+#[cfg(all(
+    any(target_os = "linux", target_os = "macos"),
+    not(feature = "nobuild")
+))]
 fn compile() -> Result<Vec<String>, Box<dyn Error>> {
     let out = std::env::var("OUT_DIR")?;
-    build_from_source(Path::new(&out))?;
-
     let dependencies = pkg_config::Config::new()
         .statik(true)
         .cargo_metadata(false)
         .probe("fox")?;
+    build_from_source(Path::new(&out), &dependencies.include_paths)?;
     for path in dependencies.link_paths {
         println!("cargo:rustc-link-search=native={}", path.display());
     }
@@ -144,10 +161,15 @@ fn compile() -> Result<Vec<String>, Box<dyn Error>> {
     Err("the `nobuild` feature is currently supported only on Linux".into())
 }
 
-#[cfg(not(any(target_os = "linux", target_os = "windows")))]
+#[cfg(all(target_os = "macos", feature = "nobuild"))]
+fn compile() -> Result<Vec<String>, Box<dyn Error>> {
+    Err("the `nobuild` feature is currently supported only on Linux".into())
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "macos", target_os = "windows")))]
 fn compile() -> Result<Vec<String>, Box<dyn Error>> {
     Err(format!(
-        "foxtk-sys currently supports Linux and Windows; target OS is {}",
+        "foxtk-sys currently supports Linux, macOS, and Windows; target OS is {}",
         std::env::var("CARGO_CFG_TARGET_OS")?
     )
     .into())

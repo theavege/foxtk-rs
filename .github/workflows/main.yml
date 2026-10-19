@@ -19,6 +19,7 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
+          - macos-latest
           - windows-latest
 
     steps:
@@ -27,32 +28,49 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install native dependencies on Unix
-        if: runner.os != 'Windows'
+      - name: Install native dependencies on Linux
+        if: runner.os == 'Linux'
         shell: bash
         run: |
           bash '.github/workflows/make.sh' setup
 
-      - name: Check Windows archive and CMake setup on Unix
-        if: runner.os != 'Windows'
+      - name: Install native dependencies on macOS
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          brew install fox cmake ninja pkgconf llvm
+          echo "LIBCLANG_PATH=$(brew --prefix llvm)/lib" >> "$GITHUB_ENV"
+          echo "$(brew --prefix llvm)/bin" >> "$GITHUB_PATH"
+
+      - name: Check Windows archive and CMake setup on Linux
+        if: runner.os == 'Linux'
         shell: bash
         run: |
           cargo test -p foxtk-sys --test windows_build_support
           bash '.github/workflows/check-windows-cmake.sh'
 
-      - name: Build on Unix
-        if: runner.os != 'Windows'
+      - name: Build on Linux
+        if: runner.os == 'Linux'
         shell: bash
         run: |
           bash '.github/workflows/make.sh' build
 
       - name: Run FOX runtime tests
-        if: runner.os != 'Windows'
+        if: runner.os == 'Linux'
         shell: bash
         run: |
           xvfb-run -a cargo test -p foxtk --test runtime
 
-      - name: Install native dependencies on on Windows
+      - name: Build and lint on macOS
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          cargo build --release --examples
+          cargo clippy --release --quiet --examples
+          cargo doc --release --no-deps
+          cargo fmt --check --all
+
+      - name: Install native dependencies on Windows
         if: runner.os == 'Windows'
         shell: powershell
         run: |

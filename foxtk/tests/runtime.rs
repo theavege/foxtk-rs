@@ -1,5 +1,5 @@
-use foxtk::{App, Label, MainWindow};
 use foxtk::prelude::TextableExt;
+use foxtk::{App, Label, MainWindow};
 
 #[test]
 fn label_text_round_trips_through_fox() {

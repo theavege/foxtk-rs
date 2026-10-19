@@ -37,13 +37,17 @@ pub struct Nmap {
 impl Component for Nmap {
     type Event = Msg;
     type State = models::Model;
-    fn handle(msg: Self::Event, model: &mut Self::State, sender: Sender<Self::Event>) -> bool {
+    fn handle(
+        msg: Self::Event,
+        model: &mut Self::State,
+        sender: Sender<Self::Event>,
+    ) -> ComponentOutcome {
         match msg {
             Msg::Address(idx, value) => model.address[idx] = value,
             Msg::Port(value) => model.port = value,
             Msg::Status(value) => {
                 model.status = value;
-                return true;
+                return ComponentOutcome::Changed;
             }
             Msg::Run => {
                 let address = model.address();
@@ -67,7 +71,7 @@ impl Component for Nmap {
                 }
             }
         };
-        false
+        ComponentOutcome::Unchanged
     }
     fn update(&self, model: &Self::State) {
         self.status.set_text(&model.status);
