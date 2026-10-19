@@ -269,9 +269,13 @@ extern "C"
   // FOXTK_OPAQUE() type above which relies on FOX's own headers already
   // being visible in C++ mode.
   typedef struct FXTimeout FXTimeout;
+  typedef struct FXChore FXChore;
   FXTimeout* FXApp_add_timeout(FXApp* self, CbTimer cb, unsigned ns, void* ctx,
                                CbDrop drop);
   void FXApp_remove_timeout(FXApp* self, FXTimeout* handle);
+  FXChore* FXApp_add_chore(FXApp* self, CbTimer cb, void* ctx, CbDrop drop);
+  void FXApp_schedule_chore(FXApp* self, FXChore* handle);
+  void FXApp_remove_chore(FXApp* self, FXChore* handle);
 
   //~ FXToolTip.h
   FOXTK_OPAQUE(FXToolTip)

@@ -207,11 +207,15 @@ impl Component for Calc {
     type Event = Event;
     type State = Model;
 
-    fn handle(event: Self::Event, model: &mut Self::State, _: Sender<Self::Event>) -> bool {
+    fn handle(
+        event: Self::Event,
+        model: &mut Self::State,
+        _: Sender<Self::Event>,
+    ) -> ComponentOutcome {
         match event {
             Event::Press(key) => model.press(&key),
         }
-        true
+        ComponentOutcome::Changed
     }
 
     fn update(&self, model: &Self::State) {

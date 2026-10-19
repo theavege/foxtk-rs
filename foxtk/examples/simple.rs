@@ -8,19 +8,26 @@ use foxtk::prelude::*;
 mod components;
 
 #[derive(Default)]
-struct Simple(foxtk::Switcher);
+struct Simple {
+    switcher: foxtk::Switcher,
+    mounts: Vec<ComponentMount>,
+}
 
 impl Component for Simple {
     type Event = Msg;
     type State = i32;
-    fn handle(msg: Self::Event, model: &mut Self::State, _: Sender<Self::Event>) -> bool {
+    fn handle(
+        msg: Self::Event,
+        model: &mut Self::State,
+        _: Sender<Self::Event>,
+    ) -> ComponentOutcome {
         match msg {
             Msg::SetVal(val) => *model = val,
         };
-        true
+        ComponentOutcome::Changed
     }
     fn update(&self, model: &Self::State) {
-        self.0.set_curent(*model);
+        self.switcher.set_curent(*model);
     }
     fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
         foxtk::MenuBar::new(prt).inside(|prt| {
@@ -62,8 +69,9 @@ impl Component for Simple {
                 foxtk::MenuRadio::new(mpaine, "3 untitled");
             });
         });
-        self.0 = foxtk::Switcher::new(prt);
-        self.0.inside(|prt| {
+        self.switcher = foxtk::Switcher::new(prt);
+        let mut mounts = Vec::new();
+        self.switcher.inside(|prt| {
             foxtk::VerticalFrame::new(prt).inside(|prt| {
                 foxtk::TabBook::new(prt).inside(|prt| {
                     foxtk::TabItem::new(prt, "Tab 1");
@@ -71,18 +79,19 @@ impl Component for Simple {
                     foxtk::TabItem::new(prt, "Tab 3");
                 });
                 foxtk::GroupBox::new(prt, "Inputs").inside(|prt| {
-                    components::Converter::mount(prt);
-                    components::Nmap::mount(prt);
+                    mounts.push(components::Converter::mount(prt));
+                    mounts.push(components::Nmap::mount(prt));
                 });
-                components::Rangers::mount(prt);
-                components::Selectors::mount(prt);
+                mounts.push(components::Rangers::mount(prt));
+                mounts.push(components::Selectors::mount(prt));
             });
-            components::Calc::mount(prt);
-            components::Adie::mount(prt);
-            components::Timer::mount(prt);
-            components::Dialect::mount(prt);
-            components::NicCalc::mount(prt);
+            mounts.push(components::Calc::mount(prt));
+            mounts.push(components::Adie::mount(prt));
+            mounts.push(components::Timer::mount(prt));
+            mounts.push(components::Dialect::mount(prt));
+            mounts.push(components::NicCalc::mount(prt));
         });
+        self.mounts = mounts;
     }
 }
 

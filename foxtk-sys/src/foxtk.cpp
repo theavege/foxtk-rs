@@ -460,6 +460,51 @@ CTimeoutMap[] = {
 };
 FXIMPLEMENT(CTimeout, FXObject, CTimeoutMap, ARRAYNUMBER(CTimeoutMap))
 
+class CChore : public FXObject
+{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
+  FXDECLARE(CChore)
+#pragma GCC diagnostic pop
+protected:
+  CChore() {}
+
+private:
+  CbTimer callback = nullptr;
+  CbDrop drop = nullptr;
+  void* context = nullptr;
+
+public:
+  enum
+  {
+    SEL_CHORE
+  };
+  CChore(CbTimer cb, void* ctx, CbDrop drop_fn)
+    : callback(cb)
+    , drop(drop_fn)
+    , context(ctx)
+  {
+  }
+  ~CChore() override
+  {
+    if (drop)
+      drop(context);
+  }
+  long onChore(FXObject* app, FXSelector, void*)
+  {
+    if (callback)
+      return callback(as_raw<FXApp>(app), context);
+    return 0;
+  }
+  void schedule(FXApp* app) { app->addChore(this, CChore::SEL_CHORE, context); }
+};
+
+FXDEFMAP(CChore)
+CChoreMap[] = {
+  FXMAPFUNC(SEL_CHORE, CChore::SEL_CHORE, CChore::onChore),
+};
+FXIMPLEMENT(CChore, FXObject, CChoreMap, ARRAYNUMBER(CChoreMap))
+
 class CMouseTarget : public CWrapperTarget
 {
 #pragma GCC diagnostic push
@@ -830,6 +875,23 @@ extern "C"
   {
     auto timeout = reinterpret_cast<CTimeout*>(handle);
     timeout->cancel(self);
+  }
+  FXChore* FXApp_add_chore(FXApp* self, CbTimer cb, void* ctx, CbDrop drop)
+  {
+    auto chore = new CChore(cb, ctx, drop);
+    self->addChore(chore, CChore::SEL_CHORE, ctx);
+    return reinterpret_cast<FXChore*>(chore);
+  }
+  void FXApp_schedule_chore(FXApp* self, FXChore* handle)
+  {
+    auto chore = reinterpret_cast<CChore*>(handle);
+    chore->schedule(self);
+  }
+  void FXApp_remove_chore(FXApp* self, FXChore* handle)
+  {
+    auto chore = reinterpret_cast<CChore*>(handle);
+    self->removeChore(chore, CChore::SEL_CHORE);
+    delete chore;
   }
 
   //~ FXCursor.h

@@ -90,6 +90,18 @@ they borrow their `TreeList`, and clearing the list requires mutable access.
 Creating a wrapper from an arbitrary native pointer through `ObjectExt::from_raw`
 is unsafe; callers must keep that pointer valid for the wrapper's entire use.
 
+## Components
+
+`Component::mount` returns a `ComponentMount`; keep it alive while the component
+is mounted. Dropping it unregisters the FOX chore and event pump. GUI-thread
+events are dispatched through FOX idle chores, while messages sent by worker
+threads are drained by a 50 ms event pump so worker threads never call FOX
+directly. `ComponentOutcome::Changed` refreshes the view,
+`ComponentOutcome::Unchanged` skips that refresh, and
+`ComponentOutcome::Stop` deactivates the component and rejects later sends.
+Nested components must retain their own mount handles for as long as their
+parent component remains mounted.
+
 ## Other bindings for [fox-toolkit](http://www.fox-toolkit.org)
 - [FXRuby](https://rubydoc.info/gems/fxruby)
 

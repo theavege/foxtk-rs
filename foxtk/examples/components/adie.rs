@@ -110,9 +110,13 @@ impl Component for Adie {
     type Event = Event;
     type State = Model;
 
-    fn handle(event: Self::Event, model: &mut Self::State, _: Sender<Self::Event>) -> bool {
+    fn handle(
+        event: Self::Event,
+        model: &mut Self::State,
+        _: Sender<Self::Event>,
+    ) -> ComponentOutcome {
         model.handle(event);
-        true
+        ComponentOutcome::Changed
     }
 
     fn update(&self, model: &Self::State) {

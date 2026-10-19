@@ -14,11 +14,15 @@ pub struct Rangers {
 impl Component for Rangers {
     type Event = Msg;
     type State = i32;
-    fn handle(msg: Self::Event, model: &mut Self::State, _: Sender<Self::Event>) -> bool {
+    fn handle(
+        msg: Self::Event,
+        model: &mut Self::State,
+        _: Sender<Self::Event>,
+    ) -> ComponentOutcome {
         match msg {
             Msg::Set(value) => *model = value,
         };
-        true
+        ComponentOutcome::Changed
     }
     fn update(&self, model: &Self::State) {
         self.progress.set_value(*model as u32);
