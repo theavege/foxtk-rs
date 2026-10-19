@@ -4,15 +4,14 @@ function _setup
 (
     if [[ -f '/etc/os-release' ]]; then
         source '/etc/os-release'
-        if ! command -v fox-config || ! command -v ninja; then
-            declare -ra DEPS=(sh{fmt,ellcheck} ninja-build)
+        if ! command -v fox-config || ! command -v ninja || ! command -v cmake || ! command -v pkg-config || ! command -v clang++ || ! command -v shellcheck || ! command -v shfmt; then
             case ${ID:?} in
                 debian | ubuntu)
                     sudo apt-get update
-                    sudo apt-get install -y "${DEPS[@]}" libfox-1.6-dev xvfb
+                    sudo apt-get install -y shfmt shellcheck ninja-build cmake pkg-config clang libclang-dev build-essential libfox-1.6-dev xvfb
                     ;;
                 fedora | alma)
-                    sudo dnf install -y "${DEPS[@]}" fox-devel xorg-x11-server-Xvfb
+                    sudo dnf install -y shfmt ShellCheck ninja-build cmake pkgconf-pkg-config clang llvm-devel gcc-c++ fox-devel xorg-x11-server-Xvfb
                     ;;
             esac 1>/dev/null
         fi
@@ -41,7 +40,9 @@ function _rust
         cmd="$(command -v cargo-1.91)"
     fi
     "${cmd}" build --release --examples
-    "${cmd}" build --release --examples --features nobuild
+    if [[ "$(uname -s)" == Linux ]]; then
+        "${cmd}" build --release --examples --features nobuild
+    fi
     "${cmd}" clippy --quiet --examples
     "${cmd}" doc --no-deps
     "${cmd}" fmt --check --all

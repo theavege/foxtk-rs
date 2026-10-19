@@ -50,21 +50,26 @@ and commercial applications without being required to open-source your own code.
 
 ## Building
 
-The workspace currently supports Linux and Windows. GUI examples need a
-display server to run.
+The workspace supports Linux and Windows. macOS is being validated in CI and
+is not yet a supported platform. GUI examples need a display server to run.
 
 - **Linux:** the default build downloads and builds FOX 1.6.59 from source.
-  Install its native development dependencies, CMake, Ninja, `pkg-config`, a
-  C++ compiler, and libclang for bindgen. On Debian or Ubuntu, the project
-  setup script installs FOX 1.6 development files and the CI build uses the
-  same script: `.github/workflows/make.sh setup`. To link against the installed
-  shared FOX library instead, build with `--features nobuild`; FOX 1.6
-  development files and `pkg-config` are required. The `nobuild` feature is
-  currently supported on Linux only.
+  The build also needs FOX 1.6 development files for its headers and
+  `pkg-config` metadata for native dependencies, plus CMake, Ninja, a C++
+  compiler, and libclang for bindgen. On Debian or Ubuntu, install these with
+  install these with `sudo apt install build-essential clang libclang-dev
+  cmake ninja-build pkg-config libfox-1.6-dev xvfb`. The CI setup script also
+  installs `shellcheck` and `shfmt`: `.github/workflows/make.sh setup`. To link
+  against the installed shared FOX library instead, build with
+  `--features nobuild`; FOX 1.6 development files and `pkg-config` are
+  required. The `nobuild` feature is currently supported on Linux only.
 - **Windows:** install Visual Studio Build Tools with the C++ workload, a
   Windows SDK, CMake, and libclang. The build script fetches FOX 1.6.59 over
   HTTPS, verifies its SHA-256 digest, and builds it locally. See
   `.github/workflows/make.ps1`.
+- **macOS (experimental):** install FOX, CMake, Ninja, `pkgconf`, and LLVM
+  with Homebrew (`brew install fox cmake ninja pkgconf llvm`). GUI examples
+  also need XQuartz. macOS support will be considered once the CI build passes.
 
 Build the library and examples with `cargo build -p foxtk --examples`. The
 smallest runnable example is `cargo run -p foxtk --example simple`.
