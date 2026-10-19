@@ -77,7 +77,11 @@ impl Component for NicCalc {
             self.list.append_item(&format!("{x}: {y}"));
         }
     }
-    fn handle(msg: Self::Event, model: &mut Self::State, _: Sender<Self::Event>) -> bool {
+    fn handle(
+        msg: Self::Event,
+        model: &mut Self::State,
+        _: Sender<Self::Event>,
+    ) -> ComponentOutcome {
         match msg {
             Msg::Shotstr(value) => {
                 if (0f64..1000f64).contains(&value) {
@@ -100,7 +104,7 @@ impl Component for NicCalc {
                 }
             }
         };
-        true
+        ComponentOutcome::Changed
     }
     fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
         const WIDTH: i32 = 200;

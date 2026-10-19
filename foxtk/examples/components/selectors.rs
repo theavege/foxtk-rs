@@ -17,11 +17,15 @@ impl Component for Selectors {
         self.listbox.set_current_item(*model);
         self.list.set_current_item(*model);
     }
-    fn handle(msg: Self::Event, model: &mut Self::State, _: Sender<Self::Event>) -> bool {
+    fn handle(
+        msg: Self::Event,
+        model: &mut Self::State,
+        _: Sender<Self::Event>,
+    ) -> ComponentOutcome {
         match msg {
             Msg::Set(value) => *model = value,
         };
-        true
+        ComponentOutcome::Changed
     }
     fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
         foxtk::GroupBox::new(prt, "Selectors").inside(|prt| {

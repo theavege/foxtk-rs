@@ -81,7 +81,12 @@ impl Component for Timer {
     type Event = Msg;
     type State = models::Model;
 
-    fn handle(msg: Self::Event, model: &mut Self::State, sender: Sender<Self::Event>) -> bool {
+    fn handle(
+        msg: Self::Event,
+        model: &mut Self::State,
+        sender: Sender<Self::Event>,
+    ) -> ComponentOutcome {
+        let is_tick = matches!(&msg, Msg::Tick);
         match msg {
             Msg::Start => model.start(),
             Msg::Stop => model.stop(),
@@ -89,9 +94,18 @@ impl Component for Timer {
             Msg::Tick => model.tick(),
         }
         if model.running {
-            sender.send(Msg::Tick).unwrap();
+            std::thread::spawn(move || {
+                std::thread::sleep(std::time::Duration::from_millis(50));
+                if let Err(error) = sender.send(Msg::Tick) {
+                    eprintln!("Timer event was dropped: {error}");
+                }
+            });
+            ComponentOutcome::Changed
+        } else if is_tick {
+            ComponentOutcome::Unchanged
+        } else {
+            ComponentOutcome::Changed
         }
-        true
     }
 
     fn update(&self, model: &Self::State) {

@@ -1,11 +1,90 @@
-pub use {super::enums::*, std::sync::mpsc::Sender};
+pub use super::enums::*;
 use {
     foxtk_sys::*,
     std::{
+        cell::RefCell,
         ffi::{CString, c_long, c_void},
-        sync::mpsc::channel,
+        marker::PhantomData,
+        ptr::NonNull,
+        rc::Rc,
+        sync::{
+            Arc, Mutex, Weak,
+            mpsc::{self, Sender as ChannelSender},
+        },
+        thread::{self, ThreadId},
     },
 };
+
+pub struct ComponentSender<E> {
+    channel: ChannelSender<E>,
+    scheduler: Weak<Mutex<ComponentScheduler>>,
+}
+
+impl<E> Clone for ComponentSender<E> {
+    fn clone(&self) -> Self {
+        Self {
+            channel: self.channel.clone(),
+            scheduler: self.scheduler.clone(),
+        }
+    }
+}
+
+impl<E> ComponentSender<E> {
+    pub fn send(&self, message: E) -> Result<(), mpsc::SendError<E>> {
+        let Some(scheduler) = self.scheduler.upgrade() else {
+            return Err(mpsc::SendError(message));
+        };
+        let mut scheduler = scheduler.lock().unwrap();
+        if !scheduler.active {
+            return Err(mpsc::SendError(message));
+        }
+        self.channel.send(message)?;
+        if thread::current().id() == scheduler.ui_thread && !scheduler.scheduled {
+            scheduler.scheduled = true;
+            unsafe {
+                FXApp_schedule_chore(scheduler.app as *mut FXApp, scheduler.chore as *mut FXChore);
+            }
+        }
+        Ok(())
+    }
+}
+
+pub type Sender<E> = ComponentSender<E>;
+
+struct ComponentScheduler {
+    app: usize,
+    chore: usize,
+    ui_thread: ThreadId,
+    active: bool,
+    scheduled: bool,
+}
+
+#[must_use = "keep the mount handle alive while the component is mounted"]
+pub struct ComponentMount {
+    app: NonNull<FXApp>,
+    chore: NonNull<FXChore>,
+    timeout: NonNull<FXTimeout>,
+    scheduler: Arc<Mutex<ComponentScheduler>>,
+    _not_send: PhantomData<Rc<()>>,
+}
+
+impl Drop for ComponentMount {
+    fn drop(&mut self) {
+        let mut scheduler = self.scheduler.lock().unwrap();
+        scheduler.active = false;
+        unsafe {
+            FXApp_remove_chore(self.app.as_ptr(), self.chore.as_ptr());
+            FXApp_remove_timeout(self.app.as_ptr(), self.timeout.as_ptr());
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ComponentOutcome {
+    Unchanged,
+    Changed,
+    Stop,
+}
 
 /// Helper function to convert a string to CString, handling null bytes gracefully
 /// by replacing them with a placeholder character.
@@ -18,22 +97,27 @@ pub(crate) fn to_cstring(s: &str) -> CString {
 }
 
 unsafe extern "C" fn ccallback<T: WindowExt>(ptr: *mut FXWindow, context: *mut c_void) -> c_long {
-    unsafe {
-        let func: &mut Box<dyn FnMut(T) -> bool> =
-            &mut *(context as *mut Box<dyn FnMut(T) -> bool>);
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| unsafe {
+        let func = &mut *(context as *mut Box<dyn FnMut(T) -> bool>);
         func(T::from_raw(ptr as *mut T::T)) as c_long
-    }
+    }));
+    result.unwrap_or(0)
 }
 
 pub trait ObjectExt: Sized {
     type T: 'static;
     fn as_raw(&self) -> *mut Self::T;
-    fn from_raw(ptr: *mut Self::T) -> Self;
+    /// Construct a wrapper around a native pointer.
+    ///
+    /// # Safety
+    /// `ptr` must be a live pointer to the native type represented by `Self`
+    /// and must remain valid for every use of the returned wrapper.
+    unsafe fn from_raw(ptr: *mut Self::T) -> Self;
 }
 
 pub trait IdExt: ObjectExt {
     fn app(&self) -> super::App {
-        super::App::from_raw(unsafe { FXId_get_app(self.as_raw() as *const FXId) })
+        unsafe { super::App::from_raw(FXId_get_app(self.as_raw() as *const FXId)) }
     }
     #[cfg(target_os = "windows")]
     fn id(&self) -> *mut c_void {
@@ -162,19 +246,20 @@ pub trait WindowExt: DrawableExt {
                 self.as_raw() as *mut FXWindow,
                 Some(ccallback::<Self>),
                 raw_ptr as *mut c_void,
+                Some(super::drop_callback_context::<Box<dyn FnMut(Self) -> bool>>),
             );
         }
         self
     }
     fn parent(&self) -> Self {
-        Self::from_raw(unsafe {
-            FXWindow_get_parent(self.as_raw() as *const FXWindow) as *mut Self::T
-        })
+        unsafe {
+            Self::from_raw(FXWindow_get_parent(self.as_raw() as *const FXWindow) as *mut Self::T)
+        }
     }
     fn root(&self) -> Self {
-        Self::from_raw(unsafe {
-            FXWindow_get_root(self.as_raw() as *const FXWindow) as *mut Self::T
-        })
+        unsafe {
+            Self::from_raw(FXWindow_get_root(self.as_raw() as *const FXWindow) as *mut Self::T)
+        }
     }
     fn message(&self, opts: MessageBox, message: &str, kind: Message) -> u32 {
         unsafe {
@@ -430,31 +515,121 @@ pub trait RangerExt: WindowExt {
 pub trait Component: Default + 'static {
     type Event: 'static;
     type State: Default + 'static;
-    fn handle(msg: Self::Event, model: &mut Self::State, sender: Sender<Self::Event>) -> bool;
+    fn handle(
+        msg: Self::Event,
+        model: &mut Self::State,
+        sender: Sender<Self::Event>,
+    ) -> ComponentOutcome;
     fn update(&self, model: &Self::State);
     fn view(&mut self, parent: &impl CompositeExt, sender: Sender<Self::Event>);
-    fn mount(parent: &impl CompositeExt) {
-        let (sender, receiver) = channel::<Self::Event>();
+    fn mount(parent: &impl CompositeExt) -> ComponentMount {
+        let (channel, receiver) = mpsc::channel::<Self::Event>();
+        let dispatch_slot: Rc<RefCell<Option<Box<dyn FnMut()>>>> = Rc::new(RefCell::new(None));
+        let app = parent.app();
+        let app_ptr = NonNull::new(app.as_raw()).expect("FOX application pointer was null");
+        let scheduler = Arc::new(Mutex::new(ComponentScheduler {
+            app: app_ptr.as_ptr() as usize,
+            chore: 0,
+            ui_thread: thread::current().id(),
+            active: true,
+            scheduled: false,
+        }));
+        let chore_context =
+            component_callback_context(dispatch_slot.clone(), Some(scheduler.clone()), true);
+        let chore = NonNull::new(unsafe {
+            FXApp_add_chore(
+                app_ptr.as_ptr(),
+                Some(super::ctimer_callback::<super::App>),
+                chore_context,
+                Some(super::drop_callback_context::<Box<dyn FnMut(super::App) -> bool>>),
+            )
+        })
+        .unwrap_or_else(|| {
+            unsafe {
+                super::drop_callback_context::<Box<dyn FnMut(super::App) -> bool>>(chore_context)
+            };
+            panic!("FOX failed to allocate a component chore");
+        });
+        scheduler.lock().unwrap().chore = chore.as_ptr() as usize;
+        let timeout_context =
+            component_callback_context(dispatch_slot.clone(), Some(scheduler.clone()), false);
+        let timeout = NonNull::new(unsafe {
+            FXApp_add_timeout(
+                app_ptr.as_ptr(),
+                Some(super::ctimer_callback::<super::App>),
+                50,
+                timeout_context,
+                Some(super::drop_callback_context::<Box<dyn FnMut(super::App) -> bool>>),
+            )
+        });
+        let Some(timeout) = timeout else {
+            unsafe {
+                super::drop_callback_context::<Box<dyn FnMut(super::App) -> bool>>(timeout_context);
+                FXApp_remove_chore(app_ptr.as_ptr(), chore.as_ptr());
+            }
+            panic!("FOX failed to allocate a component event pump");
+        };
+        let mount = ComponentMount {
+            app: app_ptr,
+            chore,
+            timeout,
+            scheduler: scheduler.clone(),
+            _not_send: PhantomData,
+        };
+        let sender = ComponentSender {
+            channel,
+            scheduler: Arc::downgrade(&scheduler),
+        };
         let mut page = Self::default();
         let mut model = Self::State::default();
         page.view(parent, sender.clone());
         page.update(&model);
-        parent.app().add_timeout(400, move |_| {
-            let mut update = false;
+        *dispatch_slot.borrow_mut() = Some(Box::new(move || {
+            let mut changed = false;
             while let Ok(msg) = receiver.try_recv() {
-                update = Self::handle(msg, &mut model, sender.clone()) || update;
+                match Self::handle(msg, &mut model, sender.clone()) {
+                    ComponentOutcome::Unchanged => {}
+                    ComponentOutcome::Changed => changed = true,
+                    ComponentOutcome::Stop => {
+                        scheduler.lock().unwrap().active = false;
+                        break;
+                    }
+                }
             }
-            if update {
+            if changed {
                 page.update(&model);
             }
-            true
-        });
+        }));
+        mount
     }
     fn run(name: &str, vendor: &str, title: &str, width: i32, height: i32) -> i32 {
         let app = super::App::new(name, vendor);
         let win = super::MainWindow::new(&app, title, width, height);
-        Self::mount(&win);
+        let _mount = Self::mount(&win);
         win.show();
         app.run()
     }
+}
+
+fn component_callback_context(
+    dispatch_slot: Rc<RefCell<Option<Box<dyn FnMut()>>>>,
+    scheduler: Option<Arc<Mutex<ComponentScheduler>>>,
+    clear_scheduled: bool,
+) -> *mut c_void {
+    let callback: Box<dyn FnMut(super::App) -> bool> = Box::new(move |_| {
+        if let Some(scheduler) = &scheduler {
+            let mut scheduler = scheduler.lock().unwrap();
+            if !scheduler.active {
+                return true;
+            }
+            if clear_scheduled {
+                scheduler.scheduled = false;
+            }
+        }
+        if let Some(dispatch) = dispatch_slot.borrow_mut().as_mut() {
+            dispatch();
+        }
+        true
+    });
+    Box::into_raw(Box::new(callback)) as *mut c_void
 }

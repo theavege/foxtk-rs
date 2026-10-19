@@ -88,43 +88,47 @@ pub struct Dialect {
 impl Component for Dialect {
     type Event = Msg;
     type State = models::Model;
-    fn handle(msg: Self::Event, model: &mut Self::State, sender: Sender<Self::Event>) -> bool {
+    fn handle(
+        msg: Self::Event,
+        model: &mut Self::State,
+        sender: Sender<Self::Event>,
+    ) -> ComponentOutcome {
         match msg {
             Msg::Open(value) => {
                 model.source = std::fs::read_to_string(value).unwrap();
-                true
+                ComponentOutcome::Changed
             }
             Msg::SaveAs(value) => {
                 std::fs::write(value, model.target.as_bytes()).unwrap();
-                false
+                ComponentOutcome::Unchanged
             }
             Msg::Target(value) => {
                 model.target = value;
-                true
+                ComponentOutcome::Changed
             }
             Msg::Lang(value) => {
                 model.read(value);
-                true
+                ComponentOutcome::Changed
             }
             Msg::To(value) => {
                 model.to = value;
-                false
+                ComponentOutcome::Unchanged
             }
             Msg::From(value) => {
                 model.from = value;
-                true
+                ComponentOutcome::Changed
             }
             Msg::Source(value) => {
                 model.source = value;
-                true
+                ComponentOutcome::Changed
             }
             Msg::Quit => {
                 model.save();
-                false
+                ComponentOutcome::Unchanged
             }
             Msg::Switch => {
                 model.switch();
-                true
+                ComponentOutcome::Changed
             }
             Msg::Run => {
                 if model.from != model.to && !model.source.is_empty() {
@@ -144,7 +148,7 @@ impl Component for Dialect {
                         }
                     });
                 };
-                false
+                ComponentOutcome::Unchanged
             }
         }
     }

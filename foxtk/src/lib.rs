@@ -24,10 +24,35 @@ pub(crate) fn to_cstring(s: &str) -> CString {
 }
 
 unsafe extern "C" fn ctimer_callback<T: ObjectExt>(ptr: *mut T::T, context: *mut c_void) -> c_long {
-    unsafe {
-        let func: &mut Box<dyn FnMut(T) -> bool> =
-            &mut *(context as *mut Box<dyn FnMut(T) -> bool>);
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| unsafe {
+        let func = &mut *(context as *mut Box<dyn FnMut(T) -> bool>);
         func(T::from_raw(ptr)) as c_long
+    }));
+    result.unwrap_or(0)
+}
+
+unsafe extern "C" fn drop_callback_context<T>(context: *mut c_void) {
+    if !context.is_null() {
+        let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| unsafe {
+            drop(Box::from_raw(context as *mut T));
+        }));
+    }
+}
+
+/// A repeating FOX timer. Dropping the handle cancels the timer and releases
+/// its callback; the borrowed app guarantees the timer cannot outlive it.
+/// The callback's `bool` is FOX's event result and does not control repetition.
+#[must_use = "keep the timeout handle alive to keep the timer running"]
+pub struct Timeout<'app> {
+    app: &'app App,
+    handle: std::option::Option<NonNull<FXTimeout>>,
+}
+
+impl Drop for Timeout<'_> {
+    fn drop(&mut self) {
+        if let Some(handle) = self.handle.take() {
+            unsafe { FXApp_remove_timeout(self.app.as_raw(), handle.as_ptr()) };
+        }
     }
 }
 
@@ -38,32 +63,35 @@ unsafe extern "C" fn cmouse_callback<T: ObjectExt>(
     y: i32,
     context: *mut c_void,
 ) -> c_long {
-    unsafe {
-        let func: &mut Box<dyn FnMut(T, i32, i32, i32) -> bool> =
-            &mut *(context as *mut Box<dyn FnMut(T, i32, i32, i32) -> bool>);
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| unsafe {
+        let func = &mut *(context as *mut Box<dyn FnMut(T, i32, i32, i32) -> bool>);
         func(T::from_raw(ptr), selector, x, y) as c_long
-    }
+    }));
+    result.unwrap_or(0)
 }
 
 macro_rules! impl_widget {
+    (@as $name:ident, $raw:ident, $($dep:ident),*) => {
+        #[derive(Default)]
+        pub struct $name(std::option::Option<std::ptr::NonNull<$raw>>);
+
+        impl ObjectExt for $name {
+            type T = $raw;
+            fn as_raw(&self) -> *mut Self::T {
+                self.0
+                    .expect(concat!("Empty ", stringify!($name), "!"))
+                    .as_ptr()
+            }
+            unsafe fn from_raw(obj: *mut Self::T) -> Self {
+                Self(NonNull::new(obj))
+            }
+        }
+
+        $(impl $dep for $name {})*
+    };
     ($name:ident, $($dep:ident),*) => {
         paste::paste! {
-            #[derive(Default)]
-            pub struct $name(Option<std::ptr::NonNull<[<FX $name >]>>);
-
-            impl ObjectExt for $name {
-                type T = [<FX $name >];
-                fn as_raw(&self) -> *mut Self::T {
-                    self.0
-                        .expect(concat!("Empty ", stringify!($name), "!"))
-                        .as_ptr()
-                }
-                fn from_raw(obj: *mut Self::T) -> Self {
-                    Self(NonNull::new(obj))
-                }
-            }
-
-            $(impl $dep for $name {})*
+            impl_widget!(@as $name, [<FX $name>], $($dep),*);
         }
     };
 }
@@ -190,25 +218,33 @@ impl App {
             .map(|arg| to_cstring(&arg))
             .map(|arg| arg.as_ptr())
             .collect::<Vec<*const i8>>();
-        Self::from_raw(unsafe {
-            FXApp_new(
+        unsafe {
+            Self::from_raw(FXApp_new(
                 to_cstring(name).as_ptr(),
                 to_cstring(vendor).as_ptr(),
                 args.len() as i32,
                 args.as_ptr() as *mut *mut i8,
-            )
-        })
+            ))
+        }
     }
-    pub fn add_timeout<F: FnMut(Self) -> bool + 'static>(&self, ms: u32, func: F) {
+    pub fn add_timeout<F: FnMut(Self) -> bool + 'static>(&self, ms: u32, func: F) -> Timeout<'_> {
         let context: *mut Box<dyn FnMut(Self) -> bool> = Box::into_raw(Box::new(Box::new(func)));
-        unsafe {
+        let handle = unsafe {
             FXApp_add_timeout(
                 self.as_raw(),
                 Some(ctimer_callback::<Self>),
                 ms,
                 context as *mut c_void,
-            );
+                Some(drop_callback_context::<Box<dyn FnMut(Self) -> bool>>),
+            )
+        };
+        let handle = NonNull::new(handle);
+        if handle.is_none() {
+            unsafe {
+                drop_callback_context::<Box<dyn FnMut(Self) -> bool>>(context as *mut c_void)
+            };
         }
+        Timeout { app: self, handle }
     }
     pub fn run(&self) -> i32 {
         unsafe { FXApp_run(self.as_raw()) }
@@ -230,19 +266,19 @@ impl_widget!(SplashWindow, IdExt, FrameExt, DrawableExt, WindowExt);
 
 impl SplashWindow {
     pub fn new(app: &App) -> Self {
-        Self::from_raw(unsafe { FXSplashWindow_new(app.as_raw()) })
+        unsafe { Self::from_raw(FXSplashWindow_new(app.as_raw())) }
     }
 }
 
 impl_widget!(Button, IdExt, DrawableExt, WindowExt, FrameExt);
 impl Button {
     pub fn new(parent: &impl CompositeExt, title: &str) -> Self {
-        Self::from_raw(unsafe {
-            FXButton_new(
+        unsafe {
+            Self::from_raw(FXButton_new(
                 parent.as_raw() as *mut FXComposite,
                 to_cstring(&format!("&{title}")).as_ptr(),
-            )
-        })
+            ))
+        }
         .with_layout(Layout::FillX)
     }
     pub fn set_state(&self, state: ButtonState) {
@@ -261,7 +297,7 @@ impl Button {
 impl_widget!(ArrowButton, IdExt, DrawableExt, WindowExt, FrameExt);
 impl ArrowButton {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXArrowButton_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXArrowButton_new(parent.as_raw() as *mut FXComposite)) }
     }
     pub fn set_size(&self, size: i32) {
         unsafe {
@@ -278,7 +314,7 @@ impl ArrowButton {
 impl_widget!(Canvas, IdExt, FrameExt, DrawableExt, WindowExt);
 impl Canvas {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXCanvas_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXCanvas_new(parent.as_raw() as *mut FXComposite)) }
     }
     pub fn set_mouse_callback<F: FnMut(Self, i32, i32, i32) -> bool + 'static>(&self, func: F) {
         let context: *mut Box<dyn FnMut(Self, i32, i32, i32) -> bool> =
@@ -288,6 +324,7 @@ impl Canvas {
                 self.as_raw(),
                 Some(cmouse_callback::<Self>),
                 context as *mut c_void,
+                Some(drop_callback_context::<Box<dyn FnMut(Self, i32, i32, i32) -> bool>>),
             );
         }
     }
@@ -296,12 +333,12 @@ impl Canvas {
 impl_widget!(CheckButton, IdExt, DrawableExt, WindowExt, FrameExt);
 impl CheckButton {
     pub fn new(parent: &impl CompositeExt, title: &str) -> Self {
-        Self::from_raw(unsafe {
-            FXCheckButton_new(
+        unsafe {
+            Self::from_raw(FXCheckButton_new(
                 parent.as_raw() as *mut FXComposite,
                 to_cstring(title).as_ptr(),
-            )
-        })
+            ))
+        }
         .with_layout(Layout::FillX)
     }
     pub fn check(&self) -> bool {
@@ -328,7 +365,7 @@ impl_widget!(
 
 impl ComboBox {
     pub fn new(parent: &impl WindowExt, cols: i32) -> Self {
-        Self::from_raw(unsafe { FXComboBox_new(parent.as_raw() as *mut FXComposite, cols) })
+        unsafe { Self::from_raw(FXComboBox_new(parent.as_raw() as *mut FXComposite, cols)) }
             .with_layout(Layout::FillX)
     }
 }
@@ -345,12 +382,12 @@ impl_widget!(
 
 impl GroupBox {
     pub fn new(parent: &impl CompositeExt, title_: &str) -> Self {
-        Self::from_raw(unsafe {
-            FXGroupBox_new(
+        unsafe {
+            Self::from_raw(FXGroupBox_new(
                 parent.as_raw() as *mut FXComposite,
                 to_cstring(title_).as_ptr(),
-            )
-        })
+            ))
+        }
         .with_frame(FrameStyle::Thick)
         .with_layout(Layout::FillX)
     }
@@ -367,7 +404,7 @@ impl_widget!(
 );
 impl VerticalFrame {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXVerticalFrame_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXVerticalFrame_new(parent.as_raw() as *mut FXComposite)) }
             .with_layout(Layout::FillX)
             .with_frame(FrameStyle::Thick)
     }
@@ -384,7 +421,7 @@ impl_widget!(
 );
 impl HorizontalFrame {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXHorizontalFrame_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXHorizontalFrame_new(parent.as_raw() as *mut FXComposite)) }
             .with_height(HEIGHT)
             .with_frame(FrameStyle::Thick)
     }
@@ -401,13 +438,13 @@ impl_widget!(
 );
 impl Matrix {
     pub fn new(parent: &impl CompositeExt, rows: i32) -> Self {
-        Self::from_raw(unsafe {
-            FXMatrix_new(
+        unsafe {
+            Self::from_raw(FXMatrix_new(
                 parent.as_raw() as *mut FXComposite,
                 rows,
                 MatrixStyle::ByRows as u32,
-            )
-        })
+            ))
+        }
         .with_layout(Layout::Fill)
     }
     pub fn set_num_rows(&self, rows: i32) {
@@ -438,12 +475,12 @@ impl_widget!(
 );
 impl Splitter {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe {
-            FXSplitter_new(
+        unsafe {
+            Self::from_raw(FXSplitter_new(
                 parent.as_raw() as *mut FXComposite,
                 SplitterStyle::Normal as u32,
-            )
-        })
+            ))
+        }
         .with_layout(Layout::Fill)
     }
     pub fn with_style(self, style: SplitterStyle) -> Self {
@@ -456,9 +493,7 @@ impl Splitter {
         }
     }
     pub fn style(&self) -> SplitterStyle {
-        unsafe {
-            std::mem::transmute::<u32, SplitterStyle>(FXSplitter_get_style(self.as_raw()) as u32)
-        }
+        enums::splitter_style_from_raw(unsafe { FXSplitter_get_style(self.as_raw()) as u32 })
     }
     pub fn set_split(&self, index: i32, size: i32) {
         unsafe {
@@ -490,7 +525,7 @@ impl_widget!(
 
 impl StatusBar {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXStatusBar_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXStatusBar_new(parent.as_raw() as *mut FXComposite)) }
             .with_layout(Layout::FillX)
     }
     pub fn set_text(&self, text: &str) {
@@ -528,9 +563,12 @@ impl_widget!(
 
 impl DialogBox {
     pub fn new(parent: &impl WindowExt, title: &str) -> Self {
-        Self::from_raw(unsafe {
-            FXDialogBox_new(parent.as_raw() as *mut FXWindow, to_cstring(title).as_ptr())
-        })
+        unsafe {
+            Self::from_raw(FXDialogBox_new(
+                parent.as_raw() as *mut FXWindow,
+                to_cstring(title).as_ptr(),
+            ))
+        }
     }
     pub fn show(&self) {
         unsafe {
@@ -558,9 +596,12 @@ impl_widget!(
 
 impl FileDialog {
     pub fn new(parent: &impl WindowExt, title: &str) -> Self {
-        Self::from_raw(unsafe {
-            FXFileDialog_new(parent.as_raw() as *mut FXWindow, to_cstring(title).as_ptr())
-        })
+        unsafe {
+            Self::from_raw(FXFileDialog_new(
+                parent.as_raw() as *mut FXWindow,
+                to_cstring(title).as_ptr(),
+            ))
+        }
     }
     pub fn show(&self) {
         unsafe {
@@ -613,7 +654,7 @@ impl_widget!(
 );
 impl Switcher {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXSwitcher_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXSwitcher_new(parent.as_raw() as *mut FXComposite)) }
             .with_layout(Layout::Fill)
             .with_frame(FrameStyle::Thick)
     }
@@ -625,12 +666,12 @@ impl Switcher {
 impl_widget!(Label, IdExt, FrameExt, DrawableExt, WindowExt);
 impl Label {
     pub fn new(parent: &impl CompositeExt, title: &str) -> Self {
-        Self::from_raw(unsafe {
-            FXLabel_new(
+        unsafe {
+            Self::from_raw(FXLabel_new(
                 parent.as_raw() as *mut FXComposite,
                 to_cstring(&format!("&{title}")).as_ptr(),
-            )
-        })
+            ))
+        }
         .with_height(HEIGHT)
     }
     pub fn with_justify(self, justify: Justify) -> Self {
@@ -644,14 +685,14 @@ impl Label {
 impl_widget!(Knob, IdExt, FrameExt, DrawableExt, WindowExt);
 impl Knob {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXKnob_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXKnob_new(parent.as_raw() as *mut FXComposite)) }
     }
 }
 
 impl_widget!(Dial, IdExt, FrameExt, DrawableExt, WindowExt);
 impl Dial {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXDial_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXDial_new(parent.as_raw() as *mut FXComposite)) }
     }
 }
 
@@ -667,7 +708,7 @@ impl_widget!(
 
 impl ListBox {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXListBox_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXListBox_new(parent.as_raw() as *mut FXComposite)) }
             .with_layout(Layout::FillX)
             .with_num_visible(3)
     }
@@ -685,7 +726,7 @@ impl_widget!(
 
 impl List {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXList_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXList_new(parent.as_raw() as *mut FXComposite)) }
             .with_layout(Layout::Fill)
     }
 }
@@ -693,7 +734,7 @@ impl List {
 impl_widget!(ProgressBar, IdExt, DrawableExt, WindowExt, FrameExt);
 impl ProgressBar {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXProgressBar_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXProgressBar_new(parent.as_raw() as *mut FXComposite)) }
             .with_height(HEIGHT)
     }
     pub fn progress(&self) -> u32 {
@@ -735,14 +776,14 @@ impl ProgressBar {
 impl_widget!(TriStateButton, IdExt, DrawableExt, WindowExt, FrameExt);
 impl TriStateButton {
     pub fn new(parent: &impl CompositeExt, text1: &str, text2: &str, text3: &str) -> Self {
-        Self::from_raw(unsafe {
-            FXTriStateButton_new(
+        unsafe {
+            Self::from_raw(FXTriStateButton_new(
                 parent.as_raw() as *mut FXComposite,
                 to_cstring(text1).as_ptr(),
                 to_cstring(text2).as_ptr(),
                 to_cstring(text3).as_ptr(),
-            )
-        })
+            ))
+        }
         .with_layout(Layout::FillX)
     }
 }
@@ -750,13 +791,13 @@ impl TriStateButton {
 impl_widget!(ToggleButton, IdExt, DrawableExt, WindowExt, FrameExt);
 impl ToggleButton {
     pub fn new(parent: &impl CompositeExt, title: &str, title_: &str) -> Self {
-        Self::from_raw(unsafe {
-            FXToggleButton_new(
+        unsafe {
+            Self::from_raw(FXToggleButton_new(
                 parent.as_raw() as *mut FXComposite,
                 to_cstring(title).as_ptr(),
                 to_cstring(title_).as_ptr(),
-            )
-        })
+            ))
+        }
         .with_layout(Layout::FillX)
     }
 }
@@ -764,12 +805,12 @@ impl ToggleButton {
 impl_widget!(RadioButton, IdExt, DrawableExt, WindowExt, FrameExt);
 impl RadioButton {
     pub fn new(parent: &impl CompositeExt, title: &str) -> Self {
-        Self::from_raw(unsafe {
-            FXRadioButton_new(
+        unsafe {
+            Self::from_raw(FXRadioButton_new(
                 parent.as_raw() as *mut FXComposite,
                 to_cstring(title).as_ptr(),
-            )
-        })
+            ))
+        }
         .with_layout(Layout::FillX)
     }
     pub fn check(&self) -> bool {
@@ -803,7 +844,7 @@ impl ScrollBar {
 impl_widget!(Slider, IdExt, FrameExt, DrawableExt, WindowExt);
 impl Slider {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXSlider_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXSlider_new(parent.as_raw() as *mut FXComposite)) }
             .with_selector(Selector::CHANGED)
             .with_layout(Layout::FillX)
     }
@@ -820,7 +861,7 @@ impl_widget!(
 );
 impl Spinner {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXSpinner_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXSpinner_new(parent.as_raw() as *mut FXComposite)) }
             .with_layout(Layout::FillX)
     }
     pub fn decrement(&self) {
@@ -930,7 +971,7 @@ impl Table {
 impl_widget!(Text, IdExt, FrameExt, DrawableExt, WindowExt);
 impl Text {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXText_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXText_new(parent.as_raw() as *mut FXComposite)) }
             .with_selector(Selector::CHANGED)
             .with_layout(Layout::Fill)
     }
@@ -939,7 +980,7 @@ impl Text {
 impl_widget!(TextField, IdExt, FrameExt, DrawableExt, WindowExt);
 impl TextField {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXTextField_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXTextField_new(parent.as_raw() as *mut FXComposite)) }
             .with_selector(Selector::CHANGED)
             .with_layout(Layout::FillX)
     }
@@ -957,7 +998,11 @@ impl TreeList {
     pub fn new(parent: &impl CompositeExt) -> Self {
         unsafe { Self::from_raw(FXTreeList_new(parent.as_raw() as *mut FXComposite)) }
     }
-    pub fn add_item_first(&self, prt: &TreeItem, text: &str) -> TreeItem {
+    pub fn add_item_first<'tree>(
+        &'tree self,
+        prt: &TreeItem<'tree>,
+        text: &str,
+    ) -> TreeItem<'tree> {
         unsafe {
             TreeItem::from_raw(FXTreeList_append_item(
                 self.as_raw(),
@@ -966,22 +1011,25 @@ impl TreeList {
             ))
         }
     }
-    pub fn clear_items(&self) {
+    pub fn clear_items(&mut self) {
         unsafe {
             FXTreeList_clear_items(self.as_raw());
         }
     }
 }
 
-pub struct TreeItem(Option<NonNull<FXTreeItem>>);
+pub struct TreeItem<'tree>(
+    std::option::Option<NonNull<FXTreeItem>>,
+    std::marker::PhantomData<&'tree TreeList>,
+);
 
-impl ObjectExt for TreeItem {
+impl ObjectExt for TreeItem<'_> {
     type T = FXTreeItem;
     fn as_raw(&self) -> *mut Self::T {
         self.0.expect("Empty FXObject!").as_ptr()
     }
-    fn from_raw(ptr: *mut Self::T) -> Self {
-        Self(NonNull::new(ptr))
+    unsafe fn from_raw(ptr: *mut Self::T) -> Self {
+        Self(NonNull::new(ptr), std::marker::PhantomData)
     }
 }
 
@@ -996,8 +1044,15 @@ impl_widget!(
 );
 impl MainWindow {
     pub fn new(app: &App, title_: &str, w: i32, h: i32) -> Self {
-        Self::from_raw(unsafe { FXMainWindow_new(app.as_raw(), to_cstring(title_).as_ptr(), w, h) })
-            .with_pad(0)
+        unsafe {
+            Self::from_raw(FXMainWindow_new(
+                app.as_raw(),
+                to_cstring(title_).as_ptr(),
+                w,
+                h,
+            ))
+        }
+        .with_pad(0)
     }
     pub fn show(&self) {
         unsafe {
@@ -1016,7 +1071,7 @@ impl_widget!(
 );
 impl MenuBar {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXMenuBar_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXMenuBar_new(parent.as_raw() as *mut FXComposite)) }
     }
 }
 
@@ -1037,13 +1092,13 @@ impl MenuPane {
 impl_widget!(MenuButton, IdExt, DrawableExt, WindowExt, FrameExt);
 impl MenuButton {
     pub fn new(prt: &impl CompositeExt, text_: &str, pane: &MenuPane) -> Self {
-        Self::from_raw(unsafe {
-            foxtk_sys::FXMenuButton_new(
+        unsafe {
+            Self::from_raw(foxtk_sys::FXMenuButton_new(
                 prt.as_raw() as *mut FXComposite,
                 to_cstring(text_).as_ptr(),
                 pane.as_raw() as *mut FXPopup,
-            )
-        })
+            ))
+        }
         .with_layout(Layout::FillX)
     }
 }
@@ -1051,13 +1106,13 @@ impl MenuButton {
 impl_widget!(MenuTitle, IdExt, FrameExt, DrawableExt, WindowExt);
 impl MenuTitle {
     pub fn new(prt: &impl CompositeExt, text_: &str, pane: &MenuPane) -> Self {
-        Self::from_raw(unsafe {
-            foxtk_sys::FXMenuTitle_new(
+        unsafe {
+            Self::from_raw(foxtk_sys::FXMenuTitle_new(
                 prt.as_raw() as *mut FXComposite,
                 to_cstring(text_).as_ptr(),
                 pane.as_raw() as *mut FXPopup,
-            )
-        })
+            ))
+        }
         .with_layout(Layout::FillX)
     }
 }
@@ -1065,50 +1120,50 @@ impl MenuTitle {
 impl_widget!(MenuRadio, IdExt, FrameExt, DrawableExt, WindowExt);
 impl MenuRadio {
     pub fn new(parent: &impl CompositeExt, text: &str) -> Self {
-        Self::from_raw(unsafe {
-            FXMenuRadio_new(
+        unsafe {
+            Self::from_raw(FXMenuRadio_new(
                 parent.as_raw() as *mut FXComposite,
                 to_cstring(text).as_ptr(),
-            )
-        })
+            ))
+        }
     }
 }
 
 impl_widget!(MenuCheck, IdExt, FrameExt, DrawableExt, WindowExt);
 impl MenuCheck {
     pub fn new(parent: &impl CompositeExt, text: &str) -> Self {
-        Self::from_raw(unsafe {
-            FXMenuCheck_new(
+        unsafe {
+            Self::from_raw(FXMenuCheck_new(
                 parent.as_raw() as *mut FXComposite,
                 to_cstring(text).as_ptr(),
-            )
-        })
+            ))
+        }
     }
 }
 
 impl_widget!(MenuCommand, IdExt, FrameExt, DrawableExt, WindowExt);
 impl MenuCommand {
     pub fn new(parent: &impl CompositeExt, text: &str) -> Self {
-        Self::from_raw(unsafe {
-            FXMenuCommand_new(
+        unsafe {
+            Self::from_raw(FXMenuCommand_new(
                 parent.as_raw() as *mut FXComposite,
                 to_cstring(text).as_ptr(),
-            )
-        })
+            ))
+        }
     }
 }
 
 impl_widget!(StatusLine, IdExt, FrameExt, DrawableExt, WindowExt);
 impl StatusLine {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXStatusLine_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXStatusLine_new(parent.as_raw() as *mut FXComposite)) }
     }
 }
 
 impl_widget!(BitmapFrame, IdExt, FrameExt, DrawableExt, WindowExt);
 impl BitmapFrame {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXBitmapFrame_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXBitmapFrame_new(parent.as_raw() as *mut FXComposite)) }
     }
     pub fn set_justify(&self, justify: Justify) {
         unsafe {
@@ -1116,9 +1171,7 @@ impl BitmapFrame {
         }
     }
     pub fn justify(&self) -> Justify {
-        unsafe {
-            std::mem::transmute::<u32, Justify>(FXBitmapFrame_get_justify(self.as_raw()) as u32)
-        }
+        enums::justify_from_raw(unsafe { FXBitmapFrame_get_justify(self.as_raw()) as u32 })
     }
     pub fn with_justify(self, justify: Justify) -> Self {
         self.set_justify(justify);
@@ -1129,16 +1182,19 @@ impl BitmapFrame {
 impl_widget!(BitmapView, IdExt, FrameExt, DrawableExt, WindowExt);
 impl BitmapView {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXBitmapView_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXBitmapView_new(parent.as_raw() as *mut FXComposite)) }
     }
 }
 
 impl_widget!(ImageFrame, IdExt, FrameExt, DrawableExt, WindowExt);
 impl ImageFrame {
     pub fn new(parent: &impl CompositeExt, img: &Image) -> Self {
-        Self::from_raw(unsafe {
-            FXImageFrame_new(parent.as_raw() as *mut FXComposite, img.as_raw())
-        })
+        unsafe {
+            Self::from_raw(FXImageFrame_new(
+                parent.as_raw() as *mut FXComposite,
+                img.as_raw(),
+            ))
+        }
     }
     pub fn set_justify(&self, justify: Justify) {
         unsafe {
@@ -1146,9 +1202,7 @@ impl ImageFrame {
         }
     }
     pub fn justify(&self) -> Justify {
-        unsafe {
-            std::mem::transmute::<u32, Justify>(FXImageFrame_get_justify(self.as_raw()) as u32)
-        }
+        enums::justify_from_raw(unsafe { FXImageFrame_get_justify(self.as_raw()) as u32 })
     }
     pub fn with_justify(self, justify: Justify) -> Self {
         self.set_justify(justify);
@@ -1159,35 +1213,35 @@ impl ImageFrame {
 impl_widget!(Image, IdExt);
 impl Image {
     pub fn new(app: &App) -> Self {
-        Self::from_raw(unsafe { FXImage_new(app.as_raw()) })
+        unsafe { Self::from_raw(FXImage_new(app.as_raw())) }
     }
 }
 
 impl_widget!(ImageView, IdExt, FrameExt, DrawableExt, WindowExt);
 impl ImageView {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXImageView_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXImageView_new(parent.as_raw() as *mut FXComposite)) }
     }
 }
 
 impl_widget!(Icon, IdExt);
 impl Icon {
     pub fn new(app: &App) -> Self {
-        Self::from_raw(unsafe { FXIcon_new(app.as_raw()) })
+        unsafe { Self::from_raw(FXIcon_new(app.as_raw())) }
     }
 }
 
 impl_widget!(ColorSelector, IdExt, FrameExt, DrawableExt, WindowExt);
 impl ColorSelector {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXColorSelector_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXColorSelector_new(parent.as_raw() as *mut FXComposite)) }
     }
 }
 
 impl_widget!(FontSelector, IdExt, FrameExt, DrawableExt, WindowExt);
 impl FontSelector {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXFontSelector_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXFontSelector_new(parent.as_raw() as *mut FXComposite)) }
     }
 }
 
@@ -1201,16 +1255,19 @@ impl_widget!(
 );
 impl PrintDialog {
     pub fn new(parent: &impl WindowExt, title: &str) -> Self {
-        Self::from_raw(unsafe {
-            FXPrintDialog_new(parent.as_raw() as *mut FXWindow, to_cstring(title).as_ptr())
-        })
+        unsafe {
+            Self::from_raw(FXPrintDialog_new(
+                parent.as_raw() as *mut FXWindow,
+                to_cstring(title).as_ptr(),
+            ))
+        }
     }
 }
 
 impl_widget!(DCWindow, IdExt);
 impl DCWindow {
     pub fn new(drawable: &impl DrawableExt) -> Self {
-        Self::from_raw(unsafe { FXDCWindow_new(drawable.as_raw() as *mut FXDrawable) })
+        unsafe { Self::from_raw(FXDCWindow_new(drawable.as_raw() as *mut FXDrawable)) }
     }
 }
 
@@ -1225,7 +1282,7 @@ impl_widget!(
 );
 impl DriveBox {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXDriveBox_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXDriveBox_new(parent.as_raw() as *mut FXComposite)) }
     }
 }
 
@@ -1240,7 +1297,7 @@ impl_widget!(
 );
 impl DirBox {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXDirBox_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXDirBox_new(parent.as_raw() as *mut FXComposite)) }
     }
 }
 
@@ -1255,7 +1312,7 @@ impl_widget!(
 );
 impl FileSelector {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXFileSelector_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXFileSelector_new(parent.as_raw() as *mut FXComposite)) }
     }
 }
 
@@ -1270,21 +1327,21 @@ impl_widget!(
 );
 impl Packer {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXPacker_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXPacker_new(parent.as_raw() as *mut FXComposite)) }
     }
 }
 
 impl_widget!(RealSlider, IdExt, FrameExt, DrawableExt, WindowExt);
 impl RealSlider {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXRealSlider_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXRealSlider_new(parent.as_raw() as *mut FXComposite)) }
     }
 }
 
 impl_widget!(RealSpinner, IdExt, FrameExt, DrawableExt, WindowExt);
 impl RealSpinner {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXRealSpinner_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXRealSpinner_new(parent.as_raw() as *mut FXComposite)) }
     }
 }
 
@@ -1298,7 +1355,7 @@ impl_widget!(
 );
 impl TreeListBox {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXTreeListBox_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXTreeListBox_new(parent.as_raw() as *mut FXComposite)) }
     }
 }
 
@@ -1312,40 +1369,43 @@ impl_widget!(
 );
 impl Wizard {
     pub fn new(parent: &impl WindowExt, title: &str) -> Self {
-        Self::from_raw(unsafe {
-            FXWizard_new(parent.as_raw() as *mut FXWindow, to_cstring(title).as_ptr())
-        })
+        unsafe {
+            Self::from_raw(FXWizard_new(
+                parent.as_raw() as *mut FXWindow,
+                to_cstring(title).as_ptr(),
+            ))
+        }
     }
 }
 
 impl_widget!(MenuCaption, IdExt, FrameExt, DrawableExt, WindowExt);
 impl MenuCaption {
     pub fn new(parent: &impl CompositeExt, text: &str) -> Self {
-        Self::from_raw(unsafe {
-            FXMenuCaption_new(
+        unsafe {
+            Self::from_raw(FXMenuCaption_new(
                 parent.as_raw() as *mut FXComposite,
                 to_cstring(text).as_ptr(),
-            )
-        })
+            ))
+        }
     }
 }
 
 impl_widget!(MenuCascade, IdExt, FrameExt, DrawableExt, WindowExt);
 impl MenuCascade {
     pub fn new(parent: &impl CompositeExt, text: &str) -> Self {
-        Self::from_raw(unsafe {
-            FXMenuCascade_new(
+        unsafe {
+            Self::from_raw(FXMenuCascade_new(
                 parent.as_raw() as *mut FXComposite,
                 to_cstring(text).as_ptr(),
-            )
-        })
+            ))
+        }
     }
 }
 
 impl_widget!(MenuSeparator, IdExt, FrameExt, DrawableExt, WindowExt);
 impl MenuSeparator {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXMenuSeparator_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXMenuSeparator_new(parent.as_raw() as *mut FXComposite)) }
     }
 }
 
@@ -1359,7 +1419,7 @@ impl_widget!(
 );
 impl DockBar {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXDockBar_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXDockBar_new(parent.as_raw() as *mut FXComposite)) }
     }
 }
 
@@ -1373,14 +1433,14 @@ impl_widget!(
 );
 impl DockSite {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXDockSite_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXDockSite_new(parent.as_raw() as *mut FXComposite)) }
     }
 }
 
 impl_widget!(DockTitle, IdExt, FrameExt, DrawableExt, WindowExt);
 impl DockTitle {
     pub fn new(bar: &DockBar, title: &str) -> Self {
-        Self::from_raw(unsafe { FXDockTitle_new(bar.as_raw(), to_cstring(title).as_ptr()) })
+        unsafe { Self::from_raw(FXDockTitle_new(bar.as_raw(), to_cstring(title).as_ptr())) }
     }
     pub fn set_justify(&self, justify: Justify) {
         unsafe {
@@ -1388,9 +1448,7 @@ impl DockTitle {
         }
     }
     pub fn justify(&self) -> Justify {
-        unsafe {
-            std::mem::transmute::<u32, Justify>(FXDockTitle_get_justify(self.as_raw()) as u32)
-        }
+        enums::justify_from_raw(unsafe { FXDockTitle_get_justify(self.as_raw()) as u32 })
     }
     pub fn with_justify(self, justify: Justify) -> Self {
         self.set_justify(justify);
@@ -1408,21 +1466,21 @@ impl_widget!(
 );
 impl FoldingList {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXFoldingList_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXFoldingList_new(parent.as_raw() as *mut FXComposite)) }
     }
 }
 
 impl_widget!(Header, IdExt, FrameExt, DrawableExt, WindowExt);
 impl Header {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXHeader_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXHeader_new(parent.as_raw() as *mut FXComposite)) }
     }
 }
 
 impl_widget!(GLVisual, IdExt);
 impl GLVisual {
     pub fn new(app: &App) -> Self {
-        Self::from_raw(unsafe { FXGLVisual_new(app.as_raw()) })
+        unsafe { Self::from_raw(FXGLVisual_new(app.as_raw())) }
     }
 }
 
@@ -1436,9 +1494,12 @@ impl_widget!(
 );
 impl GLCanvas {
     pub fn new(parent: &impl CompositeExt, visual: &GLVisual) -> Self {
-        Self::from_raw(unsafe {
-            FXGLCanvas_new(parent.as_raw() as *mut FXComposite, visual.as_raw())
-        })
+        unsafe {
+            Self::from_raw(FXGLCanvas_new(
+                parent.as_raw() as *mut FXComposite,
+                visual.as_raw(),
+            ))
+        }
     }
 }
 
@@ -1452,9 +1513,12 @@ impl_widget!(
 );
 impl GLViewer {
     pub fn new(parent: &impl CompositeExt, visual: &GLVisual) -> Self {
-        Self::from_raw(unsafe {
-            FXGLViewer_new(parent.as_raw() as *mut FXComposite, visual.as_raw())
-        })
+        unsafe {
+            Self::from_raw(FXGLViewer_new(
+                parent.as_raw() as *mut FXComposite,
+                visual.as_raw(),
+            ))
+        }
     }
 }
 
@@ -1468,28 +1532,28 @@ impl_widget!(
 );
 impl ToolBar {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXToolBar_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXToolBar_new(parent.as_raw() as *mut FXComposite)) }
     }
 }
 
 impl_widget!(ToolBarGrip, IdExt, FrameExt, DrawableExt, WindowExt);
 impl ToolBarGrip {
     pub fn new(toolbar: &ToolBar) -> Self {
-        Self::from_raw(unsafe { FXToolBarGrip_new(toolbar.as_raw()) })
+        unsafe { Self::from_raw(FXToolBarGrip_new(toolbar.as_raw())) }
     }
 }
 
 impl_widget!(ToolBarTab, IdExt, FrameExt, DrawableExt, WindowExt);
 impl ToolBarTab {
     pub fn new(toolbar: &ToolBar) -> Self {
-        Self::from_raw(unsafe { FXToolBarTab_new(toolbar.as_raw()) })
+        unsafe { Self::from_raw(FXToolBarTab_new(toolbar.as_raw())) }
     }
 }
 
 impl_widget!(Popup, IdExt, FrameExt, DrawableExt, WindowExt, TopWindowExt);
 impl Popup {
     pub fn new(owner: &impl WindowExt) -> Self {
-        Self::from_raw(unsafe { FXPopup_new(owner.as_raw() as *mut FXWindow) })
+        unsafe { Self::from_raw(FXPopup_new(owner.as_raw() as *mut FXWindow)) }
     }
 }
 
@@ -1504,28 +1568,33 @@ impl_widget!(
 );
 impl OptionMenu {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXOptionMenu_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXOptionMenu_new(parent.as_raw() as *mut FXComposite)) }
     }
 }
 
 impl_widget!(Ruler, IdExt, FrameExt, DrawableExt, WindowExt);
 impl Ruler {
     pub fn new(parent: &impl CompositeExt, orientation: u32) -> Self {
-        Self::from_raw(unsafe { FXRuler_new(parent.as_raw() as *mut FXComposite, orientation) })
+        unsafe {
+            Self::from_raw(FXRuler_new(
+                parent.as_raw() as *mut FXComposite,
+                orientation,
+            ))
+        }
     }
 }
 
 impl_widget!(Spring, IdExt, FrameExt, DrawableExt, WindowExt);
 impl Spring {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXSpring_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXSpring_new(parent.as_raw() as *mut FXComposite)) }
     }
 }
 
 impl_widget!(TableItem, IdExt);
 impl TableItem {
     pub fn new(table: &Table, text: &str) -> Self {
-        Self::from_raw(unsafe { FXTableItem_new(table.as_raw(), to_cstring(text).as_ptr()) })
+        unsafe { Self::from_raw(FXTableItem_new(table.as_raw(), to_cstring(text).as_ptr())) }
     }
 }
 
@@ -1539,7 +1608,7 @@ impl_widget!(
 );
 impl MDIClient {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXMDIClient_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXMDIClient_new(parent.as_raw() as *mut FXComposite)) }
     }
 }
 
@@ -1553,51 +1622,54 @@ impl_widget!(
 );
 impl MDIChild {
     pub fn new(client: &MDIClient, title: &str) -> Self {
-        Self::from_raw(unsafe { FXMDIChild_new(client.as_raw(), to_cstring(title).as_ptr()) })
+        unsafe { Self::from_raw(FXMDIChild_new(client.as_raw(), to_cstring(title).as_ptr())) }
     }
 }
 
 impl_widget!(MDIMenu, IdExt, FrameExt, DrawableExt, WindowExt);
 impl MDIMenu {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXMDIMenu_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXMDIMenu_new(parent.as_raw() as *mut FXComposite)) }
     }
 }
 
 impl_widget!(MDIDeleteButton, IdExt, FrameExt, DrawableExt, WindowExt);
 impl MDIDeleteButton {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXMDIDeleteButton_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXMDIDeleteButton_new(parent.as_raw() as *mut FXComposite)) }
     }
 }
 
 impl_widget!(MDIMaximizeButton, IdExt, FrameExt, DrawableExt, WindowExt);
 impl MDIMaximizeButton {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXMDIMaximizeButton_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXMDIMaximizeButton_new(parent.as_raw() as *mut FXComposite)) }
     }
 }
 
 impl_widget!(MDIMinimizeButton, IdExt, FrameExt, DrawableExt, WindowExt);
 impl MDIMinimizeButton {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXMDIMinimizeButton_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXMDIMinimizeButton_new(parent.as_raw() as *mut FXComposite)) }
     }
 }
 
 impl_widget!(MDIRestoreButton, IdExt, FrameExt, DrawableExt, WindowExt);
 impl MDIRestoreButton {
     pub fn new(parent: &impl CompositeExt) -> Self {
-        Self::from_raw(unsafe { FXMDIRestoreButton_new(parent.as_raw() as *mut FXComposite) })
+        unsafe { Self::from_raw(FXMDIRestoreButton_new(parent.as_raw() as *mut FXComposite)) }
     }
 }
 
 impl_widget!(MDIWindowButton, IdExt, FrameExt, DrawableExt, WindowExt);
 impl MDIWindowButton {
     pub fn new(parent: &impl CompositeExt, popup: &Popup) -> Self {
-        Self::from_raw(unsafe {
-            FXMDIWindowButton_new(parent.as_raw() as *mut FXComposite, popup.as_raw())
-        })
+        unsafe {
+            Self::from_raw(FXMDIWindowButton_new(
+                parent.as_raw() as *mut FXComposite,
+                popup.as_raw(),
+            ))
+        }
     }
 }
 
@@ -1605,3 +1677,753 @@ impl_textable!(Button, Label, Text, TextField, RadioButton);
 impl_selector!(ComboBox, List, ListBox);
 impl_ranger!(Dial, Knob, Slider, Spinner);
 impl_editable!(Text, TextField);
+
+impl_widget!(
+    Composite,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    CompositeExt
+);
+
+impl_widget!(@as FourSplitter, FX4Splitter, IdExt, FrameExt, DrawableExt, WindowExt, CompositeExt);
+impl FourSplitter {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        unsafe { Self::from_raw(FX4Splitter_new(parent.as_raw() as *mut FXComposite)) }
+            .with_layout(Layout::Fill)
+    }
+    pub fn horizontal_split(&self) -> i32 {
+        unsafe { FX4Splitter_get_h_split(self.as_raw()) }
+    }
+    pub fn vertical_split(&self) -> i32 {
+        unsafe { FX4Splitter_get_v_split(self.as_raw()) }
+    }
+    pub fn set_horizontal_split(&self, split: i32) {
+        unsafe { FX4Splitter_set_h_split(self.as_raw(), split) }
+    }
+    pub fn set_vertical_split(&self, split: i32) {
+        unsafe { FX4Splitter_set_v_split(self.as_raw(), split) }
+    }
+    pub fn set_style(&self, style: u32) {
+        unsafe { FX4Splitter_set_style(self.as_raw(), style) }
+    }
+    pub fn bar_size(&self) -> i32 {
+        unsafe { FX4Splitter_get_bar_size(self.as_raw()) }
+    }
+    pub fn set_bar_size(&self, size: i32) {
+        unsafe { FX4Splitter_set_bar_size(self.as_raw(), size) }
+    }
+}
+
+impl_widget!(@as SevenSegment, FX7Segment, IdExt, FrameExt, DrawableExt, WindowExt);
+impl SevenSegment {
+    pub fn new(parent: &impl CompositeExt, text: &str) -> Self {
+        unsafe {
+            Self::from_raw(FX7Segment_new(
+                parent.as_raw() as *mut FXComposite,
+                to_cstring(text).as_ptr(),
+            ))
+        }
+    }
+    pub fn set_justify(&self, justify: Justify) {
+        unsafe { FX7Segment_set_justify(self.as_raw(), justify as u32) }
+    }
+    pub fn justify(&self) -> Justify {
+        enums::justify_from_raw(unsafe { FX7Segment_get_justify(self.as_raw()) })
+    }
+}
+
+impl_widget!(Bitmap, IdExt);
+impl Bitmap {
+    pub fn new(app: &App) -> Self {
+        unsafe { Self::from_raw(FXBitmap_new(app.as_raw())) }
+    }
+}
+
+macro_rules! impl_help {
+    ($($name:ident),+ $(,)?) => {
+        paste::paste! {$ (
+            impl $name {
+                pub fn help_text(&self) -> String {
+                    unsafe {
+                        let ptr = [<FX $name _get_help_text>](self.as_raw());
+                        std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+                    }
+                }
+                pub fn set_help_text(&self, text: &str) {
+                    unsafe { [<FX $name _set_help_text>](self.as_raw(), to_cstring(text).as_ptr()) }
+                }
+                pub fn tip_text(&self) -> String {
+                    unsafe {
+                        let ptr = [<FX $name _get_tip_text>](self.as_raw());
+                        std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+                    }
+                }
+                pub fn set_tip_text(&self, text: &str) {
+                    unsafe { [<FX $name _set_tip_text>](self.as_raw(), to_cstring(text).as_ptr()) }
+                }
+            }
+        )+}
+    };
+}
+
+impl_widget!(ColorBar, IdExt, FrameExt, DrawableExt, WindowExt);
+impl ColorBar {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        unsafe { Self::from_raw(FXColorBar_new(parent.as_raw() as *mut FXComposite)) }
+    }
+}
+
+impl_widget!(
+    ColorDialog,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    TopWindowExt
+);
+impl ColorDialog {
+    pub fn new(parent: &impl WindowExt, title: &str) -> Self {
+        unsafe {
+            Self::from_raw(FXColorDialog_new(
+                parent.as_raw() as *mut FXWindow,
+                to_cstring(title).as_ptr(),
+            ))
+        }
+    }
+}
+
+impl_widget!(
+    ColorList,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    CompositeExt,
+    PackerExt
+);
+impl ColorList {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        unsafe { Self::from_raw(FXColorList_new(parent.as_raw() as *mut FXComposite)) }
+    }
+    pub fn set_style(&self, style: u32) {
+        unsafe { FXColorList_set_style(self.as_raw(), style) }
+    }
+    pub fn style(&self) -> u32 {
+        unsafe { FXColorList_get_style(self.as_raw()) }
+    }
+    pub fn append_item_with_color(&self, text: &str, color: Color) {
+        unsafe {
+            FXColorList_append_item_with_color(
+                self.as_raw(),
+                to_cstring(text).as_ptr(),
+                color.bits(),
+            )
+        }
+    }
+    pub fn set_item_color(&self, index: i32, color: Color) {
+        unsafe { FXColorList_set_item_color(self.as_raw(), index, color.bits()) }
+    }
+    pub fn item_color(&self, index: i32) -> Color {
+        Color::from_hex(unsafe { FXColorList_get_item_color(self.as_raw(), index) })
+    }
+}
+
+impl_widget!(ColorRing, IdExt, FrameExt, DrawableExt, WindowExt);
+impl ColorRing {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        unsafe { Self::from_raw(FXColorRing_new(parent.as_raw() as *mut FXComposite)) }
+    }
+}
+
+impl_widget!(ColorWell, IdExt, FrameExt, DrawableExt, WindowExt);
+impl ColorWell {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        unsafe { Self::from_raw(FXColorWell_new(parent.as_raw() as *mut FXComposite)) }
+    }
+}
+
+impl_widget!(ColorWheel, IdExt, FrameExt, DrawableExt, WindowExt);
+impl ColorWheel {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        unsafe { Self::from_raw(FXColorWheel_new(parent.as_raw() as *mut FXComposite)) }
+    }
+}
+
+impl_widget!(Cursor, IdExt);
+impl Cursor {
+    pub fn new(app: &App, stock_cursor_id: i32) -> Self {
+        unsafe { Self::from_raw(FXCursor_new(app.as_raw(), stock_cursor_id)) }
+    }
+}
+
+impl_widget!(DCPrint, IdExt);
+impl DCPrint {
+    pub fn new(app: &App) -> Self {
+        unsafe { Self::from_raw(FXDCPrint_new(app.as_raw())) }
+    }
+}
+
+impl_widget!(
+    DirDialog,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    TopWindowExt
+);
+impl DirDialog {
+    pub fn new(parent: &impl WindowExt, title: &str) -> Self {
+        unsafe {
+            Self::from_raw(FXDirDialog_new(
+                parent.as_raw() as *mut FXWindow,
+                to_cstring(title).as_ptr(),
+            ))
+        }
+    }
+    pub fn execute(&self) -> u32 {
+        unsafe { FXDirDialog_execute(self.as_raw()) }
+    }
+    pub fn set_directory(&self, path: &str) {
+        unsafe { FXDirDialog_set_directory(self.as_raw(), to_cstring(path).as_ptr()) }
+    }
+    pub fn directory(&self) -> String {
+        unsafe {
+            let ptr = FXDirDialog_get_directory(self.as_raw());
+            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+        }
+    }
+    pub fn show_files(&self, showing: bool) {
+        unsafe { FXDirDialog_show_files(self.as_raw(), showing as u8) }
+    }
+    pub fn show_hidden_files(&self, showing: bool) {
+        unsafe { FXDirDialog_show_hidden_files(self.as_raw(), showing as u8) }
+    }
+    pub fn open_directory(parent: &impl WindowExt, caption: &str, path: &str) -> String {
+        unsafe {
+            let ptr = FXDirDialog_get_open_directory(
+                parent.root().as_raw() as *mut FXWindow,
+                to_cstring(caption).as_ptr(),
+                to_cstring(path).as_ptr(),
+            );
+            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+        }
+    }
+}
+
+impl_widget!(
+    DirList,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    CompositeExt
+);
+impl DirList {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        unsafe { Self::from_raw(FXDirList_new(parent.as_raw() as *mut FXComposite)) }
+    }
+}
+
+impl_widget!(
+    DirSelector,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    CompositeExt,
+    PackerExt
+);
+impl DirSelector {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        unsafe { Self::from_raw(FXDirSelector_new(parent.as_raw() as *mut FXComposite)) }
+    }
+}
+
+impl_widget!(DragCorner, IdExt, FrameExt, DrawableExt, WindowExt);
+impl DragCorner {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        unsafe { Self::from_raw(FXDragCorner_new(parent.as_raw() as *mut FXComposite)) }
+    }
+}
+
+impl_widget!(
+    FileList,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    CompositeExt,
+    PackerExt
+);
+impl FileList {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        unsafe { Self::from_raw(FXFileList_new(parent.as_raw() as *mut FXComposite)) }
+    }
+}
+
+impl_widget!(
+    FontDialog,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    TopWindowExt
+);
+impl FontDialog {
+    pub fn new(parent: &impl WindowExt, title: &str) -> Self {
+        unsafe {
+            Self::from_raw(FXFontDialog_new(
+                parent.as_raw() as *mut FXWindow,
+                to_cstring(title).as_ptr(),
+            ))
+        }
+    }
+    pub fn execute(&self) -> u32 {
+        unsafe { FXFontDialog_execute(self.as_raw()) }
+    }
+    pub fn set_font_selection(&self, family: &str, point_size: i32) {
+        unsafe {
+            FXFontDialog_set_font_selection(self.as_raw(), to_cstring(family).as_ptr(), point_size)
+        }
+    }
+    pub fn font_selection(&self) -> (String, i32) {
+        unsafe {
+            let mut point_size = 0;
+            let ptr = FXFontDialog_get_font_selection(self.as_raw(), &mut point_size);
+            (
+                std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned(),
+                point_size,
+            )
+        }
+    }
+}
+
+impl_widget!(GradientBar, IdExt, FrameExt, DrawableExt, WindowExt);
+impl GradientBar {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        unsafe { Self::from_raw(FXGradientBar_new(parent.as_raw() as *mut FXComposite)) }
+    }
+    pub fn num_segments(&self) -> i32 {
+        unsafe { FXGradientBar_get_num_segments(self.as_raw()) }
+    }
+    pub fn current_segment(&self) -> i32 {
+        unsafe { FXGradientBar_get_current_segment(self.as_raw()) }
+    }
+    pub fn set_current_segment(&self, index: i32) {
+        unsafe { FXGradientBar_set_current_segment(self.as_raw(), index) }
+    }
+    pub fn set_segment_lower_color(&self, index: i32, color: Color) {
+        unsafe { FXGradientBar_set_segment_lower_color(self.as_raw(), index, color.bits()) }
+    }
+    pub fn set_segment_upper_color(&self, index: i32, color: Color) {
+        unsafe { FXGradientBar_set_segment_upper_color(self.as_raw(), index, color.bits()) }
+    }
+}
+
+impl_widget!(HorizontalSeparator, IdExt, FrameExt, DrawableExt, WindowExt);
+impl HorizontalSeparator {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        unsafe {
+            Self::from_raw(FXHorizontalSeparator_new(
+                parent.as_raw() as *mut FXComposite
+            ))
+        }
+    }
+}
+
+impl_widget!(
+    IconList,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    CompositeExt,
+    PackerExt
+);
+impl IconList {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        unsafe { Self::from_raw(FXIconList_new(parent.as_raw() as *mut FXComposite)) }
+    }
+    pub fn num_items(&self) -> i32 {
+        unsafe { FXIconList_get_num_items(self.as_raw()) }
+    }
+    pub fn current_item(&self) -> i32 {
+        unsafe { FXIconList_get_current_item(self.as_raw()) }
+    }
+    pub fn set_current_item(&self, index: i32) {
+        unsafe { FXIconList_set_current_item(self.as_raw(), index) }
+    }
+    pub fn item_text(&self, index: i32) -> String {
+        unsafe {
+            let ptr = FXIconList_get_item_text(self.as_raw(), index);
+            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+        }
+    }
+    pub fn set_item_text(&self, index: i32, text: &str) {
+        unsafe { FXIconList_set_item_text(self.as_raw(), index, to_cstring(text).as_ptr()) }
+    }
+    pub fn append_item(&self, text: &str) {
+        unsafe { FXIconList_append_item(self.as_raw(), to_cstring(text).as_ptr()) }
+    }
+    pub fn clear_items(&self) {
+        unsafe { FXIconList_clear_items(self.as_raw()) }
+    }
+}
+
+impl_widget!(Option, IdExt, FrameExt, DrawableExt, WindowExt);
+impl Option {
+    pub fn new(parent: &impl CompositeExt, text: &str) -> Self {
+        unsafe {
+            Self::from_raw(FXOption_new(
+                parent.as_raw() as *mut FXComposite,
+                to_cstring(text).as_ptr(),
+            ))
+        }
+    }
+}
+
+impl_widget!(
+    ProgressDialog,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    TopWindowExt
+);
+impl ProgressDialog {
+    pub fn new(parent: &impl WindowExt, caption: &str, label: &str) -> Self {
+        unsafe {
+            Self::from_raw(FXProgressDialog_new(
+                parent.as_raw() as *mut FXWindow,
+                to_cstring(caption).as_ptr(),
+                to_cstring(label).as_ptr(),
+            ))
+        }
+    }
+    pub fn show(&self) {
+        unsafe { FXProgressDialog_show(self.as_raw()) }
+    }
+    pub fn hide(&self) {
+        unsafe { FXProgressDialog_hide(self.as_raw()) }
+    }
+    pub fn set_message(&self, message: &str) {
+        unsafe { FXProgressDialog_set_message(self.as_raw(), to_cstring(message).as_ptr()) }
+    }
+    pub fn set_bar_style(&self, style: ProgressBarStyle) {
+        unsafe { FXProgressDialog_set_bar_style(self.as_raw(), style as u32) }
+    }
+    pub fn set_progress(&self, value: u32) {
+        unsafe { FXProgressDialog_set_progress(self.as_raw(), value) }
+    }
+    pub fn set_total(&self, total: u32) {
+        unsafe { FXProgressDialog_set_total(self.as_raw(), total) }
+    }
+    pub fn increment(&self, value: u32) {
+        unsafe { FXProgressDialog_increment(self.as_raw(), value) }
+    }
+    pub fn is_cancelled(&self) -> bool {
+        unsafe { FXProgressDialog_is_cancelled(self.as_raw()) != 0 }
+    }
+    pub fn set_cancelled(&self, cancelled: bool) {
+        unsafe { FXProgressDialog_set_cancelled(self.as_raw(), cancelled as u8) }
+    }
+}
+
+impl_widget!(RecentFiles, IdExt);
+impl RecentFiles {
+    pub fn new(app: &App) -> Self {
+        unsafe { Self::from_raw(FXRecentFiles_new(app.as_raw())) }
+    }
+    pub fn max_files(&self) -> i32 {
+        unsafe { FXRecentFiles_get_max_files(self.as_raw()) }
+    }
+    pub fn set_max_files(&self, maximum: i32) {
+        unsafe { FXRecentFiles_set_max_files(self.as_raw(), maximum) }
+    }
+    pub fn file(&self, index: i32) -> String {
+        unsafe {
+            let ptr = FXRecentFiles_get_file(self.as_raw(), index);
+            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+        }
+    }
+    pub fn set_file(&self, index: i32, filename: &str) {
+        unsafe { FXRecentFiles_set_file(self.as_raw(), index, to_cstring(filename).as_ptr()) }
+    }
+    pub fn append_file(&self, filename: &str) {
+        unsafe { FXRecentFiles_append_file(self.as_raw(), to_cstring(filename).as_ptr()) }
+    }
+    pub fn remove_file(&self, filename: &str) {
+        unsafe { FXRecentFiles_remove_file(self.as_raw(), to_cstring(filename).as_ptr()) }
+    }
+    pub fn clear(&self) {
+        unsafe { FXRecentFiles_clear(self.as_raw()) }
+    }
+}
+
+impl_widget!(
+    ReplaceDialog,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    TopWindowExt
+);
+impl ReplaceDialog {
+    pub fn new(parent: &impl WindowExt, caption: &str) -> Self {
+        unsafe {
+            Self::from_raw(FXReplaceDialog_new(
+                parent.as_raw() as *mut FXWindow,
+                to_cstring(caption).as_ptr(),
+            ))
+        }
+    }
+    pub fn execute(&self) -> u32 {
+        unsafe { FXReplaceDialog_execute(self.as_raw()) }
+    }
+    pub fn search_text(&self) -> String {
+        unsafe {
+            let ptr = FXReplaceDialog_get_search_text(self.as_raw());
+            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+        }
+    }
+    pub fn set_search_text(&self, text: &str) {
+        unsafe { FXReplaceDialog_set_search_text(self.as_raw(), to_cstring(text).as_ptr()) }
+    }
+    pub fn replace_text(&self) -> String {
+        unsafe {
+            let ptr = FXReplaceDialog_get_replace_text(self.as_raw());
+            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+        }
+    }
+    pub fn set_replace_text(&self, text: &str) {
+        unsafe { FXReplaceDialog_set_replace_text(self.as_raw(), to_cstring(text).as_ptr()) }
+    }
+    pub fn search_mode(&self) -> u32 {
+        unsafe { FXReplaceDialog_get_search_mode(self.as_raw()) }
+    }
+    pub fn set_search_mode(&self, mode: u32) {
+        unsafe { FXReplaceDialog_set_search_mode(self.as_raw(), mode) }
+    }
+}
+
+impl_widget!(ScrollCorner, IdExt, FrameExt, DrawableExt, WindowExt);
+impl ScrollCorner {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        unsafe { Self::from_raw(FXScrollCorner_new(parent.as_raw() as *mut FXComposite)) }
+    }
+}
+
+impl_widget!(
+    ScrollPane,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    TopWindowExt
+);
+impl ScrollPane {
+    pub fn new(owner: &impl WindowExt, num_visible: i32) -> Self {
+        unsafe {
+            Self::from_raw(FXScrollPane_new(
+                owner.as_raw() as *mut FXWindow,
+                num_visible,
+            ))
+        }
+    }
+}
+
+impl_widget!(
+    ScrollWindow,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    CompositeExt
+);
+impl ScrollWindow {
+    pub fn new(
+        parent: &impl CompositeExt,
+        style: u32,
+        x: i32,
+        y: i32,
+        width: i32,
+        height: i32,
+    ) -> Self {
+        unsafe {
+            Self::from_raw(FXScrollWindow_new(
+                parent.as_raw() as *mut FXComposite,
+                style,
+                x,
+                y,
+                width,
+                height,
+            ))
+        }
+    }
+    pub fn x_position(&self) -> i32 {
+        unsafe { FXScrollWindow_get_x_position(self.as_raw()) }
+    }
+    pub fn y_position(&self) -> i32 {
+        unsafe { FXScrollWindow_get_y_position(self.as_raw()) }
+    }
+    pub fn set_position(&self, x: i32, y: i32) {
+        unsafe { FXScrollWindow_set_position(self.as_raw(), x, y) }
+    }
+    pub fn scroll_style(&self) -> u32 {
+        unsafe { FXScrollWindow_get_scroll_style(self.as_raw()) }
+    }
+    pub fn set_scroll_style(&self, style: u32) {
+        unsafe { FXScrollWindow_set_scroll_style(self.as_raw(), style) }
+    }
+}
+
+impl_widget!(
+    SearchDialog,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    TopWindowExt
+);
+impl SearchDialog {
+    pub fn new(parent: &impl WindowExt, caption: &str) -> Self {
+        unsafe {
+            Self::from_raw(FXSearchDialog_new(
+                parent.as_raw() as *mut FXWindow,
+                to_cstring(caption).as_ptr(),
+            ))
+        }
+    }
+    pub fn execute(&self) -> u32 {
+        unsafe { FXSearchDialog_execute(self.as_raw()) }
+    }
+    pub fn search_text(&self) -> String {
+        unsafe {
+            let ptr = FXSearchDialog_get_search_text(self.as_raw());
+            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+        }
+    }
+    pub fn set_search_text(&self, text: &str) {
+        unsafe { FXSearchDialog_set_search_text(self.as_raw(), to_cstring(text).as_ptr()) }
+    }
+    pub fn search_mode(&self) -> u32 {
+        unsafe { FXSearchDialog_get_search_mode(self.as_raw()) }
+    }
+    pub fn set_search_mode(&self, mode: u32) {
+        unsafe { FXSearchDialog_set_search_mode(self.as_raw(), mode) }
+    }
+}
+
+impl_widget!(Separator, IdExt, FrameExt, DrawableExt, WindowExt);
+impl Separator {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        unsafe { Self::from_raw(FXSeparator_new(parent.as_raw() as *mut FXComposite)) }
+    }
+    pub fn set_style(&self, style: u32) {
+        unsafe { FXSeparator_set_style(self.as_raw(), style) }
+    }
+    pub fn style(&self) -> u32 {
+        unsafe { FXSeparator_get_style(self.as_raw()) }
+    }
+}
+
+impl_widget!(
+    Shutter,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    CompositeExt,
+    PackerExt
+);
+impl Shutter {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        unsafe { Self::from_raw(FXShutter_new(parent.as_raw() as *mut FXComposite)) }
+    }
+    pub fn current(&self) -> i32 {
+        unsafe { FXShutter_get_current(self.as_raw()) }
+    }
+    pub fn set_current(&self, panel: i32) {
+        unsafe { FXShutter_set_current(self.as_raw(), panel) }
+    }
+}
+
+impl_widget!(
+    ShutterItem,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    CompositeExt,
+    PackerExt
+);
+impl ShutterItem {
+    pub fn new(parent: &Shutter, text: &str) -> Self {
+        unsafe {
+            Self::from_raw(FXShutterItem_new(
+                parent.as_raw(),
+                to_cstring(text).as_ptr(),
+            ))
+        }
+    }
+    pub fn content(&self) -> Composite {
+        unsafe { Composite::from_raw(FXShutterItem_get_content(self.as_raw())) }
+    }
+}
+
+impl_widget!(
+    ToolBarShell,
+    IdExt,
+    FrameExt,
+    DrawableExt,
+    WindowExt,
+    TopWindowExt
+);
+impl ToolBarShell {
+    pub fn new(owner: &impl WindowExt) -> Self {
+        unsafe { Self::from_raw(FXToolBarShell_new(owner.as_raw() as *mut FXWindow)) }
+    }
+    pub fn show(&self) {
+        unsafe { FXToolBarShell_show(self.as_raw()) }
+    }
+    pub fn hide(&self) {
+        unsafe { FXToolBarShell_hide(self.as_raw()) }
+    }
+}
+
+impl_widget!(ToolTip, IdExt);
+impl ToolTip {
+    pub fn new(app: &App) -> Self {
+        unsafe { Self::from_raw(FXToolTip_new(app.as_raw())) }
+    }
+    pub fn show(&self) {
+        unsafe { FXToolTip_show(self.as_raw()) }
+    }
+    pub fn text(&self) -> String {
+        unsafe {
+            let ptr = FXToolTip_get_text(self.as_raw());
+            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+        }
+    }
+    pub fn set_text(&self, text: &str) {
+        unsafe { FXToolTip_set_text(self.as_raw(), to_cstring(text).as_ptr()) }
+    }
+    pub fn set_text_color(&self, color: Color) {
+        unsafe { FXToolTip_set_text_color(self.as_raw(), color.bits()) }
+    }
+    pub fn set_font(&self, family: &str, size: i32) {
+        unsafe { FXToolTip_set_font(self.as_raw(), to_cstring(family).as_ptr(), size) }
+    }
+}
+
+impl_widget!(VerticalSeparator, IdExt, FrameExt, DrawableExt, WindowExt);
+impl VerticalSeparator {
+    pub fn new(parent: &impl CompositeExt) -> Self {
+        unsafe { Self::from_raw(FXVerticalSeparator_new(parent.as_raw() as *mut FXComposite)) }
+    }
+}
+
+impl_help!(ColorBar, ColorRing, ColorWell, ColorWheel, ShutterItem);
+impl_selector!(ColorList);

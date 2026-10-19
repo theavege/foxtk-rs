@@ -313,15 +313,28 @@ typedef long (*CbTimer)(FXApp* app, void* c);
 // before destroying the widget it's attached to. See FXObject_delete.
 class CWrapperTarget : public FXObject
 {
+private:
+  void* context = nullptr;
+  CbDrop drop = nullptr;
+
 public:
   CWrapperTarget(const CWrapperTarget&) = delete;
   CWrapperTarget& operator=(const CWrapperTarget&) = delete;
   CWrapperTarget(CWrapperTarget&&) = delete;
   CWrapperTarget& operator=(CWrapperTarget&&) = delete;
-  ~CWrapperTarget() override = default;
+  ~CWrapperTarget() override
+  {
+    if (drop)
+      drop(context);
+  }
 
 protected:
   CWrapperTarget() = default;
+  CWrapperTarget(void* ctx, CbDrop drop_fn)
+    : context(ctx)
+    , drop(drop_fn)
+  {
+  }
 };
 
 class CTarget : public CWrapperTarget
@@ -350,8 +363,9 @@ public:
     SEL_COMMAND,
     SEL_CHANGED
   };
-  CTarget(CbWidget cb, void* ctx)
-    : callback(cb)
+  CTarget(CbWidget cb, void* ctx, CbDrop drop)
+    : CWrapperTarget(ctx, drop)
+    , callback(cb)
     , context(ctx)
   {
   }
@@ -382,7 +396,11 @@ protected:
 
 private:
   CbTimer callback = nullptr;
+  CbDrop drop = nullptr;
+  void* context = nullptr;
   unsigned nanosec = 0;
+  bool running = false;
+  bool cancelled = false;
 
 public:
   enum
@@ -390,20 +408,41 @@ public:
     SEL_TIMEOUT,
     SEL_CHORE
   };
-  CTimeout(CbTimer cb, unsigned ns)
+  CTimeout(CbTimer cb, unsigned ns, void* ctx, CbDrop drop_fn)
     : callback(cb)
+    , drop(drop_fn)
+    , context(ctx)
     , nanosec(ns)
   {
+  }
+  ~CTimeout() override
+  {
+    if (drop)
+      drop(context);
   }
   long onTimeout(FXObject* app, FXSelector, void* ctx)
   {
     long result = 0;
+    running = true;
     if (this->callback) {
       auto app_ptr = as_raw<FXApp>(app);
       result = this->callback(app_ptr, ctx);
-      app_ptr->addTimeout(this, CTimeout::SEL_TIMEOUT, nanosec, ctx);
-    };
+    }
+    running = false;
+    if (cancelled) {
+      delete this;
+    } else if (this->callback) {
+      as_raw<FXApp>(app)->addTimeout(this, CTimeout::SEL_TIMEOUT, nanosec, ctx);
+    }
     return result;
+  }
+  void cancel(FXApp* app)
+  {
+    cancelled = true;
+    if (!running) {
+      app->removeTimeout(this, CTimeout::SEL_TIMEOUT);
+      delete this;
+    }
   }
   long onChore(FXObject* app, FXSelector, void* ctx)
   {
@@ -420,6 +459,51 @@ CTimeoutMap[] = {
   FXMAPFUNC(SEL_CHORE, CTimeout::SEL_CHORE, CTimeout::onChore),
 };
 FXIMPLEMENT(CTimeout, FXObject, CTimeoutMap, ARRAYNUMBER(CTimeoutMap))
+
+class CChore : public FXObject
+{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
+  FXDECLARE(CChore)
+#pragma GCC diagnostic pop
+protected:
+  CChore() {}
+
+private:
+  CbTimer callback = nullptr;
+  CbDrop drop = nullptr;
+  void* context = nullptr;
+
+public:
+  enum
+  {
+    SEL_CHORE
+  };
+  CChore(CbTimer cb, void* ctx, CbDrop drop_fn)
+    : callback(cb)
+    , drop(drop_fn)
+    , context(ctx)
+  {
+  }
+  ~CChore() override
+  {
+    if (drop)
+      drop(context);
+  }
+  long onChore(FXObject* app, FXSelector, void*)
+  {
+    if (callback)
+      return callback(as_raw<FXApp>(app), context);
+    return 0;
+  }
+  void schedule(FXApp* app) { app->addChore(this, CChore::SEL_CHORE, context); }
+};
+
+FXDEFMAP(CChore)
+CChoreMap[] = {
+  FXMAPFUNC(SEL_CHORE, CChore::SEL_CHORE, CChore::onChore),
+};
+FXIMPLEMENT(CChore, FXObject, CChoreMap, ARRAYNUMBER(CChoreMap))
 
 class CMouseTarget : public CWrapperTarget
 {
@@ -446,8 +530,9 @@ public:
     SEL_RBP = SEL_RIGHTBUTTONPRESS,
     SEL_RBR = SEL_RIGHTBUTTONRELEASE
   };
-  CMouseTarget(CbMouse cb, void* ctx)
-    : callback(cb)
+  CMouseTarget(CbMouse cb, void* ctx, CbDrop drop)
+    : CWrapperTarget(ctx, drop)
+    , callback(cb)
     , context(ctx)
   {
   }
@@ -702,11 +787,11 @@ extern "C"
   {
     return self->hasFocus();
   }
-  void FXWindow_set_target(FXWindow* self, CbWidget cb, void* ctx)
+  void FXWindow_set_target(FXWindow* self, CbWidget cb, void* ctx, CbDrop drop)
   {
     if (auto old = dynamic_cast<CTarget*>(self->getTarget()))
       delete old;
-    self->setTarget(new CTarget(cb, ctx));
+    self->setTarget(new CTarget(cb, ctx, drop));
   }
   void FXWindow_set_selector(FXWindow* self, int val)
   {
@@ -775,9 +860,10 @@ extern "C"
     self->create();
     return self->run();
   }
-  FXTimeout* FXApp_add_timeout(FXApp* self, CbTimer cb, unsigned ns, void* ctx)
+  FXTimeout* FXApp_add_timeout(FXApp* self, CbTimer cb, unsigned ns, void* ctx,
+                               CbDrop drop)
   {
-    auto timeout = new CTimeout(cb, ns);
+    auto timeout = new CTimeout(cb, ns, ctx, drop);
     self->addTimeout(timeout, CTimeout::SEL_TIMEOUT, ns, ctx);
     // FXTimeout is a synthetic opaque handle with no real FOX counterpart
     // to alias (unlike the other typedefs in this file), so it isn't
@@ -788,8 +874,24 @@ extern "C"
   void FXApp_remove_timeout(FXApp* self, FXTimeout* handle)
   {
     auto timeout = reinterpret_cast<CTimeout*>(handle);
-    self->removeTimeout(timeout, CTimeout::SEL_TIMEOUT);
-    delete timeout;
+    timeout->cancel(self);
+  }
+  FXChore* FXApp_add_chore(FXApp* self, CbTimer cb, void* ctx, CbDrop drop)
+  {
+    auto chore = new CChore(cb, ctx, drop);
+    self->addChore(chore, CChore::SEL_CHORE, ctx);
+    return reinterpret_cast<FXChore*>(chore);
+  }
+  void FXApp_schedule_chore(FXApp* self, FXChore* handle)
+  {
+    auto chore = reinterpret_cast<CChore*>(handle);
+    chore->schedule(self);
+  }
+  void FXApp_remove_chore(FXApp* self, FXChore* handle)
+  {
+    auto chore = reinterpret_cast<CChore*>(handle);
+    self->removeChore(chore, CChore::SEL_CHORE);
+    delete chore;
   }
 
   //~ FXCursor.h
@@ -2538,11 +2640,12 @@ extern "C"
   {
     return make_widget<FXCanvas, FXComposite>(prt);
   }
-  void FXCanvas_set_mouse_callback(FXCanvas* self, CbMouse cb, void* ctx)
+  void FXCanvas_set_mouse_callback(FXCanvas* self, CbMouse cb, void* ctx,
+                                   CbDrop drop)
   {
     if (auto old = dynamic_cast<CMouseTarget*>(self->getTarget()))
       delete old;
-    self->setTarget(as_raw<FXObject>(new CMouseTarget(cb, ctx)));
+    self->setTarget(as_raw<FXObject>(new CMouseTarget(cb, ctx, drop)));
   }
 
   //~ FXGLVisual.h

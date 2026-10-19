@@ -46,23 +46,22 @@ impl Component for Booker {
         self.back.set_enable(model.flight);
         self.back.update(&model.back);
     }
-    fn handle(msg: Self::Event, model: &mut Self::State, _: Sender<Self::Event>) -> bool {
+    fn handle(msg: Self::Event, model: &mut Self::State, _: Sender<Self::Event>) -> ComponentOutcome {
         match msg {
             Msg::Start(value) => {
                 model.start = value;
-                false
+                ComponentOutcome::Changed
             }
             Msg::Back(value) => {
                 model.back = value;
-                false
+                ComponentOutcome::Changed
             }
             Msg::Flight(value) => {
                 model.flight = value;
-                true
+                ComponentOutcome::Changed
             }
-            Msg::Book => true,
-        };
-        true
+            Msg::Book => ComponentOutcome::Changed,
+        }
     }
     fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
         const WIDTH: i32 = 100;

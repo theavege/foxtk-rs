@@ -1,6 +1,6 @@
 [package]
 name = "foxtk"
-version = "0.0.7"
+version = "0.0.8"
 authors = ["Artem V. Ageev <artem.v.ageev@gmail.com>"]
 license = "LGPL-2.1-only"
 repository = "https://github.com/theavege/foxtk-rs"
@@ -8,20 +8,16 @@ description = "Rust bindings for the FOX Toolkit"
 keywords = ["FOX", "foxtk"]
 categories = ["api-bindings", "gui"]
 edition = "2024"
-exclude = ["examples"]
+
+[features]
+nobuild = ["foxtk-sys/nobuild"]
 
 [dependencies]
-foxtk-sys = { path = "../foxtk-sys", version = "=0.0.7"}
+foxtk-sys = { path = "../foxtk-sys", version = "=0.0.8"}
 paste = { version = "1.0" }
 once_cell = { version = "1.18" }
 
-reqwest = { optional = true, version = "0.13", features = ["json", "native-tls", "blocking"] }
-xlsxwriter = { optional = true, version = "0" }
-chrono = { optional = true, version = "0.4" }
-
-[features]
-default = []
-reqwest = [ "dep:reqwest" ]
-chrono = [ "dep:chrono" ]
-xlsxwriter = [ "dep:xlsxwriter" ]
-all = ["reqwest", "chrono"]
+[dev-dependencies]
+reqwest = { version = "0.13", features = ["json", "native-tls", "blocking"] }
+xlsxwriter = { version = "0" }
+chrono = { version = "0.4" }
