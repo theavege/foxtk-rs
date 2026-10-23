@@ -13,14 +13,29 @@ use {
 
 pub(crate) const HEIGHT: i32 = 30;
 
-/// Helper function to convert a string to CString, handling null bytes gracefully
-/// by replacing them with a placeholder character.
-#[allow(dead_code)]
+/// Convert `s` to a [`CString`], replacing embedded nulls with `_`.
 pub(crate) fn to_cstring(s: &str) -> CString {
-    CString::new(s).unwrap_or_else(|_| {
-        // Replace null bytes with underscore
-        CString::new(s.replace('\0', "_")).unwrap()
-    })
+    CString::new(s).unwrap_or_else(|_| CString::new(s.replace('\0', "_")).unwrap())
+}
+
+/// Own the strings `FXApp_new` reads, so their pointers stay valid for the call.
+pub(crate) fn cstring_args<I, S>(args: I) -> Vec<CString>
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<str>,
+{
+    args.into_iter()
+        .map(|arg| to_cstring(arg.as_ref()))
+        .collect()
+}
+
+/// Copy a FOX `const char*` into an owned [`String`]. A null pointer is empty.
+pub(crate) fn cstr_lossy(ptr: *const std::ffi::c_char) -> String {
+    if ptr.is_null() {
+        String::new()
+    } else {
+        unsafe { std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned() }
+    }
 }
 
 unsafe extern "C" fn ctimer_callback<T: ObjectExt>(ptr: *mut T::T, context: *mut c_void) -> c_long {
@@ -148,7 +163,7 @@ macro_rules! impl_selector {
                 fn item_text(&self, index: i32) -> String {
                     unsafe {
                         let ptr = [<FX $name _get_item_text>](self.as_raw(), index);
-                        std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+                        cstr_lossy(ptr)
                     }
                 }
                 fn num_items(&self) -> i32 {
@@ -171,7 +186,7 @@ macro_rules! impl_textable {
                 fn text(&self) -> String {
                     unsafe {
                         let ptr = [<FX $name _get_text>](self.as_raw());
-                        std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+                        cstr_lossy(ptr)
                     }
                 }
                 fn set_text(&self, text: &str) {
@@ -214,16 +229,21 @@ impl_widget!(App,);
 /// Using the code below, the application object will be constructed on the stack and hence is automatically destroyed when the program terminates.  Also, when the application object is destroyed, all the windows and other resources it knows about are destroyed as well.
 impl App {
     pub fn new(name: &str, vendor: &str) -> Self {
-        let args = std::env::args()
-            .map(|arg| to_cstring(&arg))
-            .map(|arg| arg.as_ptr())
-            .collect::<Vec<*const i8>>();
+        let name = to_cstring(name);
+        let vendor = to_cstring(vendor);
+        // Own every argument for the whole call. Mapping to pointers first
+        // drops each CString at the end of the closure.
+        let args = cstring_args(std::env::args());
+        let mut argv: Vec<*mut std::ffi::c_char> = args
+            .iter()
+            .map(|arg| arg.as_ptr() as *mut std::ffi::c_char)
+            .collect();
         unsafe {
             Self::from_raw(FXApp_new(
-                to_cstring(name).as_ptr(),
-                to_cstring(vendor).as_ptr(),
-                args.len() as i32,
-                args.as_ptr() as *mut *mut i8,
+                name.as_ptr(),
+                vendor.as_ptr(),
+                argv.len() as i32,
+                argv.as_mut_ptr(),
             ))
         }
     }
@@ -536,7 +556,7 @@ impl StatusBar {
     pub fn text(&self) -> String {
         unsafe {
             let ptr = FXStatusBar_get_text(self.as_raw());
-            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+            cstr_lossy(ptr)
         }
     }
     pub fn set_help_text(&self, text: &str) {
@@ -547,7 +567,7 @@ impl StatusBar {
     pub fn help_text(&self) -> String {
         unsafe {
             let ptr = FXStatusBar_get_help_text(self.as_raw());
-            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+            cstr_lossy(ptr)
         }
     }
 }
@@ -616,7 +636,7 @@ impl FileDialog {
     pub fn directory(&self) -> String {
         unsafe {
             let ptr = FXFileDialog_get_directory(self.as_raw());
-            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+            cstr_lossy(ptr)
         }
     }
     pub fn set_filename(&self, filename: &str) {
@@ -627,7 +647,7 @@ impl FileDialog {
     pub fn filename(&self) -> String {
         unsafe {
             let ptr = FXFileDialog_get_filename(self.as_raw());
-            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+            cstr_lossy(ptr)
         }
     }
     pub fn set_pattern(&self, pattern: &str) {
@@ -638,7 +658,7 @@ impl FileDialog {
     pub fn pattern(&self) -> String {
         unsafe {
             let ptr = FXFileDialog_get_pattern(self.as_raw());
-            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+            cstr_lossy(ptr)
         }
     }
 }
@@ -658,8 +678,13 @@ impl Switcher {
             .with_layout(Layout::Fill)
             .with_frame(FrameStyle::Thick)
     }
-    pub fn set_curent(&self, idx: i32) {
+    pub fn set_current(&self, idx: i32) {
         unsafe { FXSwitcher_set_current(self.as_raw(), idx) }
+    }
+
+    #[deprecated(since = "0.0.9", note = "renamed to `set_current`")]
+    pub fn set_curent(&self, idx: i32) {
+        self.set_current(idx);
     }
 }
 
@@ -938,7 +963,7 @@ impl TabItem {
     pub fn text(&self) -> String {
         unsafe {
             let ptr = FXTabItem_get_text(self.as_raw());
-            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+            cstr_lossy(ptr)
         }
     }
 }
@@ -963,7 +988,7 @@ impl Table {
     pub fn item_text(&self, row: i32, col: i32) -> String {
         unsafe {
             let ptr = FXTable_get_item_text(self.as_raw(), row, col);
-            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+            cstr_lossy(ptr)
         }
     }
 }
@@ -1748,7 +1773,7 @@ macro_rules! impl_help {
                 pub fn help_text(&self) -> String {
                     unsafe {
                         let ptr = [<FX $name _get_help_text>](self.as_raw());
-                        std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+                        cstr_lossy(ptr)
                     }
                 }
                 pub fn set_help_text(&self, text: &str) {
@@ -1757,7 +1782,7 @@ macro_rules! impl_help {
                 pub fn tip_text(&self) -> String {
                     unsafe {
                         let ptr = [<FX $name _get_tip_text>](self.as_raw());
-                        std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+                        cstr_lossy(ptr)
                     }
                 }
                 pub fn set_tip_text(&self, text: &str) {
@@ -1891,7 +1916,7 @@ impl DirDialog {
     pub fn directory(&self) -> String {
         unsafe {
             let ptr = FXDirDialog_get_directory(self.as_raw());
-            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+            cstr_lossy(ptr)
         }
     }
     pub fn show_files(&self, showing: bool) {
@@ -1907,7 +1932,7 @@ impl DirDialog {
                 to_cstring(caption).as_ptr(),
                 to_cstring(path).as_ptr(),
             );
-            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+            cstr_lossy(ptr)
         }
     }
 }
@@ -1992,10 +2017,7 @@ impl FontDialog {
         unsafe {
             let mut point_size = 0;
             let ptr = FXFontDialog_get_font_selection(self.as_raw(), &mut point_size);
-            (
-                std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned(),
-                point_size,
-            )
+            (cstr_lossy(ptr), point_size)
         }
     }
 }
@@ -2058,7 +2080,7 @@ impl IconList {
     pub fn item_text(&self, index: i32) -> String {
         unsafe {
             let ptr = FXIconList_get_item_text(self.as_raw(), index);
-            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+            cstr_lossy(ptr)
         }
     }
     pub fn set_item_text(&self, index: i32, text: &str) {
@@ -2072,8 +2094,8 @@ impl IconList {
     }
 }
 
-impl_widget!(Option, IdExt, FrameExt, DrawableExt, WindowExt);
-impl Option {
+impl_widget!(@as OptionButton, FXOption, IdExt, FrameExt, DrawableExt, WindowExt);
+impl OptionButton {
     pub fn new(parent: &impl CompositeExt, text: &str) -> Self {
         unsafe {
             Self::from_raw(FXOption_new(
@@ -2145,7 +2167,7 @@ impl RecentFiles {
     pub fn file(&self, index: i32) -> String {
         unsafe {
             let ptr = FXRecentFiles_get_file(self.as_raw(), index);
-            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+            cstr_lossy(ptr)
         }
     }
     pub fn set_file(&self, index: i32, filename: &str) {
@@ -2185,7 +2207,7 @@ impl ReplaceDialog {
     pub fn search_text(&self) -> String {
         unsafe {
             let ptr = FXReplaceDialog_get_search_text(self.as_raw());
-            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+            cstr_lossy(ptr)
         }
     }
     pub fn set_search_text(&self, text: &str) {
@@ -2194,7 +2216,7 @@ impl ReplaceDialog {
     pub fn replace_text(&self) -> String {
         unsafe {
             let ptr = FXReplaceDialog_get_replace_text(self.as_raw());
-            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+            cstr_lossy(ptr)
         }
     }
     pub fn set_replace_text(&self, text: &str) {
@@ -2302,7 +2324,7 @@ impl SearchDialog {
     pub fn search_text(&self) -> String {
         unsafe {
             let ptr = FXSearchDialog_get_search_text(self.as_raw());
-            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+            cstr_lossy(ptr)
         }
     }
     pub fn set_search_text(&self, text: &str) {
@@ -2404,7 +2426,7 @@ impl ToolTip {
     pub fn text(&self) -> String {
         unsafe {
             let ptr = FXToolTip_get_text(self.as_raw());
-            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+            cstr_lossy(ptr)
         }
     }
     pub fn set_text(&self, text: &str) {
@@ -2427,3 +2449,25 @@ impl VerticalSeparator {
 
 impl_help!(ColorBar, ColorRing, ColorWell, ColorWheel, ShutterItem);
 impl_selector!(ColorList);
+
+#[cfg(test)]
+mod tests {
+    use super::{cstr_lossy, cstring_args, to_cstring};
+    use std::ffi::CStr;
+
+    #[test]
+    fn argument_strings_outlive_their_pointers() {
+        let owned = cstring_args(["foxtk", "hello world", "юникод"]);
+        let ptrs: Vec<*const std::ffi::c_char> = owned.iter().map(|arg| arg.as_ptr()).collect();
+        for (arg, ptr) in owned.iter().zip(ptrs) {
+            assert_eq!(unsafe { CStr::from_ptr(ptr) }, arg.as_c_str());
+        }
+    }
+
+    #[test]
+    fn null_fox_string_is_empty() {
+        assert_eq!(cstr_lossy(std::ptr::null()), "");
+        let text = to_cstring("fox");
+        assert_eq!(cstr_lossy(text.as_ptr()), "fox");
+    }
+}
