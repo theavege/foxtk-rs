@@ -27,7 +27,7 @@ impl Component for Simple {
         ComponentOutcome::Changed
     }
     fn update(&self, model: &Self::State) {
-        self.switcher.set_curent(*model);
+        self.switcher.set_current(*model);
     }
     fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
         foxtk::MenuBar::new(prt).inside(|prt| {

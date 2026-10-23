@@ -7,9 +7,11 @@ on:
   pull_request:
     branches:
       - main
+      - 'alpha/**'
   push:
     branches:
       - main
+      - 'alpha/**'
 
 jobs:
   make:
