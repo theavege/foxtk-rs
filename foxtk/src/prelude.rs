@@ -1,9 +1,10 @@
 pub use super::enums::*;
 use {
+    super::{cstr_lossy, to_cstring},
     foxtk_sys::*,
     std::{
         cell::RefCell,
-        ffi::{CString, c_long, c_void},
+        ffi::{c_long, c_void},
         marker::PhantomData,
         ptr::NonNull,
         rc::Rc,
@@ -84,16 +85,6 @@ pub enum ComponentOutcome {
     Unchanged,
     Changed,
     Stop,
-}
-
-/// Helper function to convert a string to CString, handling null bytes gracefully
-/// by replacing them with a placeholder character.
-#[allow(dead_code)]
-pub(crate) fn to_cstring(s: &str) -> CString {
-    CString::new(s).unwrap_or_else(|_| {
-        // Replace null bytes with underscore
-        CString::new(s.replace('\0', "_")).unwrap()
-    })
 }
 
 unsafe extern "C" fn ccallback<T: WindowExt>(ptr: *mut FXWindow, context: *mut c_void) -> c_long {
@@ -190,7 +181,7 @@ pub trait WindowExt: DrawableExt {
                 to_cstring(patterns).as_ptr(),
                 initial,
             );
-            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+            cstr_lossy(ptr)
         }
     }
     fn save_file_dialog(&self, caption: &str, path: &str, patterns: &str, initial: i32) -> String {
@@ -202,7 +193,7 @@ pub trait WindowExt: DrawableExt {
                 to_cstring(patterns).as_ptr(),
                 initial,
             );
-            std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned()
+            cstr_lossy(ptr)
         }
     }
     fn set_width(&self, width: i32) {
