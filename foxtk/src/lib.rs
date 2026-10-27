@@ -8,8 +8,8 @@ mod macros;
 
 mod support;
 pub(crate) use support::{
-    HEIGHT, cmouse_callback, cstr_lossy, cstring_args, ctimer_callback, drop_callback_context,
-    to_cstring,
+    FoxArgv, HEIGHT, cmouse_callback, cstr_lossy, cstring_args, ctimer_callback,
+    drop_callback_context, to_cstring,
 };
 
 mod app;

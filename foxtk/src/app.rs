@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use crate::{cstr_lossy, cstring_args, ctimer_callback, drop_callback_context, to_cstring};
+use crate::{FoxArgv, cstr_lossy, ctimer_callback, drop_callback_context, to_cstring};
 use foxtk_sys::*;
 use std::ffi::c_void;
 use std::ptr::NonNull;
@@ -29,21 +29,13 @@ impl App {
     pub fn new(name: &str, vendor: &str) -> Self {
         let name = to_cstring(name);
         let vendor = to_cstring(vendor);
-        // Own every argument for the whole call. Mapping to pointers first
-        // drops each CString at the end of the closure.
-        let args = cstring_args(std::env::args());
-        let mut argv: Vec<*mut std::ffi::c_char> = args
-            .iter()
-            .map(|arg| arg.as_ptr() as *mut std::ffi::c_char)
-            .collect();
-        unsafe {
-            Self::from_raw(FXApp_new(
-                name.as_ptr(),
-                vendor.as_ptr(),
-                argv.len() as i32,
-                argv.as_mut_ptr(),
-            ))
-        }
+        // FOX stores this argv and writes the terminating null at argv[argc].
+        // Forget it so those pointers stay valid for the life of the FXApp.
+        let mut args = FoxArgv::from_args(std::env::args());
+        let argc = args.argc();
+        let argv = args.argv();
+        std::mem::forget(args);
+        unsafe { Self::from_raw(FXApp_new(name.as_ptr(), vendor.as_ptr(), argc, argv)) }
     }
     /// Repeating timer. `ms` is milliseconds, the unit of FOX 1.6
     /// `FXApp::addTimeout`. FOX 1.7 uses nanoseconds; this crate builds 1.6.
