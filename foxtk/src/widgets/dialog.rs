@@ -142,7 +142,7 @@ impl DirDialog {
     pub fn open_directory(parent: &impl WindowExt, caption: &str, path: &str) -> String {
         unsafe {
             let ptr = FXDirDialog_get_open_directory(
-                parent.root().as_raw() as *mut FXWindow,
+                parent.root().as_raw(),
                 to_cstring(caption).as_ptr(),
                 to_cstring(path).as_ptr(),
             );
