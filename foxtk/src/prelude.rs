@@ -175,7 +175,7 @@ pub trait WindowExt: DrawableExt {
     fn open_file_dialog(&self, caption: &str, path: &str, patterns: &str, initial: i32) -> String {
         unsafe {
             let ptr = FXFileDialog_get_open_filename(
-                self.root().as_raw() as *mut FXWindow,
+                self.root().as_raw(),
                 to_cstring(caption).as_ptr(),
                 to_cstring(path).as_ptr(),
                 to_cstring(patterns).as_ptr(),
@@ -187,7 +187,7 @@ pub trait WindowExt: DrawableExt {
     fn save_file_dialog(&self, caption: &str, path: &str, patterns: &str, initial: i32) -> String {
         unsafe {
             let ptr = FXFileDialog_get_save_filename(
-                self.root().as_raw() as *mut FXWindow,
+                self.root().as_raw(),
                 to_cstring(caption).as_ptr(),
                 to_cstring(path).as_ptr(),
                 to_cstring(patterns).as_ptr(),
@@ -242,39 +242,44 @@ pub trait WindowExt: DrawableExt {
         }
         self
     }
-    fn parent(&self) -> Self {
-        unsafe {
-            Self::from_raw(FXWindow_get_parent(self.as_raw() as *const FXWindow) as *mut Self::T)
+    /// The parent window, or `None` when this window is the top of the tree.
+    /// The result is an `FXWindow`, not `Self`: a button's parent is not a button.
+    fn parent(&self) -> Option<super::Window> {
+        let ptr = unsafe { FXWindow_get_parent(self.as_raw() as *const FXWindow) };
+        if ptr.is_null() {
+            None
+        } else {
+            Some(unsafe { super::Window::from_raw(ptr) })
         }
     }
-    fn root(&self) -> Self {
-        unsafe {
-            Self::from_raw(FXWindow_get_root(self.as_raw() as *const FXWindow) as *mut Self::T)
-        }
+    /// The top window. FOX walks parents until one has none, so this is never null
+    /// for a live window, and it is an `FXWindow` rather than `Self`.
+    fn root(&self) -> super::Window {
+        unsafe { super::Window::from_raw(FXWindow_get_root(self.as_raw() as *const FXWindow)) }
     }
     fn message(&self, opts: MessageBox, message: &str, kind: Message) -> u32 {
         unsafe {
             match kind {
                 Message::Error => FXMessageBox_error(
-                    self.root().as_raw() as *mut FXWindow,
+                    self.root().as_raw(),
                     opts as u32,
                     to_cstring("Error").as_ptr(),
                     to_cstring(message).as_ptr(),
                 ),
                 Message::Information => FXMessageBox_information(
-                    self.root().as_raw() as *mut FXWindow,
+                    self.root().as_raw(),
                     opts as u32,
                     to_cstring("Information").as_ptr(),
                     to_cstring(message).as_ptr(),
                 ),
                 Message::Question => FXMessageBox_question(
-                    self.root().as_raw() as *mut FXWindow,
+                    self.root().as_raw(),
                     opts as u32,
                     to_cstring("Question").as_ptr(),
                     to_cstring(message).as_ptr(),
                 ),
                 Message::Warning => FXMessageBox_warning(
-                    self.root().as_raw() as *mut FXWindow,
+                    self.root().as_raw(),
                     opts as u32,
                     to_cstring("Warning").as_ptr(),
                     to_cstring(message).as_ptr(),
@@ -503,6 +508,10 @@ pub trait RangerExt: WindowExt {
     }
 }
 
+/// FOX 1.6 `FXApp::addTimeout` takes milliseconds. This polls for a `send`
+/// from a thread other than the UI thread, which must not call `addChore`.
+const COMPONENT_POLL_MS: u32 = 50;
+
 pub trait Component: Default + 'static {
     type Event: 'static;
     type State: Default + 'static;
@@ -548,7 +557,7 @@ pub trait Component: Default + 'static {
             FXApp_add_timeout(
                 app_ptr.as_ptr(),
                 Some(super::ctimer_callback::<super::App>),
-                50,
+                COMPONENT_POLL_MS,
                 timeout_context,
                 Some(super::drop_callback_context::<Box<dyn FnMut(super::App) -> bool>>),
             )
@@ -617,7 +626,11 @@ fn component_callback_context(
                 scheduler.scheduled = false;
             }
         }
-        if let Some(dispatch) = dispatch_slot.borrow_mut().as_mut() {
+        // A modal loop inside handle() re-enters this callback. The outer
+        // dispatch is already draining the channel, so skip instead of panicking.
+        if let Ok(mut slot) = dispatch_slot.try_borrow_mut()
+            && let Some(dispatch) = slot.as_mut()
+        {
             dispatch();
         }
         true

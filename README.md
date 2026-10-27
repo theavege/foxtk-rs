@@ -229,3 +229,54 @@ struct inputs.Button implements prelude.TextExt
   - [x] [FXFileDialog](docs/FXFileDialog.md) - File open/save dialogs
 - [x] Status
   - [x] [FXStatusBar](docs/FXStatusBar.md) - Status bar with text and help
+
+## Release plan
+
+The tree is `0.0.8`. [crates.io](https://crates.io/crates/foxtk) has `0.0.2` and `0.0.3` only. There is no git tag and no GitHub release. `0.0.4` through `0.0.8` were version bumps, not publishes. Until 1.0.0, a new minor version may break the API. `foxtk` and `foxtk-sys` always ship as the same version, and `foxtk` depends on that `foxtk-sys` with `=`.
+
+Release from `main` only, after `alpha/9` has been merged and the Make workflow is green on Linux and Windows. Publish `foxtk-sys` first, then `foxtk`. The GitHub release notes are the changelog.
+
+| Milestone | Publish | Done when |
+|---|---|---|
+| 0.0.9 | yes, first since 0.0.3 | the soundness list below is on `main` |
+| 0.1.0 | yes | a new user can build from the README, and the limits are written down |
+| 0.2.0 | yes | a worker thread can wake the UI thread |
+| 0.3.0 | yes | ownership is either in the types or an explicit, tested exception |
+| 1.0.0 | yes | the supported platforms and the public API are stable |
+
+### 0.0.9 — soundness
+
+Already on `alpha/9`, still to merge to `main`: the module split, library tests in Make, the component chore living until its callback returns, and `App` keeping the `argv` that FOX stores.
+
+- [ ] `alpha/9` merged to `main`, Linux and Windows Make green on that commit
+- [ ] `parent` returns `Option<Window>` and `root` returns `Window`, not `Self`
+- [ ] `set_width`, `set_height`, and `with_height` change the size without replacing the rest of the layout hints
+- [ ] `HorizontalFrame`'s forced 30px height is either removed or documented as the default
+- [ ] changelog covers everything since crates.io `0.0.3`
+- [ ] tag `v0.0.9` and publish both crates
+
+### 0.1.0 — pre-release people can depend on
+
+- [ ] MSRV pinned to the Rust version CI actually runs, and recorded in the crate
+- [ ] README shows `cargo add foxtk` and the Linux and Windows build requirements
+- [ ] `calculator`, `adie`, and `simple` build in CI
+- [ ] rustdoc builds on docs.rs
+- [ ] these limits are part of the crate docs, not only this file: most widgets do not borrow their parent, worker messages wait on a 50 ms poll, macOS is experimental, and the toolkit is FOX 1.6.59 (timeouts are milliseconds, not the nanoseconds of FOX 1.7)
+
+### 0.2.0 — wake the UI thread
+
+- [ ] `ComponentSender::send` from a worker wakes FOX without waiting for the 50 ms poll, and does not call `addChore` off the UI thread
+- [ ] `ComponentOutcome::Stop` removes the chore and the poll, instead of leaving the timer armed until the mount is dropped
+
+### 0.3.0 — ownership
+
+- [ ] a child wrapper that can name its parent borrows it, or the docs and a test say why it cannot
+- [ ] `ObjectExt::from_raw` stays unsafe
+- [ ] dropping a `ComponentMount` still cancels that component's chore and poll
+
+### 1.0.0 — stable
+
+- [ ] Linux and Windows Make are release blockers; macOS is either in that set or documented as unsupported
+- [ ] no open item from the 0.0.9 soundness list
+- [ ] a breaking change after this tag is a major version
+- [ ] FOX 1.6.59 stays the supported toolkit until that major version
