@@ -503,6 +503,10 @@ pub trait RangerExt: WindowExt {
     }
 }
 
+/// FOX 1.6 `FXApp::addTimeout` takes milliseconds. This polls for a `send`
+/// from a thread other than the UI thread, which must not call `addChore`.
+const COMPONENT_POLL_MS: u32 = 50;
+
 pub trait Component: Default + 'static {
     type Event: 'static;
     type State: Default + 'static;
@@ -548,7 +552,7 @@ pub trait Component: Default + 'static {
             FXApp_add_timeout(
                 app_ptr.as_ptr(),
                 Some(super::ctimer_callback::<super::App>),
-                50,
+                COMPONENT_POLL_MS,
                 timeout_context,
                 Some(super::drop_callback_context::<Box<dyn FnMut(super::App) -> bool>>),
             )
@@ -617,7 +621,11 @@ fn component_callback_context(
                 scheduler.scheduled = false;
             }
         }
-        if let Some(dispatch) = dispatch_slot.borrow_mut().as_mut() {
+        // A modal loop inside handle() re-enters this callback. The outer
+        // dispatch is already draining the channel, so skip instead of panicking.
+        if let Ok(mut slot) = dispatch_slot.try_borrow_mut()
+            && let Some(dispatch) = slot.as_mut()
+        {
             dispatch();
         }
         true

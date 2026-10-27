@@ -398,7 +398,7 @@ private:
   CbTimer callback = nullptr;
   CbDrop drop = nullptr;
   void* context = nullptr;
-  unsigned nanosec = 0;
+  unsigned millisec = 0;
   bool running = false;
   bool cancelled = false;
 
@@ -408,11 +408,11 @@ public:
     SEL_TIMEOUT,
     SEL_CHORE
   };
-  CTimeout(CbTimer cb, unsigned ns, void* ctx, CbDrop drop_fn)
+  CTimeout(CbTimer cb, unsigned ms, void* ctx, CbDrop drop_fn)
     : callback(cb)
     , drop(drop_fn)
     , context(ctx)
-    , nanosec(ns)
+    , millisec(ms)
   {
   }
   ~CTimeout() override
@@ -432,7 +432,7 @@ public:
     if (cancelled) {
       delete this;
     } else if (this->callback) {
-      as_raw<FXApp>(app)->addTimeout(this, CTimeout::SEL_TIMEOUT, nanosec, ctx);
+      as_raw<FXApp>(app)->addTimeout(this, CTimeout::SEL_TIMEOUT, millisec, ctx);
     }
     return result;
   }
@@ -473,6 +473,8 @@ private:
   CbTimer callback = nullptr;
   CbDrop drop = nullptr;
   void* context = nullptr;
+  bool running = false;
+  bool cancelled = false;
 
 public:
   enum
@@ -492,11 +494,32 @@ public:
   }
   long onChore(FXObject* app, FXSelector, void*)
   {
+    long result = 0;
+    running = true;
     if (callback)
-      return callback(as_raw<FXApp>(app), context);
-    return 0;
+      result = callback(as_raw<FXApp>(app), context);
+    running = false;
+    // FOX has already unlinked this chore and does not touch the target
+    // after tryHandle returns, so deleting here is safe. Deleting inside
+    // the callback is not: that frees the object whose method is running.
+    if (cancelled)
+      delete this;
+    return result;
   }
-  void schedule(FXApp* app) { app->addChore(this, CChore::SEL_CHORE, context); }
+  void schedule(FXApp* app)
+  {
+    if (!cancelled)
+      app->addChore(this, CChore::SEL_CHORE, context);
+  }
+  void cancel(FXApp* app)
+  {
+    cancelled = true;
+    // Drop a chore that the callback re-queued, but do not delete the
+    // target until onChore returns.
+    app->removeChore(this, CChore::SEL_CHORE);
+    if (!running)
+      delete this;
+  }
 };
 
 FXDEFMAP(CChore)
@@ -860,11 +883,11 @@ extern "C"
     self->create();
     return self->run();
   }
-  FXTimeout* FXApp_add_timeout(FXApp* self, CbTimer cb, unsigned ns, void* ctx,
+  FXTimeout* FXApp_add_timeout(FXApp* self, CbTimer cb, unsigned ms, void* ctx,
                                CbDrop drop)
   {
-    auto timeout = new CTimeout(cb, ns, ctx, drop);
-    self->addTimeout(timeout, CTimeout::SEL_TIMEOUT, ns, ctx);
+    auto timeout = new CTimeout(cb, ms, ctx, drop);
+    self->addTimeout(timeout, CTimeout::SEL_TIMEOUT, ms, ctx);
     // FXTimeout is a synthetic opaque handle with no real FOX counterpart
     // to alias (unlike the other typedefs in this file), so it isn't
     // related to CTimeout by inheritance — as_raw's static_cast doesn't
@@ -890,8 +913,7 @@ extern "C"
   void FXApp_remove_chore(FXApp* self, FXChore* handle)
   {
     auto chore = reinterpret_cast<CChore*>(handle);
-    self->removeChore(chore, CChore::SEL_CHORE);
-    delete chore;
+    chore->cancel(self);
   }
 
   //~ FXCursor.h

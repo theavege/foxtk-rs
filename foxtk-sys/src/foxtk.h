@@ -257,12 +257,14 @@ extern "C"
   typedef void (*CbDrop)(void* ctx);
   FXApp* FXApp_new(const char* name, const char* vendor, int argc, char** argv);
   int FXApp_run(FXApp* self);
-  // The callback re-arms itself on every firing (a repeating interval
-  // timer, not one-shot). FXApp_add_timeout returns a handle that must be
-  // passed to FXApp_remove_timeout to cancel it and free the internal
-  // target object — there is no other way to stop or free one, so a
-  // caller that never calls FXApp_remove_timeout leaks it for the
-  // lifetime of the app.
+  // FOX 1.6 FXApp::addTimeout takes milliseconds (the default is 1000).
+  // FOX 1.7 changed the unit to nanoseconds. This crate builds fox-1.6.59,
+  // so the interval is milliseconds. The callback re-arms itself on every
+  // firing (a repeating interval timer, not one-shot). FXApp_add_timeout
+  // returns a handle that must be passed to FXApp_remove_timeout to cancel
+  // it and free the internal target object — there is no other way to stop
+  // or free one, so a caller that never calls FXApp_remove_timeout leaks it
+  // for the lifetime of the app.
   // FXTimeout has no real FOX counterpart to alias -- it's this
   // wrapper's own synthetic handle (see FXApp_add_timeout below) -- so
   // it always needs a real declaration, unlike every other
@@ -270,7 +272,7 @@ extern "C"
   // being visible in C++ mode.
   typedef struct FXTimeout FXTimeout;
   typedef struct FXChore FXChore;
-  FXTimeout* FXApp_add_timeout(FXApp* self, CbTimer cb, unsigned ns, void* ctx,
+  FXTimeout* FXApp_add_timeout(FXApp* self, CbTimer cb, unsigned ms, void* ctx,
                                CbDrop drop);
   void FXApp_remove_timeout(FXApp* self, FXTimeout* handle);
   FXChore* FXApp_add_chore(FXApp* self, CbTimer cb, void* ctx, CbDrop drop);

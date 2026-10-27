@@ -45,6 +45,8 @@ impl App {
             ))
         }
     }
+    /// Repeating timer. `ms` is milliseconds, the unit of FOX 1.6
+    /// `FXApp::addTimeout`. FOX 1.7 uses nanoseconds; this crate builds 1.6.
     pub fn add_timeout<F: FnMut(Self) -> bool + 'static>(&self, ms: u32, func: F) -> Timeout<'_> {
         let context: *mut Box<dyn FnMut(Self) -> bool> = Box::into_raw(Box::new(Box::new(func)));
         let handle = unsafe {
