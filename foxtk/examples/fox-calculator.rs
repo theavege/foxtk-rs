@@ -1,8 +1,9 @@
 //! FOX desktop calculator, as a [`Component`](foxtk::prelude::Component).
 //!
 //! The keypad and the operator stack follow the FOX 1.6 calculator: scientific
-//! functions, bases, angle units, memory, and parentheses. Icons, the registry,
-//! and the color and font dialogs are not wrapped here.
+//! functions, bases, angle units, memory, and parentheses. The window, title,
+//! help, and memory icons are the original GIF and BMP files. The registry and
+//! the color and font dialogs are not wrapped here.
 
 use foxtk::prelude::*;
 
@@ -918,24 +919,35 @@ impl Component for Calculator {
     }
 
     fn view(&mut self, parent: &impl CompositeExt, sender: Sender<Self::Event>) {
+        let app = parent.app();
+        let big = foxtk::Icon::from_gif(&app, include_bytes!("icons/bigcalc.gif"));
+        let mini = foxtk::Icon::from_gif(&app, include_bytes!("icons/tinycalc.gif"));
+        let question = foxtk::Icon::from_gif(&app, include_bytes!("icons/question.gif"));
+        let memory_icon = foxtk::Icon::from_bmp(&app, include_bytes!("icons/constmem.bmp"));
+        parent.set_window_icon(&big);
+        parent.set_window_mini_icon(&mini);
         foxtk::VerticalFrame::new(parent)
             .with_spacing(4)
             .inside(|parent| {
                 foxtk::HorizontalFrame::new(parent).inside(|parent| {
-                    foxtk::Button::new(parent, "Help").with_callback(|button| {
-                        button.message(
-                            MessageBox::Ok,
-                            "Digits, operators, and functions follow the FOX calculator.\n\
-                             inv and hyp change the key above them. = evaluates the stack.\n\
-                             C clears the entry. AC clears the stack. Bases: Hex Dec Oct Bin.",
-                            Message::Information,
-                        );
-                        false
-                    });
+                    let title = foxtk::Label::new(parent, "FOX Calculator").with_icon(&big);
+                    title.set_text("FOX Calculator");
+                    foxtk::Button::new(parent, "Help")
+                        .with_icon(&question)
+                        .with_callback(|button| {
+                            button.message(
+                                MessageBox::Ok,
+                                "Digits, operators, and functions follow the FOX calculator.\n\
+                                 inv and hyp change the key above them. = evaluates the stack.\n\
+                                 C clears the entry. AC clears the stack. Bases: Hex Dec Oct Bin.",
+                                Message::Information,
+                            );
+                            false
+                        });
                     self.display = foxtk::TextField::new(parent)
                         .with_editable(false)
                         .with_layout(Layout::Fill);
-                    self.memory = foxtk::Label::new(parent, "");
+                    self.memory = foxtk::Label::new(parent, "").with_icon(&memory_icon);
                 });
                 foxtk::HorizontalFrame::new(parent).inside(|parent| {
                     self.precision = foxtk::Spinner::new(parent)

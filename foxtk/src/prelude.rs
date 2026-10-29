@@ -151,6 +151,24 @@ pub trait WindowExt: DrawableExt {
             FXWindow_enable(self.as_raw() as *mut FXWindow);
         }
     }
+    /// Title-bar icon of the shell that contains this window.
+    fn set_window_icon(&self, icon: &super::Icon) {
+        unsafe {
+            let shell = FXWindow_get_shell(self.as_raw() as *const FXWindow);
+            if !shell.is_null() {
+                FXTopWindow_set_icon(shell as *mut FXTopWindow, icon.as_raw());
+            }
+        }
+    }
+    /// Small title-bar icon of the shell that contains this window.
+    fn set_window_mini_icon(&self, icon: &super::Icon) {
+        unsafe {
+            let shell = FXWindow_get_shell(self.as_raw() as *const FXWindow);
+            if !shell.is_null() {
+                FXTopWindow_set_mini_icon(shell as *mut FXTopWindow, icon.as_raw());
+            }
+        }
+    }
     fn with_layout(self, layout: Layout) -> Self {
         self.set_layout(layout);
         self

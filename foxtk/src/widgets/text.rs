@@ -57,6 +57,13 @@ impl Label {
         }
         self
     }
+    pub fn set_icon(&self, icon: &super::Icon) {
+        unsafe { FXLabel_set_icon(self.as_raw(), icon.as_raw()) }
+    }
+    pub fn with_icon(self, icon: &super::Icon) -> Self {
+        self.set_icon(icon);
+        self
+    }
 }
 
 impl_widget!(ProgressBar, IdExt, DrawableExt, WindowExt, FrameExt);

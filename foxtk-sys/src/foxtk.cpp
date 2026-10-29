@@ -806,6 +806,11 @@ extern "C"
     ASSERT_NOT_NULL(self, nullptr);
     return self->getRoot();
   }
+  FXWindow* FXWindow_get_shell(const FXWindow* self)
+  {
+    ASSERT_NOT_NULL(self, nullptr);
+    return self->getShell();
+  }
   long FXWindow_has_focus(const FXWindow* self)
   {
     return self->hasFocus();
@@ -1035,6 +1040,12 @@ extern "C"
   {
     ASSERT_NOT_NULL(parent, nullptr);
     return make_widget<FXLabel, FXComposite>(parent, title);
+  }
+  void FXLabel_set_icon(FXLabel* self, FXIcon* icon)
+  {
+    if (self) {
+      self->setIcon(icon);
+    }
   }
   void FXLabel_set_justify(FXLabel* self, unsigned justify)
   {
@@ -1546,6 +1557,18 @@ extern "C"
   void FXTopWindow_set_vspacing(FXTopWindow* self, int vspacing)
   {
     self->setVSpacing(vspacing);
+  }
+  void FXTopWindow_set_icon(FXTopWindow* self, FXIcon* icon)
+  {
+    if (self) {
+      self->setIcon(icon);
+    }
+  }
+  void FXTopWindow_set_mini_icon(FXTopWindow* self, FXIcon* icon)
+  {
+    if (self) {
+      self->setMiniIcon(icon);
+    }
   }
 
   //~ FXDialogBox.h
@@ -3043,6 +3066,28 @@ extern "C"
   FXIcon* FXIcon_new(FXApp* app)
   {
     return make_widget<FXIcon, FXApp>(app);
+  }
+  FXIcon* FXGIFIcon_new(FXApp* app, const unsigned char* pixels, unsigned size)
+  {
+    auto icon = new FXGIFIcon(app);
+    if (pixels && size) {
+      FXMemoryStream stream;
+      stream.open(FXStreamLoad, size, const_cast<FXuchar*>(pixels));
+      icon->loadPixels(stream);
+      stream.close();
+    }
+    return icon;
+  }
+  FXIcon* FXBMPIcon_new(FXApp* app, const unsigned char* pixels, unsigned size)
+  {
+    auto icon = new FXBMPIcon(app);
+    if (pixels && size) {
+      FXMemoryStream stream;
+      stream.open(FXStreamLoad, size, const_cast<FXuchar*>(pixels));
+      icon->loadPixels(stream);
+      stream.close();
+    }
+    return icon;
   }
 
   //~ FXImageFrame.h
