@@ -350,6 +350,7 @@ FXId_get_id(const FXId* self);
   typedef long (*CbWidget)(FXWindow* wgt, void* ctx);
   FXWindow* FXWindow_get_parent(const FXWindow* self);
   FXWindow* FXWindow_get_root(const FXWindow* self);
+  FXWindow* FXWindow_get_shell(const FXWindow* self);
   long FXWindow_has_focus(const FXWindow* self);
   void FXWindow_set_target(FXWindow* self, CbWidget cb, void* ctx, CbDrop drop);
   void FXWindow_set_selector(FXWindow* self, int val);
@@ -381,6 +382,8 @@ FXId_get_id(const FXId* self);
   //~ FXIcon.h
   FOXTK_OPAQUE(FXIcon)
   FXIcon* FXIcon_new(FXApp* app);
+  FXIcon* FXGIFIcon_new(FXApp* app, const unsigned char* pixels, unsigned size);
+  FXIcon* FXBMPIcon_new(FXApp* app, const unsigned char* pixels, unsigned size);
 
   //~ FXChoiceBox.h
   int FXChoiceBox_ask(FXWindow* owner,
@@ -534,6 +537,7 @@ FXId_get_id(const FXId* self);
   //~ FXLabel.h
   FOXTK_OPAQUE(FXLabel)
   FXLabel* FXLabel_new(FXComposite* parent, const char* title);
+  void FXLabel_set_icon(FXLabel* self, FXIcon* icon);
   EXT_JUSTIFY(FXLabel)
   EXT_TEXT(FXLabel)
 
@@ -665,6 +669,8 @@ FXId_get_id(const FXId* self);
   FOXTK_OPAQUE(FXTopWindow)
   void FXTopWindow_set_hspacing(FXTopWindow* self, int hspacing);
   void FXTopWindow_set_vspacing(FXTopWindow* self, int vspacing);
+  void FXTopWindow_set_icon(FXTopWindow* self, FXIcon* icon);
+  void FXTopWindow_set_mini_icon(FXTopWindow* self, FXIcon* icon);
 
   //~ FXSplashWindow.h
   FOXTK_OPAQUE(FXSplashWindow)
