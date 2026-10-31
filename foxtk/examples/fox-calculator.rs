@@ -886,9 +886,9 @@ impl Component for Calculator {
         label(&self.factorial, "x!", decimal);
         label(&self.permut, "nPr", decimal);
         label(&self.combin, "nCr", decimal);
-        label(&self.sin, trig_label("sin", inv, hyp), decimal);
-        label(&self.cos, trig_label("cos", inv, hyp), decimal);
-        label(&self.tan, trig_label("tan", inv, hyp), decimal);
+        label(&self.sin, &trig_label("sin", inv, hyp), decimal);
+        label(&self.cos, &trig_label("cos", inv, hyp), decimal);
+        label(&self.tan, &trig_label("tan", inv, hyp), decimal);
         label(&self.log, if inv { "10^x" } else { "log" }, decimal);
         label(&self.ln, if inv { "e^x" } else { "ln" }, decimal);
         label(&self.point, ".", decimal);
