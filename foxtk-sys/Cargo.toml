@@ -19,12 +19,12 @@ cc = { version = "1.2", features = ["parallel"] }
 cmake = "0.1"
 flate2 = "1"
 reqwest = { version = "0.13", features = ["json", "native-tls", "blocking"] }
-sha2 = "0.10"
+sha2 = "0.11"
 tar = "0.4"
 
 [dev-dependencies]
 flate2 = "1"
-sha2 = "0.10"
+sha2 = "0.11"
 tar = "0.4"
 
 [target.'cfg(target_os = "windows")'.build-dependencies]
