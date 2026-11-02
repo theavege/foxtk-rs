@@ -169,6 +169,27 @@ pub trait WindowExt: DrawableExt {
             }
         }
     }
+    fn set_back_color(&self, color: Color) {
+        unsafe { FXWindow_set_back_color(self.as_raw() as *mut FXWindow, color.bits()) }
+    }
+    fn back_color(&self) -> Color {
+        unsafe { Color::from_bits(FXWindow_get_back_color(self.as_raw() as *const FXWindow)) }
+    }
+    fn set_hilite_color(&self, color: Color) {
+        unsafe { FXWindow_set_hilite_color(self.as_raw() as *mut FXWindow, color.bits()) }
+    }
+    fn set_shadow_color(&self, color: Color) {
+        unsafe { FXWindow_set_shadow_color(self.as_raw() as *mut FXWindow, color.bits()) }
+    }
+    /// Ends the modal dialog that contains this window with accept.
+    fn accept_dialog(&self) {
+        unsafe {
+            let shell = FXWindow_get_shell(self.as_raw() as *const FXWindow);
+            if !shell.is_null() {
+                FXDialogBox_accept(shell as *mut FXDialogBox);
+            }
+        }
+    }
     fn with_layout(self, layout: Layout) -> Self {
         self.set_layout(layout);
         self

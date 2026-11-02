@@ -64,6 +64,12 @@ impl ColorWell {
     pub fn new(parent: &impl CompositeExt) -> Self {
         unsafe { Self::from_raw(FXColorWell_new(parent.as_raw() as *mut FXComposite)) }
     }
+    pub fn set_rgba(&self, color: Color) {
+        unsafe { FXColorWell_set_rgba(self.as_raw(), color.bits()) }
+    }
+    pub fn rgba(&self) -> Color {
+        unsafe { Color::from_bits(FXColorWell_get_rgba(self.as_raw())) }
+    }
 }
 
 impl_widget!(ColorWheel, IdExt, FrameExt, DrawableExt, WindowExt);

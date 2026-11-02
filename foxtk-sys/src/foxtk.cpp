@@ -750,6 +750,14 @@ extern "C"
   {
     return FXALPHAVAL(rgba);
   }
+  unsigned fx_make_hilite_color(unsigned color)
+  {
+    return makeHiliteColor(color);
+  }
+  unsigned fx_make_shadow_color(unsigned color)
+  {
+    return makeShadowColor(color);
+  }
 
   // ============================================================================
   // BASE WIDGETS
@@ -852,6 +860,28 @@ extern "C"
   {
     self->disable();
   }
+  void FXWindow_set_back_color(FXWindow* self, unsigned color)
+  {
+    if (self) {
+      self->setBackColor(color);
+    }
+  }
+  unsigned FXWindow_get_back_color(const FXWindow* self)
+  {
+    return self ? self->getBackColor() : 0;
+  }
+  void FXWindow_set_hilite_color(FXWindow* self, unsigned color)
+  {
+    if (self) {
+      self->setHiliteColor(color);
+    }
+  }
+  void FXWindow_set_shadow_color(FXWindow* self, unsigned color)
+  {
+    if (self) {
+      self->setShadowColor(color);
+    }
+  }
   void FXWindow_enable(FXWindow* self)
   {
     self->enable();
@@ -887,6 +917,68 @@ extern "C"
   {
     self->create();
     return self->run();
+  }
+  int FXApp_read_int(FXApp* self, const char* section, const char* key, int fallback)
+  {
+    if (!self || !section || !key) {
+      return fallback;
+    }
+    return self->reg().readIntEntry(section, key, fallback);
+  }
+  void FXApp_write_int(FXApp* self, const char* section, const char* key, int value)
+  {
+    if (self && section && key) {
+      self->reg().writeIntEntry(section, key, value);
+    }
+  }
+  double FXApp_read_real(FXApp* self, const char* section, const char* key, double fallback)
+  {
+    if (!self || !section || !key) {
+      return fallback;
+    }
+    return self->reg().readRealEntry(section, key, fallback);
+  }
+  void FXApp_write_real(FXApp* self, const char* section, const char* key, double value)
+  {
+    if (self && section && key) {
+      self->reg().writeRealEntry(section, key, value);
+    }
+  }
+  unsigned FXApp_read_color(FXApp* self,
+                            const char* section,
+                            const char* key,
+                            unsigned fallback)
+  {
+    if (!self || !section || !key) {
+      return fallback;
+    }
+    return self->reg().readColorEntry(section, key, fallback);
+  }
+  void FXApp_write_color(FXApp* self, const char* section, const char* key, unsigned color)
+  {
+    if (self && section && key) {
+      self->reg().writeColorEntry(section, key, color);
+    }
+  }
+  const char* FXApp_read_string(FXApp* self,
+                                const char* section,
+                                const char* key,
+                                const char* fallback)
+  {
+    if (!self || !section || !key) {
+      return string_result(fallback ? fallback : "");
+    }
+    const char* value = self->reg().readStringEntry(section, key, fallback);
+    return string_result(value ? value : "");
+  }
+  void FXApp_write_string(FXApp* self,
+                          const char* section,
+                          const char* key,
+                          const char* value)
+  {
+    if (self && section && key && value) {
+      self->reg().writeStringEntry(section, key, value);
+    }
   }
   FXTimeout* FXApp_add_timeout(FXApp* self, CbTimer cb, unsigned ms, void* ctx,
                                CbDrop drop)
@@ -1354,6 +1446,16 @@ extern "C"
   {
     return make_widget<FXColorWell, FXComposite>(prt);
   }
+  void FXColorWell_set_rgba(FXColorWell* self, unsigned color)
+  {
+    if (self) {
+      self->setRGBA(color, FALSE);
+    }
+  }
+  unsigned FXColorWell_get_rgba(const FXColorWell* self)
+  {
+    return self ? self->getRGBA() : 0;
+  }
   const char* FXColorWell_get_help_text(const FXColorWell* self)
   {
     return ext_get_help_text(self);
@@ -1542,6 +1644,20 @@ extern "C"
   {
     return make_widget<FXColorDialog, FXWindow>(owner, title);
   }
+  unsigned FXColorDialog_execute(FXColorDialog* self)
+  {
+    return self ? self->execute() : 0;
+  }
+  void FXColorDialog_set_rgba(FXColorDialog* self, unsigned color)
+  {
+    if (self) {
+      self->setRGBA(color);
+    }
+  }
+  unsigned FXColorDialog_get_rgba(const FXColorDialog* self)
+  {
+    return self ? self->getRGBA() : 0;
+  }
 
   //~ FXTopWindow.h
   // NOTE: FXTopWindow has no _new of its own (it's the common base of
@@ -1587,6 +1703,16 @@ extern "C"
   unsigned char FXDialogBox_shown(const FXDialogBox* self)
   {
     return self->shown();
+  }
+  unsigned FXDialogBox_execute(FXDialogBox* self)
+  {
+    return self ? self->execute() : 0;
+  }
+  void FXDialogBox_accept(FXDialogBox* self)
+  {
+    if (self) {
+      self->handle(self, FXSEL(SEL_COMMAND, FXDialogBox::ID_ACCEPT), nullptr);
+    }
   }
 
   //~ FXReplaceDialog.h

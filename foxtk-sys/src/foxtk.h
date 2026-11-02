@@ -88,6 +88,8 @@ extern "C"
   unsigned fx_green_val(unsigned rgba);
   unsigned fx_blue_val(unsigned rgba);
   unsigned fx_alpha_val(unsigned rgba);
+  unsigned fx_make_hilite_color(unsigned color);
+  unsigned fx_make_shadow_color(unsigned color);
 
   //~ OPAQUE HANDLES
   // ABI note: widget constructor entry points return owned FXObject handles (or
@@ -154,6 +156,9 @@ extern "C"
 
   FOXTK_OPAQUE(FXColorDialog)
   FXColorDialog* FXColorDialog_new(FXWindow* owner, const char* title);
+  unsigned FXColorDialog_execute(FXColorDialog* self);
+  void FXColorDialog_set_rgba(FXColorDialog* self, unsigned color);
+  unsigned FXColorDialog_get_rgba(const FXColorDialog* self);
   FOXTK_OPAQUE(FXColorList)
   FXColorList* FXColorList_new(FXComposite* prt);
   EXT_SELECTABLE(FXColorList)
@@ -176,6 +181,8 @@ extern "C"
   //~ FXColorWell.h
   FOXTK_OPAQUE(FXColorWell)
   FXColorWell* FXColorWell_new(FXComposite* prt);
+  void FXColorWell_set_rgba(FXColorWell* self, unsigned color);
+  unsigned FXColorWell_get_rgba(const FXColorWell* self);
   EXT_HELP(FXColorWell)
 
   //~ FXColorWheel.h
@@ -257,6 +264,28 @@ extern "C"
   typedef void (*CbDrop)(void* ctx);
   FXApp* FXApp_new(const char* name, const char* vendor, int argc, char** argv);
   int FXApp_run(FXApp* self);
+  // FXApp::init reads the registry. FXApp::exit writes it back. These update
+  // the in-memory registry; they do not flush the file themselves.
+  int FXApp_read_int(FXApp* self, const char* section, const char* key, int fallback);
+  void FXApp_write_int(FXApp* self, const char* section, const char* key, int value);
+  double FXApp_read_real(FXApp* self,
+                         const char* section,
+                         const char* key,
+                         double fallback);
+  void FXApp_write_real(FXApp* self, const char* section, const char* key, double value);
+  unsigned FXApp_read_color(FXApp* self,
+                            const char* section,
+                            const char* key,
+                            unsigned fallback);
+  void FXApp_write_color(FXApp* self, const char* section, const char* key, unsigned color);
+  const char* FXApp_read_string(FXApp* self,
+                                const char* section,
+                                const char* key,
+                                const char* fallback);
+  void FXApp_write_string(FXApp* self,
+                          const char* section,
+                          const char* key,
+                          const char* value);
   // FOX 1.6 FXApp::addTimeout takes milliseconds (the default is 1000).
   // FOX 1.7 changed the unit to nanoseconds. This crate builds fox-1.6.59,
   // so the interval is milliseconds. The callback re-arms itself on every
@@ -361,6 +390,10 @@ FXId_get_id(const FXId* self);
   void FXWindow_set_y(FXWindow* self, int y);
   void FXWindow_disable(FXWindow* self);
   void FXWindow_enable(FXWindow* self);
+  void FXWindow_set_back_color(FXWindow* self, unsigned color);
+  unsigned FXWindow_get_back_color(const FXWindow* self);
+  void FXWindow_set_hilite_color(FXWindow* self, unsigned color);
+  void FXWindow_set_shadow_color(FXWindow* self, unsigned color);
 
   //~ FXImage.h
   FOXTK_OPAQUE(FXImage)
@@ -407,6 +440,8 @@ FXId_get_id(const FXId* self);
   void FXDialogBox_show(FXDialogBox* self);
   void FXDialogBox_hide(FXDialogBox* self);
   unsigned char FXDialogBox_shown(const FXDialogBox* self);
+  unsigned FXDialogBox_execute(FXDialogBox* self);
+  void FXDialogBox_accept(FXDialogBox* self);
 
   //~ FXReplaceDialog.h
   FOXTK_OPAQUE(FXReplaceDialog)

@@ -2,8 +2,13 @@
 //!
 //! The keypad and the operator stack follow the FOX 1.6 calculator: scientific
 //! functions, bases, angle units, memory, and parentheses. The window, title,
-//! help, and memory icons are the original GIF and BMP files. The registry and
-//! the color and font dialogs are not wrapped here.
+//! help, and memory icons are the original GIF and BMP files. Settings are
+//! stored in the FOX registry under the same `SETTINGS` keys as the C++
+//! calculator, except the display font, which is saved as a family and a size.
+//! Double-click a color well to edit it.
+
+use std::cell::{Cell, RefCell};
+use std::rc::Rc;
 
 use foxtk::prelude::*;
 
@@ -94,12 +99,138 @@ enum Key {
     Angle(Angle),
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 enum Event {
     Key(Key),
     Precision(i32),
     Exponent,
     Beep(bool),
+    Saved(Saved),
+    Colors(Colors),
+    Font(String, i32),
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+struct Colors {
+    digit: u32,
+    hex: u32,
+    operator: u32,
+    function: u32,
+    memory: u32,
+    inverse: u32,
+    hyper: u32,
+    clear: u32,
+    clear_all: u32,
+    display: u32,
+    number: u32,
+    base: u32,
+    angle: u32,
+}
+
+impl Default for Colors {
+    fn default() -> Self {
+        Self {
+            digit: Color::from_rgb(94, 209, 204).bits(),
+            hex: Color::from_rgb(151, 189, 206).bits(),
+            operator: Color::from_rgb(255, 222, 163).bits(),
+            function: Color::from_rgb(158, 213, 188).bits(),
+            memory: Color::from_rgb(181, 207, 227).bits(),
+            inverse: Color::from_rgb(224, 222, 69).bits(),
+            hyper: Color::from_rgb(224, 222, 69).bits(),
+            clear: Color::from_rgb(238, 148, 0).bits(),
+            clear_all: Color::from_rgb(238, 118, 0).bits(),
+            display: Color::from_rgb(255, 255, 255).bits(),
+            number: Color::from_rgb(0, 0, 0).bits(),
+            base: Color::from_rgb(203, 203, 203).bits(),
+            angle: Color::from_rgb(203, 203, 203).bits(),
+        }
+    }
+}
+
+#[derive(Clone)]
+struct Saved {
+    colors: Colors,
+    base: u32,
+    angles: Angle,
+    precision: usize,
+    exponent: Exponent,
+    beep: bool,
+    recall: f64,
+    font_family: String,
+    font_size: i32,
+}
+
+impl Saved {
+    fn read(app: &foxtk::App) -> Self {
+        let colors = Colors::default();
+        Self {
+            colors: Colors {
+                digit: app
+                    .read_color("SETTINGS", "digitcolor", Color::from_bits(colors.digit))
+                    .bits(),
+                hex: app
+                    .read_color("SETTINGS", "hexdigitcolor", Color::from_bits(colors.hex))
+                    .bits(),
+                operator: app
+                    .read_color(
+                        "SETTINGS",
+                        "operatorcolor",
+                        Color::from_bits(colors.operator),
+                    )
+                    .bits(),
+                function: app
+                    .read_color(
+                        "SETTINGS",
+                        "functioncolor",
+                        Color::from_bits(colors.function),
+                    )
+                    .bits(),
+                memory: app
+                    .read_color("SETTINGS", "memorycolor", Color::from_bits(colors.memory))
+                    .bits(),
+                inverse: app
+                    .read_color("SETTINGS", "inversecolor", Color::from_bits(colors.inverse))
+                    .bits(),
+                hyper: app
+                    .read_color("SETTINGS", "hypercolor", Color::from_bits(colors.hyper))
+                    .bits(),
+                clear: app
+                    .read_color("SETTINGS", "clearcolor", Color::from_bits(colors.clear))
+                    .bits(),
+                clear_all: app
+                    .read_color(
+                        "SETTINGS",
+                        "clearallcolor",
+                        Color::from_bits(colors.clear_all),
+                    )
+                    .bits(),
+                display: app
+                    .read_color("SETTINGS", "displaycolor", Color::from_bits(colors.display))
+                    .bits(),
+                number: app
+                    .read_color(
+                        "SETTINGS",
+                        "displaynumbercolor",
+                        Color::from_bits(colors.number),
+                    )
+                    .bits(),
+                base: app
+                    .read_color("SETTINGS", "numbasecolor", Color::from_bits(colors.base))
+                    .bits(),
+                angle: app
+                    .read_color("SETTINGS", "anglemodecolor", Color::from_bits(colors.angle))
+                    .bits(),
+            },
+            base: app.read_int("SETTINGS", "base", 10) as u32,
+            angles: angle_from_registry(app.read_int("SETTINGS", "angles", 1)),
+            precision: app.read_int("SETTINGS", "precision", 16).clamp(0, 16) as usize,
+            exponent: exponent_from_registry(app.read_int("SETTINGS", "exponent", 2)),
+            beep: app.read_int("SETTINGS", "beep", 1) != 0,
+            recall: app.read_real("SETTINGS", "memory", 0.0),
+            font_family: app.read_string("SETTINGS", "displayfontfamily", ""),
+            font_size: app.read_int("SETTINGS", "displayfontsize", 0),
+        }
+    }
 }
 
 struct Model {
@@ -117,6 +248,9 @@ struct Model {
     exponent: Exponent,
     beep: bool,
     modifiers: u8,
+    colors: Colors,
+    font_family: String,
+    font_size: i32,
 }
 
 impl Default for Model {
@@ -136,6 +270,9 @@ impl Default for Model {
             exponent: Exponent::Maybe,
             beep: true,
             modifiers: 0,
+            colors: Colors::default(),
+            font_family: String::new(),
+            font_size: 0,
         }
     }
 }
@@ -408,6 +545,18 @@ impl Model {
         let value = self.getnum();
         self.set_display_value(value);
         self.modifiers = 0;
+    }
+
+    fn restore(&mut self, saved: Saved) {
+        self.colors = saved.colors;
+        self.recall = saved.recall;
+        self.beep = saved.beep;
+        self.exponent = saved.exponent;
+        self.angles = saved.angles;
+        self.font_family = saved.font_family;
+        self.font_size = saved.font_size;
+        self.precision = saved.precision.clamp(0, 16);
+        self.set_base(saved.base);
     }
 
     fn cycle_exponent(&mut self) {
@@ -830,6 +979,15 @@ struct Calculator {
     exponent_mode: foxtk::Button,
     precision: foxtk::Spinner,
     beep: foxtk::CheckButton,
+    plus_min: foxtk::Button,
+    shift_left: foxtk::Button,
+    operators: [foxtk::Button; 14],
+    memory_keys: [foxtk::Button; 4],
+    clear: foxtk::Button,
+    clear_all: foxtk::Button,
+    live_colors: Rc<RefCell<Colors>>,
+    live_font: Rc<RefCell<(String, i32)>>,
+    updates: Cell<u8>,
 }
 
 impl Component for Calculator {
@@ -846,6 +1004,12 @@ impl Component for Calculator {
             Event::Precision(precision) => model.set_precision(precision),
             Event::Exponent => model.cycle_exponent(),
             Event::Beep(beep) => model.beep = beep,
+            Event::Saved(saved) => model.restore(saved),
+            Event::Colors(colors) => model.colors = colors,
+            Event::Font(family, size) => {
+                model.font_family = family;
+                model.font_size = size;
+            }
         }
         ComponentOutcome::Changed
     }
@@ -916,6 +1080,110 @@ impl Component for Calculator {
         if self.beep.check() != model.beep {
             self.beep.set_check(model.beep);
         }
+        self.paint(model);
+        self.persist(model);
+    }
+
+    fn paint(&self, model: &Model) {
+        let colors = model.colors;
+        for button in &self.digits[..10] {
+            paint(button, colors.digit);
+        }
+        for button in &self.digits[10..] {
+            paint(button, colors.hex);
+        }
+        for button in [
+            &self.plus_min,
+            &self.recip,
+            &self.power,
+            &self.sqrt,
+            &self.log2,
+            &self.pi,
+            &self.shift_left,
+            &self.shift_right,
+            &self.factorial,
+            &self.permut,
+            &self.combin,
+            &self.sin,
+            &self.cos,
+            &self.tan,
+            &self.log,
+            &self.ln,
+        ] {
+            paint(button, colors.function);
+        }
+        for button in &self.operators {
+            paint(button, colors.operator);
+        }
+        for button in &self.memory_keys {
+            paint(button, colors.memory);
+        }
+        paint(&self.inverse, colors.inverse);
+        paint(&self.hyper, colors.hyper);
+        paint(&self.clear, colors.clear);
+        paint(&self.clear_all, colors.clear_all);
+        for button in &self.bases {
+            paint_group(button, colors.base);
+        }
+        for button in &self.angles {
+            paint_group(button, colors.angle);
+        }
+        let display = Color::from_bits(colors.display);
+        self.display.set_back_color(display);
+        self.display.set_hilite_color(display.hilite());
+        self.display.set_shadow_color(display.shadow());
+        self.display.set_text_color(Color::from_bits(colors.number));
+        if !model.font_family.is_empty() && model.font_size > 0 {
+            self.display.set_font(&model.font_family, model.font_size);
+        }
+        *self.live_colors.borrow_mut() = colors;
+        *self.live_font.borrow_mut() = (model.font_family.clone(), model.font_size);
+    }
+
+    fn persist(&self, model: &Model) {
+        if self.updates.get() == 0 {
+            self.updates.set(1);
+            return;
+        }
+        let app = self.display.app();
+        let colors = model.colors;
+        app.write_int("SETTINGS", "base", model.base as i32);
+        app.write_int("SETTINGS", "angles", model.angles as i32);
+        app.write_int("SETTINGS", "exponent", exponent_to_registry(model.exponent));
+        app.write_int("SETTINGS", "precision", model.precision as i32);
+        app.write_int("SETTINGS", "beep", i32::from(model.beep));
+        app.write_real("SETTINGS", "memory", model.recall);
+        app.write_color("SETTINGS", "digitcolor", Color::from_bits(colors.digit));
+        app.write_color("SETTINGS", "hexdigitcolor", Color::from_bits(colors.hex));
+        app.write_color(
+            "SETTINGS",
+            "operatorcolor",
+            Color::from_bits(colors.operator),
+        );
+        app.write_color(
+            "SETTINGS",
+            "functioncolor",
+            Color::from_bits(colors.function),
+        );
+        app.write_color("SETTINGS", "memorycolor", Color::from_bits(colors.memory));
+        app.write_color("SETTINGS", "inversecolor", Color::from_bits(colors.inverse));
+        app.write_color("SETTINGS", "hypercolor", Color::from_bits(colors.hyper));
+        app.write_color("SETTINGS", "clearcolor", Color::from_bits(colors.clear));
+        app.write_color(
+            "SETTINGS",
+            "clearallcolor",
+            Color::from_bits(colors.clear_all),
+        );
+        app.write_color("SETTINGS", "displaycolor", Color::from_bits(colors.display));
+        app.write_color(
+            "SETTINGS",
+            "displaynumbercolor",
+            Color::from_bits(colors.number),
+        );
+        app.write_color("SETTINGS", "numbasecolor", Color::from_bits(colors.base));
+        app.write_color("SETTINGS", "anglemodecolor", Color::from_bits(colors.angle));
+        app.write_string("SETTINGS", "displayfontfamily", &model.font_family);
+        app.write_int("SETTINGS", "displayfontsize", model.font_size);
     }
 
     fn view(&mut self, parent: &impl CompositeExt, sender: Sender<Self::Event>) {
@@ -924,14 +1192,37 @@ impl Component for Calculator {
         let mini = foxtk::Icon::from_gif(&app, include_bytes!("icons/tinycalc.gif"));
         let question = foxtk::Icon::from_gif(&app, include_bytes!("icons/question.gif"));
         let memory_icon = foxtk::Icon::from_bmp(&app, include_bytes!("icons/constmem.bmp"));
+        let palette = foxtk::Icon::from_gif(&app, include_bytes!("icons/colors.gif"));
+        let about = foxtk::Icon::from_gif(&app, include_bytes!("icons/information.gif"));
         parent.set_window_icon(&big);
         parent.set_window_mini_icon(&mini);
+        let live_colors = self.live_colors.clone();
+        let live_font = self.live_font.clone();
         foxtk::VerticalFrame::new(parent)
             .with_spacing(4)
             .inside(|parent| {
                 foxtk::HorizontalFrame::new(parent).inside(|parent| {
-                    let title = foxtk::Label::new(parent, "FOX Calculator").with_icon(&big);
+                    let title = foxtk::Button::new(parent, "FOX Calculator").with_icon(&big);
                     title.set_text("FOX Calculator");
+                    title.with_callback({
+                        let sender = sender.clone();
+                        let live_colors = live_colors.clone();
+                        let live_font = live_font.clone();
+                        let big = same_icon(&big);
+                        let palette = same_icon(&palette);
+                        let about = same_icon(&about);
+                        move |button| {
+                            let colors = *live_colors.borrow();
+                            let font = live_font.borrow().clone();
+                            if let Some((colors, family, size)) =
+                                edit_preferences(&button, colors, font, &big, &palette, &about)
+                            {
+                                let _ = sender.send(Event::Colors(colors));
+                                let _ = sender.send(Event::Font(family, size));
+                            }
+                            false
+                        }
+                    });
                     foxtk::Button::new(parent, "Help")
                         .with_icon(&question)
                         .with_callback(|button| {
@@ -994,14 +1285,14 @@ impl Component for Calculator {
                     .inside(|parent| {
                         let functions = foxtk::Matrix::new(parent, 6);
                         self.inverse = key(&functions, "inv", &sender, Event::Key(Key::Inverse));
-                        key(&functions, "+/-", &sender, Event::Key(Key::PlusMin));
+                        self.plus_min = key(&functions, "+/-", &sender, Event::Key(Key::PlusMin));
                         self.recip = key(&functions, "1/x", &sender, Event::Key(Key::Recip));
                         self.power = key(&functions, "x^y", &sender, Event::Key(Key::Power));
                         self.sqrt = key(&functions, "sqrt", &sender, Event::Key(Key::Sqrt));
                         self.log2 = key(&functions, "2log", &sender, Event::Key(Key::Log2));
 
                         self.pi = key(&functions, "pi", &sender, Event::Key(Key::Pi));
-                        key(&functions, "SHL", &sender, Event::Key(Key::Shl));
+                        self.shift_left = key(&functions, "SHL", &sender, Event::Key(Key::Shl));
                         self.shift_right = key(&functions, "SHR", &sender, Event::Key(Key::Shr));
                         self.factorial = key(&functions, "x!", &sender, Event::Key(Key::Fac));
                         self.permut = key(&functions, "nPr", &sender, Event::Key(Key::Per));
@@ -1062,15 +1353,210 @@ impl Component for Calculator {
                             let button = key(&keys, title, &sender, Event::Key(key_id));
                             match key_id {
                                 Key::Digit(digit) => self.digits[digit as usize] = button,
-                                Key::Point => self.point = button,
-                                Key::Exp => self.exp = button,
-                                Key::Mod => self.modulo = button,
+                                Key::Point => self.operators[0] = button,
+                                Key::Exp => self.operators[1] = button,
+                                Key::LPar => self.operators[2] = button,
+                                Key::Mul => self.operators[3] = button,
+                                Key::Add => self.operators[4] = button,
+                                Key::Enter => self.operators[5] = button,
+                                Key::RPar => self.operators[6] = button,
+                                Key::Div => self.operators[7] = button,
+                                Key::Sub => self.operators[8] = button,
+                                Key::Mod => self.operators[9] = button,
+                                Key::And => self.operators[10] = button,
+                                Key::Or => self.operators[11] = button,
+                                Key::Xor => self.operators[12] = button,
+                                Key::Not => self.operators[13] = button,
+                                Key::MemRec => self.memory_keys[0] = button,
+                                Key::MemAdd => self.memory_keys[1] = button,
+                                Key::MemSub => self.memory_keys[2] = button,
+                                Key::MemClr => self.memory_keys[3] = button,
+                                Key::Clear => self.clear = button,
+                                Key::ClearAll => self.clear_all = button,
                                 _ => {}
                             }
                         }
+                        self.point = same_button(&self.operators[0]);
+                        self.exp = same_button(&self.operators[1]);
+                        self.modulo = same_button(&self.operators[9]);
                     });
             });
+        let _ = sender.send(Event::Saved(Saved::read(&parent.app())));
     }
+}
+
+fn same_button(button: &foxtk::Button) -> foxtk::Button {
+    unsafe { foxtk::Button::from_raw(button.as_raw()) }
+}
+
+fn same_icon(icon: &foxtk::Icon) -> foxtk::Icon {
+    unsafe { foxtk::Icon::from_raw(icon.as_raw()) }
+}
+
+fn same_switcher(switcher: &foxtk::Switcher) -> foxtk::Switcher {
+    unsafe { foxtk::Switcher::from_raw(switcher.as_raw()) }
+}
+
+fn paint(button: &foxtk::Button, bits: u32) {
+    let color = Color::from_bits(bits);
+    button.set_back_color(color);
+    button.set_hilite_color(color.hilite());
+    button.set_shadow_color(color.shadow());
+}
+
+fn paint_group(button: &foxtk::Button, bits: u32) {
+    let color = Color::from_bits(bits);
+    let raised = |channel: u32| channel + ((255 - channel) * 3) / 8;
+    button.set_back_color(color);
+    button.set_hilite_color(Color::from_rgb(
+        raised(color.red()),
+        raised(color.green()),
+        raised(color.blue()),
+    ));
+    button.set_shadow_color(color.shadow());
+}
+
+fn angle_from_registry(value: i32) -> Angle {
+    match value {
+        0 => Angle::Deg,
+        2 => Angle::Gra,
+        _ => Angle::Rad,
+    }
+}
+
+fn exponent_from_registry(value: i32) -> Exponent {
+    match value {
+        1 => Exponent::Always,
+        0 => Exponent::Never,
+        _ => Exponent::Maybe,
+    }
+}
+
+fn exponent_to_registry(exponent: Exponent) -> i32 {
+    match exponent {
+        Exponent::Always => 1,
+        Exponent::Never => 0,
+        Exponent::Maybe => 2,
+    }
+}
+
+fn edit_preferences(
+    owner: &impl WindowExt,
+    colors: Colors,
+    font: (String, i32),
+    calculator_icon: &foxtk::Icon,
+    palette_icon: &foxtk::Icon,
+    about_icon: &foxtk::Icon,
+) -> Option<(Colors, String, i32)> {
+    let dialog = foxtk::DialogBox::new(owner, "Calculator Preferences");
+    let body = foxtk::VerticalFrame::new(&dialog).with_spacing(4);
+    let close_row = foxtk::HorizontalFrame::new(&body);
+    foxtk::Button::new(&close_row, "Close").with_callback(|button| {
+        button.accept_dialog();
+        false
+    });
+    foxtk::HorizontalSeparator::new(&body);
+    let pages = foxtk::HorizontalFrame::new(&body).with_height(0);
+    let side = foxtk::VerticalFrame::new(&pages);
+    let switcher = foxtk::Switcher::new(&pages);
+
+    let settings = foxtk::VerticalFrame::new(&switcher);
+    foxtk::Label::new(&settings, "Calculator settings");
+    foxtk::HorizontalSeparator::new(&settings);
+    let font_choice = Rc::new(RefCell::new(font));
+    let chosen = font_choice.clone();
+    foxtk::Button::new(&settings, "Display font...").with_callback(move |button| {
+        let dialog = foxtk::FontDialog::new(&button, "Change Display Font");
+        let (family, size) = chosen.borrow().clone();
+        if !family.is_empty() && size > 0 {
+            dialog.set_font_selection(&family, size);
+        }
+        if dialog.execute() != 0 {
+            *chosen.borrow_mut() = dialog.font_selection();
+        }
+        false
+    });
+
+    let colors_page = foxtk::VerticalFrame::new(&switcher);
+    foxtk::Label::new(&colors_page, "Color settings");
+    foxtk::HorizontalSeparator::new(&colors_page);
+    let wells = [
+        color_well(&colors_page, "Digits:", colors.digit),
+        color_well(&colors_page, "Hex digits:", colors.hex),
+        color_well(&colors_page, "Operators:", colors.operator),
+        color_well(&colors_page, "Functions:", colors.function),
+        color_well(&colors_page, "Memory:", colors.memory),
+        color_well(&colors_page, "Inverse:", colors.inverse),
+        color_well(&colors_page, "Hyperbolic:", colors.hyper),
+        color_well(&colors_page, "Clear:", colors.clear),
+        color_well(&colors_page, "Clear all:", colors.clear_all),
+        color_well(&colors_page, "Display:", colors.display),
+        color_well(&colors_page, "Display number:", colors.number),
+        color_well(&colors_page, "Number base:", colors.base),
+        color_well(&colors_page, "Angle mode:", colors.angle),
+    ];
+
+    let about_page = foxtk::VerticalFrame::new(&switcher);
+    foxtk::Label::new(&about_page, "About FOX Calculator");
+    foxtk::HorizontalSeparator::new(&about_page);
+    let about_row = foxtk::HorizontalFrame::new(&about_page);
+    foxtk::Label::new(&about_row, "").with_icon(calculator_icon);
+    foxtk::Label::new(
+        &about_row,
+        "A programmer's desktop calculator.\nFOX Toolkit 1.6.",
+    );
+
+    let calculator_page = same_switcher(&switcher);
+    let color_page = same_switcher(&switcher);
+    let info_page = same_switcher(&switcher);
+    foxtk::Button::new(&side, "Calculator")
+        .with_icon(calculator_icon)
+        .with_callback(move |_| {
+            calculator_page.set_current(0);
+            false
+        });
+    foxtk::Button::new(&side, "Colors")
+        .with_icon(palette_icon)
+        .with_callback(move |_| {
+            color_page.set_current(1);
+            false
+        });
+    foxtk::Button::new(&side, "About")
+        .with_icon(about_icon)
+        .with_callback(move |_| {
+            info_page.set_current(2);
+            false
+        });
+
+    if !dialog.execute() {
+        return None;
+    }
+    let mut colors = colors;
+    let values = wells.each_ref().map(|well| well.rgba().bits());
+    colors.digit = values[0];
+    colors.hex = values[1];
+    colors.operator = values[2];
+    colors.function = values[3];
+    colors.memory = values[4];
+    colors.inverse = values[5];
+    colors.hyper = values[6];
+    colors.clear = values[7];
+    colors.clear_all = values[8];
+    colors.display = values[9];
+    colors.number = values[10];
+    colors.base = values[11];
+    colors.angle = values[12];
+    let (family, size) = font_choice.borrow().clone();
+    Some((colors, family, size))
+}
+
+fn color_well(parent: &impl CompositeExt, title: &str, bits: u32) -> foxtk::ColorWell {
+    let row = foxtk::HorizontalFrame::new(parent);
+    foxtk::Label::new(&row, title);
+    let well = foxtk::ColorWell::new(&row);
+    well.set_rgba(Color::from_bits(bits));
+    well.set_help_text("Double-click to change this color");
+    well
 }
 
 fn key(
@@ -1084,7 +1570,7 @@ fn key(
         .with_callback({
             let sender = sender.clone();
             move |_| {
-                let _ = sender.send(event);
+                let _ = sender.send(event.clone());
                 false
             }
         })
@@ -1118,12 +1604,15 @@ fn trig_label(name: &str, inv: bool, hyp: bool) -> String {
 }
 
 fn main() {
-    Calculator::run("Calculator", "FOX", "FOX Calculator", 760, 480);
+    Calculator::run("Calculator", "", "FOX Calculator", 760, 480);
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{Angle, Key, Model};
+    use super::{
+        Angle, Exponent, Key, Model, angle_from_registry, exponent_from_registry,
+        exponent_to_registry,
+    };
 
     fn run(keys: &[Key]) -> Model {
         let mut model = Model::default();
@@ -1187,6 +1676,19 @@ mod tests {
     fn sine_of_zero_radians_is_zero() {
         let model = run(&[Key::Angle(Angle::Rad), Key::Digit(0), Key::Sin]);
         assert_eq!(model.getnum(), 0.0);
+    }
+
+    #[test]
+    fn registry_exponent_values_match_fox() {
+        assert_eq!(exponent_from_registry(1), Exponent::Always);
+        assert_eq!(exponent_from_registry(0), Exponent::Never);
+        assert_eq!(exponent_from_registry(2), Exponent::Maybe);
+        assert_eq!(exponent_to_registry(Exponent::Always), 1);
+        assert_eq!(exponent_to_registry(Exponent::Never), 0);
+        assert_eq!(exponent_to_registry(Exponent::Maybe), 2);
+        assert_eq!(angle_from_registry(0), Angle::Deg);
+        assert_eq!(angle_from_registry(1), Angle::Rad);
+        assert_eq!(angle_from_registry(2), Angle::Gra);
     }
 
     #[test]
