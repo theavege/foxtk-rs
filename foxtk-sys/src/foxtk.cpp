@@ -1814,6 +1814,10 @@ extern "C"
   {
     return self ? self->execute() : 0;
   }
+  unsigned FXDialogBox_execute_placed(FXDialogBox* self)
+  {
+    return self ? self->execute(PLACEMENT_DEFAULT) : 0;
+  }
   void FXDialogBox_accept(FXDialogBox* self)
   {
     if (self) {

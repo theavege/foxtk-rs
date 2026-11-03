@@ -6,7 +6,7 @@
 //! stored in the FOX registry under the same `SETTINGS` keys as the C++
 //! calculator, except the display font, which is saved as a family and a size.
 //! The window position and size use `x`, `y`, `w`, and `h`.
-//! Double-click a color well to edit it.
+//! Double-click a color well to edit it. Help opens a read-only text dialog.
 
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
@@ -1259,13 +1259,7 @@ impl Component for Calculator {
                     foxtk::Button::new(parent, "Help")
                         .with_icon(&question)
                         .with_callback(|button| {
-                            button.message(
-                                MessageBox::Ok,
-                                "Digits, operators, and functions follow the FOX calculator.\n\
-                                 inv and hyp change the key above them. = evaluates the stack.\n\
-                                 C clears the entry. AC clears the stack. Bases: Hex Dec Oct Bin.",
-                                Message::Information,
-                            );
+                            show_help(&button);
                             false
                         });
                     self.display = foxtk::TextField::new(parent)
@@ -1417,6 +1411,54 @@ impl Component for Calculator {
         let _ = sender.send(Event::Saved(Saved::read(&parent.app())));
     }
 }
+
+fn show_help(owner: &impl WindowExt) {
+    let dialog = foxtk::DialogBox::new(owner, "Calculator Help");
+    let body = foxtk::VerticalFrame::new(&dialog).with_layout(Layout::Fill);
+    let text = foxtk::Text::new(&body).with_editable(false);
+    text.set_text(HELP);
+    let close = foxtk::HorizontalFrame::new(&body);
+    foxtk::Button::new(&close, "Close").with_callback(|button| {
+        button.accept_dialog();
+        false
+    });
+    let (x, y, _, _) = owner.shell_geometry();
+    dialog.position(x + 80, y + 80, 680, 520);
+    dialog.execute_placed();
+}
+
+const HELP: &str = "\
+The FOX Calculator
+
+The keypad follows the FOX desktop calculator. Operators honor precedence, \
+so 2+3*5 is 17. Parentheses change that order.
+
+Entering numbers
+
+Digits build the current entry. +/- changes its sign. The point key and EXP \
+start a fraction or an exponent. C clears the entry. AC clears the stack.
+
+Functions
+
+inv and hyp change the keys above them: sin becomes asin or sinh, log becomes \
+10^x, and sqrt becomes x^2. = evaluates the stack.
+
+Bases and angles
+
+Hex, Dec, Oct, and Bin reinterpret the display. Deg, Rad, and Gra select the \
+angle unit for sin, cos, and tan.
+
+Memory
+
+MR recalls the saved value. M+ and M- add or subtract the display. MC clears \
+the memory. The value is kept in the registry.
+
+Preferences
+
+The title button opens preferences. Display font changes the readout. \
+Double-click a color well to edit that group. Position, size, colors, and \
+the memory are stored in the FOX registry and restored on the next start.
+";
 
 fn write_geometry(app: &foxtk::App, window: &impl WindowExt) {
     let (x, y, width, height) = window.shell_geometry();

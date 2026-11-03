@@ -450,6 +450,8 @@ FXId_get_id(const FXId* self);
   void FXDialogBox_hide(FXDialogBox* self);
   unsigned char FXDialogBox_shown(const FXDialogBox* self);
   unsigned FXDialogBox_execute(FXDialogBox* self);
+  // execute(PLACEMENT_DEFAULT): keep the position already set on the dialog.
+  unsigned FXDialogBox_execute_placed(FXDialogBox* self);
   void FXDialogBox_accept(FXDialogBox* self);
 
   //~ FXReplaceDialog.h
