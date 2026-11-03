@@ -5,6 +5,7 @@
 //! help, and memory icons are the original GIF and BMP files. Settings are
 //! stored in the FOX registry under the same `SETTINGS` keys as the C++
 //! calculator, except the display font, which is saved as a family and a size.
+//! The window position and size use `x`, `y`, `w`, and `h`.
 //! Double-click a color well to edit it.
 
 use std::cell::{Cell, RefCell};
@@ -158,6 +159,10 @@ struct Saved {
     recall: f64,
     font_family: String,
     font_size: i32,
+    x: i32,
+    y: i32,
+    w: i32,
+    h: i32,
 }
 
 impl Saved {
@@ -229,6 +234,10 @@ impl Saved {
             recall: app.read_real("SETTINGS", "memory", 0.0),
             font_family: app.read_string("SETTINGS", "displayfontfamily", ""),
             font_size: app.read_int("SETTINGS", "displayfontsize", 0),
+            x: app.read_int("SETTINGS", "x", 50),
+            y: app.read_int("SETTINGS", "y", 50),
+            w: app.read_int("SETTINGS", "w", 0),
+            h: app.read_int("SETTINGS", "h", 0),
         }
     }
 }
@@ -251,6 +260,10 @@ struct Model {
     colors: Colors,
     font_family: String,
     font_size: i32,
+    x: i32,
+    y: i32,
+    w: i32,
+    h: i32,
 }
 
 impl Default for Model {
@@ -273,6 +286,10 @@ impl Default for Model {
             colors: Colors::default(),
             font_family: String::new(),
             font_size: 0,
+            x: 50,
+            y: 50,
+            w: 0,
+            h: 0,
         }
     }
 }
@@ -555,6 +572,10 @@ impl Model {
         self.angles = saved.angles;
         self.font_family = saved.font_family;
         self.font_size = saved.font_size;
+        self.x = saved.x;
+        self.y = saved.y;
+        self.w = saved.w;
+        self.h = saved.h;
         self.precision = saved.precision.clamp(0, 16);
         self.set_base(saved.base);
     }
@@ -988,6 +1009,7 @@ struct Calculator {
     live_colors: Rc<RefCell<Colors>>,
     live_font: Rc<RefCell<(String, i32)>>,
     updates: Cell<u8>,
+    placed: Cell<bool>,
 }
 
 impl Component for Calculator {
@@ -1081,6 +1103,7 @@ impl Component for Calculator {
             self.beep.set_check(model.beep);
         }
         self.paint(model);
+        self.place(model);
         self.persist(model);
     }
 
@@ -1140,6 +1163,14 @@ impl Component for Calculator {
         *self.live_font.borrow_mut() = (model.font_family.clone(), model.font_size);
     }
 
+    fn place(&self, model: &Model) {
+        if self.placed.get() || self.updates.get() == 0 {
+            return;
+        }
+        self.placed.set(true);
+        self.display.place_shell(model.x, model.y, model.w, model.h);
+    }
+
     fn persist(&self, model: &Model) {
         if self.updates.get() == 0 {
             self.updates.set(1);
@@ -1184,6 +1215,7 @@ impl Component for Calculator {
         app.write_color("SETTINGS", "anglemodecolor", Color::from_bits(colors.angle));
         app.write_string("SETTINGS", "displayfontfamily", &model.font_family);
         app.write_int("SETTINGS", "displayfontsize", model.font_size);
+        write_geometry(&app, &self.display);
     }
 
     fn view(&mut self, parent: &impl CompositeExt, sender: Sender<Self::Event>) {
@@ -1196,6 +1228,7 @@ impl Component for Calculator {
         let about = foxtk::Icon::from_gif(&app, include_bytes!("icons/information.gif"));
         parent.set_window_icon(&big);
         parent.set_window_mini_icon(&mini);
+        parent.on_close(|window| write_geometry(&window.app(), &window));
         let live_colors = self.live_colors.clone();
         let live_font = self.live_font.clone();
         foxtk::VerticalFrame::new(parent)
@@ -1383,6 +1416,17 @@ impl Component for Calculator {
             });
         let _ = sender.send(Event::Saved(Saved::read(&parent.app())));
     }
+}
+
+fn write_geometry(app: &foxtk::App, window: &impl WindowExt) {
+    let (x, y, width, height) = window.shell_geometry();
+    if width <= 0 || height <= 0 {
+        return;
+    }
+    app.write_int("SETTINGS", "x", x);
+    app.write_int("SETTINGS", "y", y);
+    app.write_int("SETTINGS", "w", width);
+    app.write_int("SETTINGS", "h", height);
 }
 
 fn same_button(button: &foxtk::Button) -> foxtk::Button {
