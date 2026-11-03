@@ -71,6 +71,17 @@ impl DialogBox {
     pub fn shown(&self) -> bool {
         unsafe { FXDialogBox_shown(self.as_raw()) != 0 }
     }
+    /// Runs the dialog modally. True when it was accepted, false when it was cancelled.
+    pub fn execute(&self) -> bool {
+        unsafe { FXDialogBox_execute(self.as_raw()) != 0 }
+    }
+    /// Runs the dialog where [`WindowExt::position`] put it, instead of under the cursor.
+    pub fn execute_placed(&self) -> bool {
+        unsafe { FXDialogBox_execute_placed(self.as_raw()) != 0 }
+    }
+    pub fn accept(&self) {
+        unsafe { FXDialogBox_accept(self.as_raw()) }
+    }
 }
 
 impl_widget!(

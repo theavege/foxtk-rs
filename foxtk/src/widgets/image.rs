@@ -71,6 +71,26 @@ impl Icon {
     pub fn new(app: &App) -> Self {
         unsafe { Self::from_raw(FXIcon_new(app.as_raw())) }
     }
+    /// GIF file bytes. FOX copies the pixels during this call.
+    pub fn from_gif(app: &App, bytes: &[u8]) -> Self {
+        unsafe {
+            Self::from_raw(FXGIFIcon_new(
+                app.as_raw(),
+                bytes.as_ptr(),
+                bytes.len() as u32,
+            ))
+        }
+    }
+    /// BMP file bytes. FOX copies the pixels during this call.
+    pub fn from_bmp(app: &App, bytes: &[u8]) -> Self {
+        unsafe {
+            Self::from_raw(FXBMPIcon_new(
+                app.as_raw(),
+                bytes.as_ptr(),
+                bytes.len() as u32,
+            ))
+        }
+    }
 }
 
 impl_widget!(DCWindow, IdExt);

@@ -385,6 +385,41 @@ CTargetMap[] = {
 };
 FXIMPLEMENT(CTarget, FXObject, CTargetMap, ARRAYNUMBER(CTargetMap))
 
+class CCloseTarget : public CWrapperTarget
+{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
+  FXDECLARE(CCloseTarget)
+#pragma GCC diagnostic pop
+protected:
+  CCloseTarget() {}
+
+private:
+  CbWidget callback = nullptr;
+  void* context = nullptr;
+
+public:
+  CCloseTarget(CbWidget cb, void* ctx, CbDrop drop)
+    : CWrapperTarget(ctx, drop)
+    , callback(cb)
+    , context(ctx)
+  {
+  }
+  long onClose(FXObject* wgt, FXSelector, void*)
+  {
+    if (callback)
+      callback(as_raw<FXWindow>(wgt), context);
+    // Returning false lets FXTopWindow::close() proceed.
+    return 0;
+  }
+};
+
+FXDEFMAP(CCloseTarget)
+CCloseTargetMap[] = {
+  FXMAPFUNC(SEL_CLOSE, 0, CCloseTarget::onClose),
+};
+FXIMPLEMENT(CCloseTarget, FXObject, CCloseTargetMap, ARRAYNUMBER(CCloseTargetMap))
+
 class CTimeout : public FXObject
 {
 #pragma GCC diagnostic push
@@ -750,6 +785,14 @@ extern "C"
   {
     return FXALPHAVAL(rgba);
   }
+  unsigned fx_make_hilite_color(unsigned color)
+  {
+    return makeHiliteColor(color);
+  }
+  unsigned fx_make_shadow_color(unsigned color)
+  {
+    return makeShadowColor(color);
+  }
 
   // ============================================================================
   // BASE WIDGETS
@@ -806,6 +849,11 @@ extern "C"
     ASSERT_NOT_NULL(self, nullptr);
     return self->getRoot();
   }
+  FXWindow* FXWindow_get_shell(const FXWindow* self)
+  {
+    ASSERT_NOT_NULL(self, nullptr);
+    return self->getShell();
+  }
   long FXWindow_has_focus(const FXWindow* self)
   {
     return self->hasFocus();
@@ -835,6 +883,77 @@ extern "C"
   {
     self->setY(y);
   }
+  int FXWindow_get_x(const FXWindow* self)
+  {
+    return self ? self->getX() : 0;
+  }
+  int FXWindow_get_y(const FXWindow* self)
+  {
+    return self ? self->getY() : 0;
+  }
+  void FXWindow_position(FXWindow* self, int x, int y, int width, int height)
+  {
+    if (self) {
+      self->position(x, y, width, height);
+    }
+  }
+  void FXWindow_place_shell(FXWindow* self, int x, int y, int width, int height)
+  {
+    if (!self) {
+      return;
+    }
+    auto* shell = self->getShell();
+    if (!shell) {
+      return;
+    }
+    if (width <= 0) {
+      width = shell->getWidth();
+    }
+    if (height <= 0) {
+      height = shell->getHeight();
+    }
+    shell->position(x, y, width, height);
+  }
+  void FXWindow_shell_geometry(const FXWindow* self, int* x, int* y, int* width, int* height)
+  {
+    int sx = 0;
+    int sy = 0;
+    int sw = 0;
+    int sh = 0;
+    if (self) {
+      if (auto* shell = self->getShell()) {
+        sx = shell->getX();
+        sy = shell->getY();
+        sw = shell->getWidth();
+        sh = shell->getHeight();
+      }
+    }
+    if (x) {
+      *x = sx;
+    }
+    if (y) {
+      *y = sy;
+    }
+    if (width) {
+      *width = sw;
+    }
+    if (height) {
+      *height = sh;
+    }
+  }
+  void FXWindow_on_close(FXWindow* self, CbWidget cb, void* ctx, CbDrop drop)
+  {
+    if (!self) {
+      if (drop) {
+        drop(ctx);
+      }
+      return;
+    }
+    if (auto old = dynamic_cast<CWrapperTarget*>(self->getTarget())) {
+      delete old;
+    }
+    self->setTarget(new CCloseTarget(cb, ctx, drop));
+  }
   void FXWindow_set_height(FXWindow* self, int height)
   {
     self->setHeight(height);
@@ -846,6 +965,28 @@ extern "C"
   void FXWindow_disable(FXWindow* self)
   {
     self->disable();
+  }
+  void FXWindow_set_back_color(FXWindow* self, unsigned color)
+  {
+    if (self) {
+      self->setBackColor(color);
+    }
+  }
+  unsigned FXWindow_get_back_color(const FXWindow* self)
+  {
+    return self ? self->getBackColor() : 0;
+  }
+  void FXWindow_set_hilite_color(FXWindow* self, unsigned color)
+  {
+    if (self) {
+      self->setHiliteColor(color);
+    }
+  }
+  void FXWindow_set_shadow_color(FXWindow* self, unsigned color)
+  {
+    if (self) {
+      self->setShadowColor(color);
+    }
   }
   void FXWindow_enable(FXWindow* self)
   {
@@ -882,6 +1023,68 @@ extern "C"
   {
     self->create();
     return self->run();
+  }
+  int FXApp_read_int(FXApp* self, const char* section, const char* key, int fallback)
+  {
+    if (!self || !section || !key) {
+      return fallback;
+    }
+    return self->reg().readIntEntry(section, key, fallback);
+  }
+  void FXApp_write_int(FXApp* self, const char* section, const char* key, int value)
+  {
+    if (self && section && key) {
+      self->reg().writeIntEntry(section, key, value);
+    }
+  }
+  double FXApp_read_real(FXApp* self, const char* section, const char* key, double fallback)
+  {
+    if (!self || !section || !key) {
+      return fallback;
+    }
+    return self->reg().readRealEntry(section, key, fallback);
+  }
+  void FXApp_write_real(FXApp* self, const char* section, const char* key, double value)
+  {
+    if (self && section && key) {
+      self->reg().writeRealEntry(section, key, value);
+    }
+  }
+  unsigned FXApp_read_color(FXApp* self,
+                            const char* section,
+                            const char* key,
+                            unsigned fallback)
+  {
+    if (!self || !section || !key) {
+      return fallback;
+    }
+    return self->reg().readColorEntry(section, key, fallback);
+  }
+  void FXApp_write_color(FXApp* self, const char* section, const char* key, unsigned color)
+  {
+    if (self && section && key) {
+      self->reg().writeColorEntry(section, key, color);
+    }
+  }
+  const char* FXApp_read_string(FXApp* self,
+                                const char* section,
+                                const char* key,
+                                const char* fallback)
+  {
+    if (!self || !section || !key) {
+      return string_result(fallback ? fallback : "");
+    }
+    const char* value = self->reg().readStringEntry(section, key, fallback);
+    return string_result(value ? value : "");
+  }
+  void FXApp_write_string(FXApp* self,
+                          const char* section,
+                          const char* key,
+                          const char* value)
+  {
+    if (self && section && key && value) {
+      self->reg().writeStringEntry(section, key, value);
+    }
   }
   FXTimeout* FXApp_add_timeout(FXApp* self, CbTimer cb, unsigned ms, void* ctx,
                                CbDrop drop)
@@ -1035,6 +1238,12 @@ extern "C"
   {
     ASSERT_NOT_NULL(parent, nullptr);
     return make_widget<FXLabel, FXComposite>(parent, title);
+  }
+  void FXLabel_set_icon(FXLabel* self, FXIcon* icon)
+  {
+    if (self) {
+      self->setIcon(icon);
+    }
   }
   void FXLabel_set_justify(FXLabel* self, unsigned justify)
   {
@@ -1343,6 +1552,16 @@ extern "C"
   {
     return make_widget<FXColorWell, FXComposite>(prt);
   }
+  void FXColorWell_set_rgba(FXColorWell* self, unsigned color)
+  {
+    if (self) {
+      self->setRGBA(color, FALSE);
+    }
+  }
+  unsigned FXColorWell_get_rgba(const FXColorWell* self)
+  {
+    return self ? self->getRGBA() : 0;
+  }
   const char* FXColorWell_get_help_text(const FXColorWell* self)
   {
     return ext_get_help_text(self);
@@ -1531,6 +1750,20 @@ extern "C"
   {
     return make_widget<FXColorDialog, FXWindow>(owner, title);
   }
+  unsigned FXColorDialog_execute(FXColorDialog* self)
+  {
+    return self ? self->execute() : 0;
+  }
+  void FXColorDialog_set_rgba(FXColorDialog* self, unsigned color)
+  {
+    if (self) {
+      self->setRGBA(color);
+    }
+  }
+  unsigned FXColorDialog_get_rgba(const FXColorDialog* self)
+  {
+    return self ? self->getRGBA() : 0;
+  }
 
   //~ FXTopWindow.h
   // NOTE: FXTopWindow has no _new of its own (it's the common base of
@@ -1546,6 +1779,18 @@ extern "C"
   void FXTopWindow_set_vspacing(FXTopWindow* self, int vspacing)
   {
     self->setVSpacing(vspacing);
+  }
+  void FXTopWindow_set_icon(FXTopWindow* self, FXIcon* icon)
+  {
+    if (self) {
+      self->setIcon(icon);
+    }
+  }
+  void FXTopWindow_set_mini_icon(FXTopWindow* self, FXIcon* icon)
+  {
+    if (self) {
+      self->setMiniIcon(icon);
+    }
   }
 
   //~ FXDialogBox.h
@@ -1564,6 +1809,20 @@ extern "C"
   unsigned char FXDialogBox_shown(const FXDialogBox* self)
   {
     return self->shown();
+  }
+  unsigned FXDialogBox_execute(FXDialogBox* self)
+  {
+    return self ? self->execute() : 0;
+  }
+  unsigned FXDialogBox_execute_placed(FXDialogBox* self)
+  {
+    return self ? self->execute(PLACEMENT_DEFAULT) : 0;
+  }
+  void FXDialogBox_accept(FXDialogBox* self)
+  {
+    if (self) {
+      self->handle(self, FXSEL(SEL_COMMAND, FXDialogBox::ID_ACCEPT), nullptr);
+    }
   }
 
   //~ FXReplaceDialog.h
@@ -3043,6 +3302,28 @@ extern "C"
   FXIcon* FXIcon_new(FXApp* app)
   {
     return make_widget<FXIcon, FXApp>(app);
+  }
+  FXIcon* FXGIFIcon_new(FXApp* app, const unsigned char* pixels, unsigned size)
+  {
+    auto icon = new FXGIFIcon(app);
+    if (pixels && size) {
+      FXMemoryStream stream;
+      stream.open(FXStreamLoad, size, const_cast<FXuchar*>(pixels));
+      icon->loadPixels(stream);
+      stream.close();
+    }
+    return icon;
+  }
+  FXIcon* FXBMPIcon_new(FXApp* app, const unsigned char* pixels, unsigned size)
+  {
+    auto icon = new FXBMPIcon(app);
+    if (pixels && size) {
+      FXMemoryStream stream;
+      stream.open(FXStreamLoad, size, const_cast<FXuchar*>(pixels));
+      icon->loadPixels(stream);
+      stream.close();
+    }
+    return icon;
   }
 
   //~ FXImageFrame.h

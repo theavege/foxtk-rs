@@ -61,6 +61,86 @@ impl App {
     pub fn run(&self) -> i32 {
         unsafe { FXApp_run(self.as_raw()) }
     }
+    pub fn read_int(&self, section: &str, key: &str, fallback: i32) -> i32 {
+        unsafe {
+            FXApp_read_int(
+                self.as_raw(),
+                to_cstring(section).as_ptr(),
+                to_cstring(key).as_ptr(),
+                fallback,
+            )
+        }
+    }
+    pub fn write_int(&self, section: &str, key: &str, value: i32) {
+        unsafe {
+            FXApp_write_int(
+                self.as_raw(),
+                to_cstring(section).as_ptr(),
+                to_cstring(key).as_ptr(),
+                value,
+            )
+        }
+    }
+    pub fn read_real(&self, section: &str, key: &str, fallback: f64) -> f64 {
+        unsafe {
+            FXApp_read_real(
+                self.as_raw(),
+                to_cstring(section).as_ptr(),
+                to_cstring(key).as_ptr(),
+                fallback,
+            )
+        }
+    }
+    pub fn write_real(&self, section: &str, key: &str, value: f64) {
+        unsafe {
+            FXApp_write_real(
+                self.as_raw(),
+                to_cstring(section).as_ptr(),
+                to_cstring(key).as_ptr(),
+                value,
+            )
+        }
+    }
+    pub fn read_color(&self, section: &str, key: &str, fallback: Color) -> Color {
+        unsafe {
+            Color::from_bits(FXApp_read_color(
+                self.as_raw(),
+                to_cstring(section).as_ptr(),
+                to_cstring(key).as_ptr(),
+                fallback.bits(),
+            ))
+        }
+    }
+    pub fn write_color(&self, section: &str, key: &str, color: Color) {
+        unsafe {
+            FXApp_write_color(
+                self.as_raw(),
+                to_cstring(section).as_ptr(),
+                to_cstring(key).as_ptr(),
+                color.bits(),
+            )
+        }
+    }
+    pub fn read_string(&self, section: &str, key: &str, fallback: &str) -> String {
+        unsafe {
+            cstr_lossy(FXApp_read_string(
+                self.as_raw(),
+                to_cstring(section).as_ptr(),
+                to_cstring(key).as_ptr(),
+                to_cstring(fallback).as_ptr(),
+            ))
+        }
+    }
+    pub fn write_string(&self, section: &str, key: &str, value: &str) {
+        unsafe {
+            FXApp_write_string(
+                self.as_raw(),
+                to_cstring(section).as_ptr(),
+                to_cstring(key).as_ptr(),
+                to_cstring(value).as_ptr(),
+            )
+        }
+    }
 }
 
 impl_widget!(RecentFiles, IdExt);

@@ -207,7 +207,7 @@ pub enum RulerOrientation {
     Vertical = 1,
 }
 
-#[derive(Default)]
+#[derive(Clone, Copy, Default, PartialEq, Eq)]
 pub struct Color(u32);
 impl Color {
     pub fn from_rgb(r: u32, g: u32, b: u32) -> Self {
@@ -219,7 +219,26 @@ impl Color {
     pub fn from_hex(hex: u32) -> Self {
         Self::from_rgb((hex >> 16) & 0xff, (hex >> 8) & 0xff, hex & 0xff)
     }
+    /// A color already in FOX byte order, such as a value read from the registry.
+    pub fn from_bits(bits: u32) -> Self {
+        Self(bits)
+    }
     pub fn bits(&self) -> u32 {
         self.0
+    }
+    pub fn red(self) -> u32 {
+        unsafe { foxtk_sys::fx_red_val(self.0) }
+    }
+    pub fn green(self) -> u32 {
+        unsafe { foxtk_sys::fx_green_val(self.0) }
+    }
+    pub fn blue(self) -> u32 {
+        unsafe { foxtk_sys::fx_blue_val(self.0) }
+    }
+    pub fn hilite(self) -> Self {
+        Self(unsafe { foxtk_sys::fx_make_hilite_color(self.0) })
+    }
+    pub fn shadow(self) -> Self {
+        Self(unsafe { foxtk_sys::fx_make_shadow_color(self.0) })
     }
 }

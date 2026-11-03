@@ -102,6 +102,15 @@ impl ColorDialog {
             ))
         }
     }
+    pub fn execute(&self) -> bool {
+        unsafe { FXColorDialog_execute(self.as_raw()) != 0 }
+    }
+    pub fn set_rgba(&self, color: Color) {
+        unsafe { FXColorDialog_set_rgba(self.as_raw(), color.bits()) }
+    }
+    pub fn rgba(&self) -> Color {
+        unsafe { Color::from_bits(FXColorDialog_get_rgba(self.as_raw())) }
+    }
 }
 
 impl_widget!(
