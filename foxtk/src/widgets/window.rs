@@ -47,6 +47,7 @@ impl_widget!(
     FrameExt,
     DrawableExt,
     WindowExt,
+    CompositeExt,
     TopWindowExt
 );
 impl DialogBox {

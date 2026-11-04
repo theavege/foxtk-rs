@@ -392,8 +392,6 @@ FXId_get_id(const FXId* self);
   void FXWindow_enable(FXWindow* self);
   void FXWindow_set_back_color(FXWindow* self, unsigned color);
   unsigned FXWindow_get_back_color(const FXWindow* self);
-  void FXWindow_set_hilite_color(FXWindow* self, unsigned color);
-  void FXWindow_set_shadow_color(FXWindow* self, unsigned color);
 
   //~ FXImage.h
   FOXTK_OPAQUE(FXImage)

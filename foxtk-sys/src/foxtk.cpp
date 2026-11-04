@@ -870,18 +870,6 @@ extern "C"
   {
     return self ? self->getBackColor() : 0;
   }
-  void FXWindow_set_hilite_color(FXWindow* self, unsigned color)
-  {
-    if (self) {
-      self->setHiliteColor(color);
-    }
-  }
-  void FXWindow_set_shadow_color(FXWindow* self, unsigned color)
-  {
-    if (self) {
-      self->setShadowColor(color);
-    }
-  }
   void FXWindow_enable(FXWindow* self)
   {
     self->enable();
