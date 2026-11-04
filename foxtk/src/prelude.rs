@@ -183,12 +183,6 @@ pub trait WindowExt: DrawableExt {
     fn back_color(&self) -> Color {
         unsafe { Color::from_bits(FXWindow_get_back_color(self.as_raw() as *const FXWindow)) }
     }
-    fn set_hilite_color(&self, color: Color) {
-        unsafe { FXWindow_set_hilite_color(self.as_raw() as *mut FXWindow, color.bits()) }
-    }
-    fn set_shadow_color(&self, color: Color) {
-        unsafe { FXWindow_set_shadow_color(self.as_raw() as *mut FXWindow, color.bits()) }
-    }
     fn x(&self) -> i32 {
         unsafe { FXWindow_get_x(self.as_raw() as *const FXWindow) }
     }

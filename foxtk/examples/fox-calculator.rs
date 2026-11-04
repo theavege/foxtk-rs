@@ -51,7 +51,6 @@ enum Dy {
     Per,
     Com,
     LPar,
-    RPar,
 }
 
 #[derive(Clone, Copy)]
@@ -59,7 +58,6 @@ enum Key {
     Digit(u32),
     Point,
     Exp,
-    Delete,
     Clear,
     ClearAll,
     PlusMin,
@@ -326,7 +324,6 @@ impl Model {
             Key::Digit(digit) => self.digit(digit),
             Key::Point => self.point(),
             Key::Exp => self.exponent_key(),
-            Key::Delete => self.delete(),
             Key::Clear => self.clear(),
             Key::ClearAll => self.clear_all(),
             Key::PlusMin => self.plus_min(),
@@ -495,40 +492,6 @@ impl Model {
         self.setnum(value);
     }
 
-    fn delete(&mut self) {
-        if self.modifiers & MOD_ENT == 0 {
-            self.clear();
-            return;
-        }
-        if self.base == 10 && self.display.contains('E') {
-            self.display.pop();
-            if self.display.ends_with('+') || self.display.ends_with('-') {
-                self.display.pop();
-            }
-            if self.display.ends_with('E') {
-                self.display.pop();
-            }
-        } else {
-            let dropped = self.display.pop();
-            if dropped.is_some_and(|ch| ch.is_ascii_hexdigit()) {
-                self.digits -= 1;
-            }
-            if self.display.ends_with('+') || self.display.ends_with('-') {
-                self.display.pop();
-            }
-            if self.display.ends_with('.') {
-                self.display.pop();
-            }
-        }
-        if self.display.is_empty() {
-            self.display = "0".into();
-            self.modifiers &= !MOD_ENT;
-            self.digits = 1;
-        }
-        let value = self.parse_display();
-        self.setnum(value);
-    }
-
     fn clear(&mut self) {
         self.set_display_value(0.0);
         self.setnum(0.0);
@@ -672,7 +635,7 @@ impl Model {
             Dy::XToInvY => acc.powf(1.0 / val),
             Dy::Per => permutations(acc, val),
             Dy::Com => combinations(acc, val),
-            Dy::LPar | Dy::RPar => acc,
+            Dy::LPar => acc,
         };
         self.setnum(acc);
         self.set_display_value(acc);
@@ -743,8 +706,8 @@ impl Model {
         let value = match (hyp, inv) {
             (false, false) => std::f64::consts::PI,
             (false, true) => std::f64::consts::E,
-            (true, false) => 1.618_033_988_749_895,
-            (true, true) => 1.0 / 1.618_033_988_749_895,
+            (true, false) => std::f64::consts::GOLDEN_RATIO,
+            (true, true) => 1.0 / std::f64::consts::GOLDEN_RATIO,
         };
         self.setnum(value);
         self.set_display_value(value);
@@ -848,7 +811,7 @@ fn priority(op: Dy) -> u8 {
         Dy::Mod | Dy::Idiv | Dy::Div | Dy::Mul => 3,
         Dy::XToY | Dy::XToInvY => 4,
         Dy::Per | Dy::Com => 5,
-        Dy::LPar | Dy::RPar => 8,
+        Dy::LPar => 8,
     }
 }
 
@@ -1012,101 +975,7 @@ struct Calculator {
     placed: Cell<bool>,
 }
 
-impl Component for Calculator {
-    type Event = Event;
-    type State = Model;
-
-    fn handle(
-        event: Self::Event,
-        model: &mut Self::State,
-        _: Sender<Self::Event>,
-    ) -> ComponentOutcome {
-        match event {
-            Event::Key(key) => model.press(key),
-            Event::Precision(precision) => model.set_precision(precision),
-            Event::Exponent => model.cycle_exponent(),
-            Event::Beep(beep) => model.beep = beep,
-            Event::Saved(saved) => model.restore(saved),
-            Event::Colors(colors) => model.colors = colors,
-            Event::Font(family, size) => {
-                model.font_family = family;
-                model.font_size = size;
-            }
-        }
-        ComponentOutcome::Changed
-    }
-
-    fn update(&self, model: &Self::State) {
-        self.display.update(&model.display);
-        let memory = if model.recall == 0.0 {
-            String::new()
-        } else {
-            format!(
-                "M {}",
-                format_decimal(model.recall, model.precision, model.exponent)
-            )
-        };
-        if self.memory.text().trim_start_matches('&') != memory {
-            self.memory.set_text(&memory);
-        }
-        let decimal = model.decimal();
-        let inv = model.modifiers & MOD_INV != 0;
-        let hyp = model.modifiers & MOD_HYP != 0;
-        engage(&self.inverse, inv);
-        engage(&self.hyper, hyp);
-        label(&self.recip, "1/x", decimal);
-        label(&self.power, if inv { "x^1/y" } else { "x^y" }, decimal);
-        label(&self.sqrt, if inv { "x^2" } else { "sqrt" }, decimal);
-        label(&self.log2, if inv { "2^x" } else { "2log" }, decimal);
-        label(
-            &self.pi,
-            match (hyp, inv) {
-                (false, false) => "pi",
-                (false, true) => "e",
-                (true, false) => "phi",
-                (true, true) => "1/phi",
-            },
-            decimal,
-        );
-        label(&self.shift_right, if inv { "SAR" } else { "SHR" }, true);
-        label(&self.factorial, "x!", decimal);
-        label(&self.permut, "nPr", decimal);
-        label(&self.combin, "nCr", decimal);
-        label(&self.sin, &trig_label("sin", inv, hyp), decimal);
-        label(&self.cos, &trig_label("cos", inv, hyp), decimal);
-        label(&self.tan, &trig_label("tan", inv, hyp), decimal);
-        label(&self.log, if inv { "10^x" } else { "log" }, decimal);
-        label(&self.ln, if inv { "e^x" } else { "ln" }, decimal);
-        label(&self.point, ".", decimal);
-        label(&self.exp, "EXP", decimal);
-        label(&self.modulo, if inv { "div" } else { "mod" }, decimal);
-        for (index, button) in self.digits.iter().enumerate() {
-            button.set_enable((index as u32) < model.base);
-        }
-        for (button, base) in self.bases.iter().zip([16, 10, 8, 2]) {
-            engage(button, model.base == base);
-        }
-        for (button, angle) in self.angles.iter().zip([Angle::Deg, Angle::Rad, Angle::Gra]) {
-            engage(button, model.angles == angle);
-        }
-        label(
-            &self.exponent_mode,
-            match model.exponent {
-                Exponent::Maybe => "exp: auto",
-                Exponent::Always => "exp: sci",
-                Exponent::Never => "exp: fix",
-            },
-            true,
-        );
-        self.precision.update(model.precision as i32);
-        if self.beep.check() != model.beep {
-            self.beep.set_check(model.beep);
-        }
-        self.paint(model);
-        self.place(model);
-        self.persist(model);
-    }
-
+impl Calculator {
     fn paint(&self, model: &Model) {
         let colors = model.colors;
         for button in &self.digits[..10] {
@@ -1216,6 +1085,102 @@ impl Component for Calculator {
         app.write_string("SETTINGS", "displayfontfamily", &model.font_family);
         app.write_int("SETTINGS", "displayfontsize", model.font_size);
         write_geometry(&app, &self.display);
+    }
+}
+
+impl Component for Calculator {
+    type Event = Event;
+    type State = Model;
+
+    fn handle(
+        event: Self::Event,
+        model: &mut Self::State,
+        _: Sender<Self::Event>,
+    ) -> ComponentOutcome {
+        match event {
+            Event::Key(key) => model.press(key),
+            Event::Precision(precision) => model.set_precision(precision),
+            Event::Exponent => model.cycle_exponent(),
+            Event::Beep(beep) => model.beep = beep,
+            Event::Saved(saved) => model.restore(saved),
+            Event::Colors(colors) => model.colors = colors,
+            Event::Font(family, size) => {
+                model.font_family = family;
+                model.font_size = size;
+            }
+        }
+        ComponentOutcome::Changed
+    }
+
+    fn update(&self, model: &Self::State) {
+        self.display.update(&model.display);
+        let memory = if model.recall == 0.0 {
+            String::new()
+        } else {
+            format!(
+                "M {}",
+                format_decimal(model.recall, model.precision, model.exponent)
+            )
+        };
+        if self.memory.text().trim_start_matches('&') != memory {
+            self.memory.set_text(&memory);
+        }
+        let decimal = model.decimal();
+        let inv = model.modifiers & MOD_INV != 0;
+        let hyp = model.modifiers & MOD_HYP != 0;
+        engage(&self.inverse, inv);
+        engage(&self.hyper, hyp);
+        label(&self.recip, "1/x", decimal);
+        label(&self.power, if inv { "x^1/y" } else { "x^y" }, decimal);
+        label(&self.sqrt, if inv { "x^2" } else { "sqrt" }, decimal);
+        label(&self.log2, if inv { "2^x" } else { "2log" }, decimal);
+        label(
+            &self.pi,
+            match (hyp, inv) {
+                (false, false) => "pi",
+                (false, true) => "e",
+                (true, false) => "phi",
+                (true, true) => "1/phi",
+            },
+            decimal,
+        );
+        label(&self.shift_right, if inv { "SAR" } else { "SHR" }, true);
+        label(&self.factorial, "x!", decimal);
+        label(&self.permut, "nPr", decimal);
+        label(&self.combin, "nCr", decimal);
+        label(&self.sin, &trig_label("sin", inv, hyp), decimal);
+        label(&self.cos, &trig_label("cos", inv, hyp), decimal);
+        label(&self.tan, &trig_label("tan", inv, hyp), decimal);
+        label(&self.log, if inv { "10^x" } else { "log" }, decimal);
+        label(&self.ln, if inv { "e^x" } else { "ln" }, decimal);
+        label(&self.point, ".", decimal);
+        label(&self.exp, "EXP", decimal);
+        label(&self.modulo, if inv { "div" } else { "mod" }, decimal);
+        for (index, button) in self.digits.iter().enumerate() {
+            button.set_enable((index as u32) < model.base);
+        }
+        for (button, base) in self.bases.iter().zip([16, 10, 8, 2]) {
+            engage(button, model.base == base);
+        }
+        for (button, angle) in self.angles.iter().zip([Angle::Deg, Angle::Rad, Angle::Gra]) {
+            engage(button, model.angles == angle);
+        }
+        label(
+            &self.exponent_mode,
+            match model.exponent {
+                Exponent::Maybe => "exp: auto",
+                Exponent::Always => "exp: sci",
+                Exponent::Never => "exp: fix",
+            },
+            true,
+        );
+        self.precision.update(model.precision as i32);
+        if self.beep.check() != model.beep {
+            self.beep.set_check(model.beep);
+        }
+        self.paint(model);
+        self.place(model);
+        self.persist(model);
     }
 
     fn view(&mut self, parent: &impl CompositeExt, sender: Sender<Self::Event>) {
