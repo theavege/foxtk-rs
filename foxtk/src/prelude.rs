@@ -404,6 +404,12 @@ pub trait WindowExt: DrawableExt {
 //~ }
 
 pub trait FrameExt: WindowExt {
+    fn set_hilite_color(&self, color: Color) {
+        unsafe { FXFrame_set_hilite_color(self.as_raw() as *mut FXFrame, color.bits()) }
+    }
+    fn set_shadow_color(&self, color: Color) {
+        unsafe { FXFrame_set_shadow_color(self.as_raw() as *mut FXFrame, color.bits()) }
+    }
     fn with_pad(self, pad: i32) -> Self {
         unsafe {
             FXFrame_set_pad_bottom(self.as_raw() as *mut FXFrame, pad);
@@ -601,6 +607,7 @@ pub trait RangerExt: WindowExt {
 /// FOX 1.6 `FXApp::addTimeout` takes milliseconds. This polls for a `send`
 /// from a thread other than the UI thread, which must not call `addChore`.
 const COMPONENT_POLL_MS: u32 = 50;
+type ComponentDispatchSlot = Rc<RefCell<Option<Box<dyn FnMut()>>>>;
 
 pub trait Component: Default + 'static {
     type Event: 'static;
@@ -614,7 +621,7 @@ pub trait Component: Default + 'static {
     fn view(&mut self, parent: &impl CompositeExt, sender: Sender<Self::Event>);
     fn mount(parent: &impl CompositeExt) -> ComponentMount {
         let (channel, receiver) = mpsc::channel::<Self::Event>();
-        let dispatch_slot: Rc<RefCell<Option<Box<dyn FnMut()>>>> = Rc::new(RefCell::new(None));
+        let dispatch_slot: ComponentDispatchSlot = Rc::new(RefCell::new(None));
         let app = parent.app();
         let app_ptr = NonNull::new(app.as_raw()).expect("FOX application pointer was null");
         let scheduler = Arc::new(Mutex::new(ComponentScheduler {
@@ -702,7 +709,7 @@ pub trait Component: Default + 'static {
 }
 
 fn component_callback_context(
-    dispatch_slot: Rc<RefCell<Option<Box<dyn FnMut()>>>>,
+    dispatch_slot: ComponentDispatchSlot,
     scheduler: Option<Arc<Mutex<ComponentScheduler>>>,
     clear_scheduled: bool,
 ) -> *mut c_void {
