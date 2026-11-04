@@ -88,6 +88,8 @@ extern "C"
   unsigned fx_green_val(unsigned rgba);
   unsigned fx_blue_val(unsigned rgba);
   unsigned fx_alpha_val(unsigned rgba);
+  unsigned fx_make_hilite_color(unsigned color);
+  unsigned fx_make_shadow_color(unsigned color);
 
   //~ OPAQUE HANDLES
   // ABI note: widget constructor entry points return owned FXObject handles (or
@@ -154,6 +156,9 @@ extern "C"
 
   FOXTK_OPAQUE(FXColorDialog)
   FXColorDialog* FXColorDialog_new(FXWindow* owner, const char* title);
+  unsigned FXColorDialog_execute(FXColorDialog* self);
+  void FXColorDialog_set_rgba(FXColorDialog* self, unsigned color);
+  unsigned FXColorDialog_get_rgba(const FXColorDialog* self);
   FOXTK_OPAQUE(FXColorList)
   FXColorList* FXColorList_new(FXComposite* prt);
   EXT_SELECTABLE(FXColorList)
@@ -176,6 +181,8 @@ extern "C"
   //~ FXColorWell.h
   FOXTK_OPAQUE(FXColorWell)
   FXColorWell* FXColorWell_new(FXComposite* prt);
+  void FXColorWell_set_rgba(FXColorWell* self, unsigned color);
+  unsigned FXColorWell_get_rgba(const FXColorWell* self);
   EXT_HELP(FXColorWell)
 
   //~ FXColorWheel.h
@@ -257,12 +264,36 @@ extern "C"
   typedef void (*CbDrop)(void* ctx);
   FXApp* FXApp_new(const char* name, const char* vendor, int argc, char** argv);
   int FXApp_run(FXApp* self);
-  // The callback re-arms itself on every firing (a repeating interval
-  // timer, not one-shot). FXApp_add_timeout returns a handle that must be
-  // passed to FXApp_remove_timeout to cancel it and free the internal
-  // target object — there is no other way to stop or free one, so a
-  // caller that never calls FXApp_remove_timeout leaks it for the
-  // lifetime of the app.
+  // FXApp::init reads the registry. FXApp::exit writes it back. These update
+  // the in-memory registry; they do not flush the file themselves.
+  int FXApp_read_int(FXApp* self, const char* section, const char* key, int fallback);
+  void FXApp_write_int(FXApp* self, const char* section, const char* key, int value);
+  double FXApp_read_real(FXApp* self,
+                         const char* section,
+                         const char* key,
+                         double fallback);
+  void FXApp_write_real(FXApp* self, const char* section, const char* key, double value);
+  unsigned FXApp_read_color(FXApp* self,
+                            const char* section,
+                            const char* key,
+                            unsigned fallback);
+  void FXApp_write_color(FXApp* self, const char* section, const char* key, unsigned color);
+  const char* FXApp_read_string(FXApp* self,
+                                const char* section,
+                                const char* key,
+                                const char* fallback);
+  void FXApp_write_string(FXApp* self,
+                          const char* section,
+                          const char* key,
+                          const char* value);
+  // FOX 1.6 FXApp::addTimeout takes milliseconds (the default is 1000).
+  // FOX 1.7 changed the unit to nanoseconds. This crate builds fox-1.6.59,
+  // so the interval is milliseconds. The callback re-arms itself on every
+  // firing (a repeating interval timer, not one-shot). FXApp_add_timeout
+  // returns a handle that must be passed to FXApp_remove_timeout to cancel
+  // it and free the internal target object — there is no other way to stop
+  // or free one, so a caller that never calls FXApp_remove_timeout leaks it
+  // for the lifetime of the app.
   // FXTimeout has no real FOX counterpart to alias -- it's this
   // wrapper's own synthetic handle (see FXApp_add_timeout below) -- so
   // it always needs a real declaration, unlike every other
@@ -270,7 +301,7 @@ extern "C"
   // being visible in C++ mode.
   typedef struct FXTimeout FXTimeout;
   typedef struct FXChore FXChore;
-  FXTimeout* FXApp_add_timeout(FXApp* self, CbTimer cb, unsigned ns, void* ctx,
+  FXTimeout* FXApp_add_timeout(FXApp* self, CbTimer cb, unsigned ms, void* ctx,
                                CbDrop drop);
   void FXApp_remove_timeout(FXApp* self, FXTimeout* handle);
   FXChore* FXApp_add_chore(FXApp* self, CbTimer cb, void* ctx, CbDrop drop);
@@ -348,6 +379,7 @@ FXId_get_id(const FXId* self);
   typedef long (*CbWidget)(FXWindow* wgt, void* ctx);
   FXWindow* FXWindow_get_parent(const FXWindow* self);
   FXWindow* FXWindow_get_root(const FXWindow* self);
+  FXWindow* FXWindow_get_shell(const FXWindow* self);
   long FXWindow_has_focus(const FXWindow* self);
   void FXWindow_set_target(FXWindow* self, CbWidget cb, void* ctx, CbDrop drop);
   void FXWindow_set_selector(FXWindow* self, int val);
@@ -356,8 +388,19 @@ FXId_get_id(const FXId* self);
   void FXWindow_set_layout_hints(FXWindow* self, unsigned val);
   void FXWindow_set_x(FXWindow* self, int x);
   void FXWindow_set_y(FXWindow* self, int y);
+  int FXWindow_get_x(const FXWindow* self);
+  int FXWindow_get_y(const FXWindow* self);
+  void FXWindow_position(FXWindow* self, int x, int y, int width, int height);
+  // Move the shell that contains this window. Non-positive width or height
+  // keeps the shell's current size.
+  void FXWindow_place_shell(FXWindow* self, int x, int y, int width, int height);
+  void FXWindow_shell_geometry(const FXWindow* self, int* x, int* y, int* width, int* height);
+  // Runs before the shell closes. The callback cannot cancel the close.
+  void FXWindow_on_close(FXWindow* self, CbWidget cb, void* ctx, CbDrop drop);
   void FXWindow_disable(FXWindow* self);
   void FXWindow_enable(FXWindow* self);
+  void FXWindow_set_back_color(FXWindow* self, unsigned color);
+  unsigned FXWindow_get_back_color(const FXWindow* self);
 
   //~ FXImage.h
   FOXTK_OPAQUE(FXImage)
@@ -379,6 +422,8 @@ FXId_get_id(const FXId* self);
   //~ FXIcon.h
   FOXTK_OPAQUE(FXIcon)
   FXIcon* FXIcon_new(FXApp* app);
+  FXIcon* FXGIFIcon_new(FXApp* app, const unsigned char* pixels, unsigned size);
+  FXIcon* FXBMPIcon_new(FXApp* app, const unsigned char* pixels, unsigned size);
 
   //~ FXChoiceBox.h
   int FXChoiceBox_ask(FXWindow* owner,
@@ -402,6 +447,10 @@ FXId_get_id(const FXId* self);
   void FXDialogBox_show(FXDialogBox* self);
   void FXDialogBox_hide(FXDialogBox* self);
   unsigned char FXDialogBox_shown(const FXDialogBox* self);
+  unsigned FXDialogBox_execute(FXDialogBox* self);
+  // execute(PLACEMENT_DEFAULT): keep the position already set on the dialog.
+  unsigned FXDialogBox_execute_placed(FXDialogBox* self);
+  void FXDialogBox_accept(FXDialogBox* self);
 
   //~ FXReplaceDialog.h
   FOXTK_OPAQUE(FXReplaceDialog)
@@ -532,6 +581,7 @@ FXId_get_id(const FXId* self);
   //~ FXLabel.h
   FOXTK_OPAQUE(FXLabel)
   FXLabel* FXLabel_new(FXComposite* parent, const char* title);
+  void FXLabel_set_icon(FXLabel* self, FXIcon* icon);
   EXT_JUSTIFY(FXLabel)
   EXT_TEXT(FXLabel)
 
@@ -663,6 +713,8 @@ FXId_get_id(const FXId* self);
   FOXTK_OPAQUE(FXTopWindow)
   void FXTopWindow_set_hspacing(FXTopWindow* self, int hspacing);
   void FXTopWindow_set_vspacing(FXTopWindow* self, int vspacing);
+  void FXTopWindow_set_icon(FXTopWindow* self, FXIcon* icon);
+  void FXTopWindow_set_mini_icon(FXTopWindow* self, FXIcon* icon);
 
   //~ FXSplashWindow.h
   FOXTK_OPAQUE(FXSplashWindow)

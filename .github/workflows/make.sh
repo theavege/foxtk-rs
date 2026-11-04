@@ -40,6 +40,9 @@ function _rust
         cmd="$(command -v cargo-1.91)"
     fi
     "${cmd}" build --release --examples
+    # Release, not dev: dev would compile FOX a second time. These tests do not
+    # open a display. The runtime test stays under xvfb in the workflow.
+    "${cmd}" test -p foxtk --lib --release
     if [[ "$(uname -s)" == Linux ]]; then
         "${cmd}" build --release --examples --features nobuild
     fi
