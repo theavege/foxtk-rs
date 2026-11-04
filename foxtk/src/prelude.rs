@@ -95,6 +95,14 @@ unsafe extern "C" fn ccallback<T: WindowExt>(ptr: *mut FXWindow, context: *mut c
     result.unwrap_or(0)
 }
 
+unsafe extern "C" fn cclose<T: WindowExt>(ptr: *mut FXWindow, context: *mut c_void) -> c_long {
+    let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| unsafe {
+        let func = &mut *(context as *mut Box<dyn FnMut(T)>);
+        func(T::from_raw(ptr as *mut T::T));
+    }));
+    0
+}
+
 pub trait ObjectExt: Sized {
     type T: 'static;
     fn as_raw(&self) -> *mut Self::T;
@@ -174,6 +182,55 @@ pub trait WindowExt: DrawableExt {
     }
     fn back_color(&self) -> Color {
         unsafe { Color::from_bits(FXWindow_get_back_color(self.as_raw() as *const FXWindow)) }
+    }
+    fn set_hilite_color(&self, color: Color) {
+        unsafe { FXWindow_set_hilite_color(self.as_raw() as *mut FXWindow, color.bits()) }
+    }
+    fn set_shadow_color(&self, color: Color) {
+        unsafe { FXWindow_set_shadow_color(self.as_raw() as *mut FXWindow, color.bits()) }
+    }
+    fn x(&self) -> i32 {
+        unsafe { FXWindow_get_x(self.as_raw() as *const FXWindow) }
+    }
+    fn y(&self) -> i32 {
+        unsafe { FXWindow_get_y(self.as_raw() as *const FXWindow) }
+    }
+    /// Move and resize this window. Does not change layout hints.
+    fn position(&self, x: i32, y: i32, width: i32, height: i32) {
+        unsafe { FXWindow_position(self.as_raw() as *mut FXWindow, x, y, width, height) }
+    }
+    /// Move the shell that contains this window. Non-positive width or height
+    /// keeps the shell's current size.
+    fn place_shell(&self, x: i32, y: i32, width: i32, height: i32) {
+        unsafe { FXWindow_place_shell(self.as_raw() as *mut FXWindow, x, y, width, height) }
+    }
+    fn shell_geometry(&self) -> (i32, i32, i32, i32) {
+        let mut x = 0;
+        let mut y = 0;
+        let mut width = 0;
+        let mut height = 0;
+        unsafe {
+            FXWindow_shell_geometry(
+                self.as_raw() as *const FXWindow,
+                &mut x,
+                &mut y,
+                &mut width,
+                &mut height,
+            );
+        }
+        (x, y, width, height)
+    }
+    /// Called when this shell is about to close. The window still closes.
+    fn on_close<F: FnMut(Self) + 'static>(&self, func: F) {
+        let raw_ptr: *mut Box<dyn FnMut(Self)> = Box::into_raw(Box::new(Box::new(func)));
+        unsafe {
+            FXWindow_on_close(
+                self.as_raw() as *mut FXWindow,
+                Some(cclose::<Self>),
+                raw_ptr as *mut c_void,
+                Some(super::drop_callback_context::<Box<dyn FnMut(Self)>>),
+            );
+        }
     }
     /// Ends the modal dialog that contains this window with accept.
     fn accept_dialog(&self) {

@@ -385,6 +385,41 @@ CTargetMap[] = {
 };
 FXIMPLEMENT(CTarget, FXObject, CTargetMap, ARRAYNUMBER(CTargetMap))
 
+class CCloseTarget : public CWrapperTarget
+{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
+  FXDECLARE(CCloseTarget)
+#pragma GCC diagnostic pop
+protected:
+  CCloseTarget() {}
+
+private:
+  CbWidget callback = nullptr;
+  void* context = nullptr;
+
+public:
+  CCloseTarget(CbWidget cb, void* ctx, CbDrop drop)
+    : CWrapperTarget(ctx, drop)
+    , callback(cb)
+    , context(ctx)
+  {
+  }
+  long onClose(FXObject* wgt, FXSelector, void*)
+  {
+    if (callback)
+      callback(as_raw<FXWindow>(wgt), context);
+    // Returning false lets FXTopWindow::close() proceed.
+    return 0;
+  }
+};
+
+FXDEFMAP(CCloseTarget)
+CCloseTargetMap[] = {
+  FXMAPFUNC(SEL_CLOSE, 0, CCloseTarget::onClose),
+};
+FXIMPLEMENT(CCloseTarget, FXObject, CCloseTargetMap, ARRAYNUMBER(CCloseTargetMap))
+
 class CTimeout : public FXObject
 {
 #pragma GCC diagnostic push
@@ -848,6 +883,77 @@ extern "C"
   {
     self->setY(y);
   }
+  int FXWindow_get_x(const FXWindow* self)
+  {
+    return self ? self->getX() : 0;
+  }
+  int FXWindow_get_y(const FXWindow* self)
+  {
+    return self ? self->getY() : 0;
+  }
+  void FXWindow_position(FXWindow* self, int x, int y, int width, int height)
+  {
+    if (self) {
+      self->position(x, y, width, height);
+    }
+  }
+  void FXWindow_place_shell(FXWindow* self, int x, int y, int width, int height)
+  {
+    if (!self) {
+      return;
+    }
+    auto* shell = self->getShell();
+    if (!shell) {
+      return;
+    }
+    if (width <= 0) {
+      width = shell->getWidth();
+    }
+    if (height <= 0) {
+      height = shell->getHeight();
+    }
+    shell->position(x, y, width, height);
+  }
+  void FXWindow_shell_geometry(const FXWindow* self, int* x, int* y, int* width, int* height)
+  {
+    int sx = 0;
+    int sy = 0;
+    int sw = 0;
+    int sh = 0;
+    if (self) {
+      if (auto* shell = self->getShell()) {
+        sx = shell->getX();
+        sy = shell->getY();
+        sw = shell->getWidth();
+        sh = shell->getHeight();
+      }
+    }
+    if (x) {
+      *x = sx;
+    }
+    if (y) {
+      *y = sy;
+    }
+    if (width) {
+      *width = sw;
+    }
+    if (height) {
+      *height = sh;
+    }
+  }
+  void FXWindow_on_close(FXWindow* self, CbWidget cb, void* ctx, CbDrop drop)
+  {
+    if (!self) {
+      if (drop) {
+        drop(ctx);
+      }
+      return;
+    }
+    if (auto old = dynamic_cast<CWrapperTarget*>(self->getTarget())) {
+      delete old;
+    }
+    self->setTarget(new CCloseTarget(cb, ctx, drop));
+  }
   void FXWindow_set_height(FXWindow* self, int height)
   {
     self->setHeight(height);
@@ -869,6 +975,18 @@ extern "C"
   unsigned FXWindow_get_back_color(const FXWindow* self)
   {
     return self ? self->getBackColor() : 0;
+  }
+  void FXWindow_set_hilite_color(FXWindow* self, unsigned color)
+  {
+    if (self) {
+      self->setHiliteColor(color);
+    }
+  }
+  void FXWindow_set_shadow_color(FXWindow* self, unsigned color)
+  {
+    if (self) {
+      self->setShadowColor(color);
+    }
   }
   void FXWindow_enable(FXWindow* self)
   {
@@ -1695,6 +1813,10 @@ extern "C"
   unsigned FXDialogBox_execute(FXDialogBox* self)
   {
     return self ? self->execute() : 0;
+  }
+  unsigned FXDialogBox_execute_placed(FXDialogBox* self)
+  {
+    return self ? self->execute(PLACEMENT_DEFAULT) : 0;
   }
   void FXDialogBox_accept(FXDialogBox* self)
   {

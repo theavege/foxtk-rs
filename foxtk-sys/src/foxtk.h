@@ -388,10 +388,21 @@ FXId_get_id(const FXId* self);
   void FXWindow_set_layout_hints(FXWindow* self, unsigned val);
   void FXWindow_set_x(FXWindow* self, int x);
   void FXWindow_set_y(FXWindow* self, int y);
+  int FXWindow_get_x(const FXWindow* self);
+  int FXWindow_get_y(const FXWindow* self);
+  void FXWindow_position(FXWindow* self, int x, int y, int width, int height);
+  // Move the shell that contains this window. Non-positive width or height
+  // keeps the shell's current size.
+  void FXWindow_place_shell(FXWindow* self, int x, int y, int width, int height);
+  void FXWindow_shell_geometry(const FXWindow* self, int* x, int* y, int* width, int* height);
+  // Runs before the shell closes. The callback cannot cancel the close.
+  void FXWindow_on_close(FXWindow* self, CbWidget cb, void* ctx, CbDrop drop);
   void FXWindow_disable(FXWindow* self);
   void FXWindow_enable(FXWindow* self);
   void FXWindow_set_back_color(FXWindow* self, unsigned color);
   unsigned FXWindow_get_back_color(const FXWindow* self);
+  void FXWindow_set_hilite_color(FXWindow* self, unsigned color);
+  void FXWindow_set_shadow_color(FXWindow* self, unsigned color);
 
   //~ FXImage.h
   FOXTK_OPAQUE(FXImage)
@@ -439,6 +450,8 @@ FXId_get_id(const FXId* self);
   void FXDialogBox_hide(FXDialogBox* self);
   unsigned char FXDialogBox_shown(const FXDialogBox* self);
   unsigned FXDialogBox_execute(FXDialogBox* self);
+  // execute(PLACEMENT_DEFAULT): keep the position already set on the dialog.
+  unsigned FXDialogBox_execute_placed(FXDialogBox* self);
   void FXDialogBox_accept(FXDialogBox* self);
 
   //~ FXReplaceDialog.h

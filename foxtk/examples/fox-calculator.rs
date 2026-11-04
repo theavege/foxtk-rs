@@ -5,7 +5,8 @@
 //! help, and memory icons are the original GIF and BMP files. Settings are
 //! stored in the FOX registry under the same `SETTINGS` keys as the C++
 //! calculator, except the display font, which is saved as a family and a size.
-//! Double-click a color well to edit it.
+//! The window position and size use `x`, `y`, `w`, and `h`.
+//! Double-click a color well to edit it. Help opens a read-only text dialog.
 
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
@@ -158,6 +159,10 @@ struct Saved {
     recall: f64,
     font_family: String,
     font_size: i32,
+    x: i32,
+    y: i32,
+    w: i32,
+    h: i32,
 }
 
 impl Saved {
@@ -229,6 +234,10 @@ impl Saved {
             recall: app.read_real("SETTINGS", "memory", 0.0),
             font_family: app.read_string("SETTINGS", "displayfontfamily", ""),
             font_size: app.read_int("SETTINGS", "displayfontsize", 0),
+            x: app.read_int("SETTINGS", "x", 50),
+            y: app.read_int("SETTINGS", "y", 50),
+            w: app.read_int("SETTINGS", "w", 0),
+            h: app.read_int("SETTINGS", "h", 0),
         }
     }
 }
@@ -251,6 +260,10 @@ struct Model {
     colors: Colors,
     font_family: String,
     font_size: i32,
+    x: i32,
+    y: i32,
+    w: i32,
+    h: i32,
 }
 
 impl Default for Model {
@@ -273,6 +286,10 @@ impl Default for Model {
             colors: Colors::default(),
             font_family: String::new(),
             font_size: 0,
+            x: 50,
+            y: 50,
+            w: 0,
+            h: 0,
         }
     }
 }
@@ -555,6 +572,10 @@ impl Model {
         self.angles = saved.angles;
         self.font_family = saved.font_family;
         self.font_size = saved.font_size;
+        self.x = saved.x;
+        self.y = saved.y;
+        self.w = saved.w;
+        self.h = saved.h;
         self.precision = saved.precision.clamp(0, 16);
         self.set_base(saved.base);
     }
@@ -722,8 +743,8 @@ impl Model {
         let value = match (hyp, inv) {
             (false, false) => std::f64::consts::PI,
             (false, true) => std::f64::consts::E,
-            (true, false) => std::f64::consts::GOLDEN_RATIO,
-            (true, true) => 1.0 / std::f64::consts::GOLDEN_RATIO,
+            (true, false) => 1.618_033_988_749_895,
+            (true, true) => 1.0 / 1.618_033_988_749_895,
         };
         self.setnum(value);
         self.set_display_value(value);
@@ -988,110 +1009,7 @@ struct Calculator {
     live_colors: Rc<RefCell<Colors>>,
     live_font: Rc<RefCell<(String, i32)>>,
     updates: Cell<u8>,
-}
-
-impl Calculator {
-    fn paint(&self, model: &Model) {
-        let colors = model.colors;
-        for button in &self.digits[..10] {
-            paint(button, colors.digit);
-        }
-        for button in &self.digits[10..] {
-            paint(button, colors.hex);
-        }
-        for button in [
-            &self.plus_min,
-            &self.recip,
-            &self.power,
-            &self.sqrt,
-            &self.log2,
-            &self.pi,
-            &self.shift_left,
-            &self.shift_right,
-            &self.factorial,
-            &self.permut,
-            &self.combin,
-            &self.sin,
-            &self.cos,
-            &self.tan,
-            &self.log,
-            &self.ln,
-        ] {
-            paint(button, colors.function);
-        }
-        for button in &self.operators {
-            paint(button, colors.operator);
-        }
-        for button in &self.memory_keys {
-            paint(button, colors.memory);
-        }
-        paint(&self.inverse, colors.inverse);
-        paint(&self.hyper, colors.hyper);
-        paint(&self.clear, colors.clear);
-        paint(&self.clear_all, colors.clear_all);
-        for button in &self.bases {
-            paint_group(button, colors.base);
-        }
-        for button in &self.angles {
-            paint_group(button, colors.angle);
-        }
-        let display = Color::from_bits(colors.display);
-        self.display.set_back_color(display);
-        self.display.set_hilite_color(display.hilite());
-        self.display.set_shadow_color(display.shadow());
-        self.display.set_text_color(Color::from_bits(colors.number));
-        if !model.font_family.is_empty() && model.font_size > 0 {
-            self.display.set_font(&model.font_family, model.font_size);
-        }
-        *self.live_colors.borrow_mut() = colors;
-        *self.live_font.borrow_mut() = (model.font_family.clone(), model.font_size);
-    }
-
-    fn persist(&self, model: &Model) {
-        if self.updates.get() == 0 {
-            self.updates.set(1);
-            return;
-        }
-        let app = self.display.app();
-        let colors = model.colors;
-        app.write_int("SETTINGS", "base", model.base as i32);
-        app.write_int("SETTINGS", "angles", model.angles as i32);
-        app.write_int("SETTINGS", "exponent", exponent_to_registry(model.exponent));
-        app.write_int("SETTINGS", "precision", model.precision as i32);
-        app.write_int("SETTINGS", "beep", i32::from(model.beep));
-        app.write_real("SETTINGS", "memory", model.recall);
-        app.write_color("SETTINGS", "digitcolor", Color::from_bits(colors.digit));
-        app.write_color("SETTINGS", "hexdigitcolor", Color::from_bits(colors.hex));
-        app.write_color(
-            "SETTINGS",
-            "operatorcolor",
-            Color::from_bits(colors.operator),
-        );
-        app.write_color(
-            "SETTINGS",
-            "functioncolor",
-            Color::from_bits(colors.function),
-        );
-        app.write_color("SETTINGS", "memorycolor", Color::from_bits(colors.memory));
-        app.write_color("SETTINGS", "inversecolor", Color::from_bits(colors.inverse));
-        app.write_color("SETTINGS", "hypercolor", Color::from_bits(colors.hyper));
-        app.write_color("SETTINGS", "clearcolor", Color::from_bits(colors.clear));
-        app.write_color(
-            "SETTINGS",
-            "clearallcolor",
-            Color::from_bits(colors.clear_all),
-        );
-        app.write_color("SETTINGS", "displaycolor", Color::from_bits(colors.display));
-        app.write_color(
-            "SETTINGS",
-            "displaynumbercolor",
-            Color::from_bits(colors.number),
-        );
-        app.write_color("SETTINGS", "numbasecolor", Color::from_bits(colors.base));
-        app.write_color("SETTINGS", "anglemodecolor", Color::from_bits(colors.angle));
-        app.write_string("SETTINGS", "displayfontfamily", &model.font_family);
-        app.write_int("SETTINGS", "displayfontsize", model.font_size);
-    }
+    placed: Cell<bool>,
 }
 
 impl Component for Calculator {
@@ -1185,7 +1103,119 @@ impl Component for Calculator {
             self.beep.set_check(model.beep);
         }
         self.paint(model);
+        self.place(model);
         self.persist(model);
+    }
+
+    fn paint(&self, model: &Model) {
+        let colors = model.colors;
+        for button in &self.digits[..10] {
+            paint(button, colors.digit);
+        }
+        for button in &self.digits[10..] {
+            paint(button, colors.hex);
+        }
+        for button in [
+            &self.plus_min,
+            &self.recip,
+            &self.power,
+            &self.sqrt,
+            &self.log2,
+            &self.pi,
+            &self.shift_left,
+            &self.shift_right,
+            &self.factorial,
+            &self.permut,
+            &self.combin,
+            &self.sin,
+            &self.cos,
+            &self.tan,
+            &self.log,
+            &self.ln,
+        ] {
+            paint(button, colors.function);
+        }
+        for button in &self.operators {
+            paint(button, colors.operator);
+        }
+        for button in &self.memory_keys {
+            paint(button, colors.memory);
+        }
+        paint(&self.inverse, colors.inverse);
+        paint(&self.hyper, colors.hyper);
+        paint(&self.clear, colors.clear);
+        paint(&self.clear_all, colors.clear_all);
+        for button in &self.bases {
+            paint_group(button, colors.base);
+        }
+        for button in &self.angles {
+            paint_group(button, colors.angle);
+        }
+        let display = Color::from_bits(colors.display);
+        self.display.set_back_color(display);
+        self.display.set_hilite_color(display.hilite());
+        self.display.set_shadow_color(display.shadow());
+        self.display.set_text_color(Color::from_bits(colors.number));
+        if !model.font_family.is_empty() && model.font_size > 0 {
+            self.display.set_font(&model.font_family, model.font_size);
+        }
+        *self.live_colors.borrow_mut() = colors;
+        *self.live_font.borrow_mut() = (model.font_family.clone(), model.font_size);
+    }
+
+    fn place(&self, model: &Model) {
+        if self.placed.get() || self.updates.get() == 0 {
+            return;
+        }
+        self.placed.set(true);
+        self.display.place_shell(model.x, model.y, model.w, model.h);
+    }
+
+    fn persist(&self, model: &Model) {
+        if self.updates.get() == 0 {
+            self.updates.set(1);
+            return;
+        }
+        let app = self.display.app();
+        let colors = model.colors;
+        app.write_int("SETTINGS", "base", model.base as i32);
+        app.write_int("SETTINGS", "angles", model.angles as i32);
+        app.write_int("SETTINGS", "exponent", exponent_to_registry(model.exponent));
+        app.write_int("SETTINGS", "precision", model.precision as i32);
+        app.write_int("SETTINGS", "beep", i32::from(model.beep));
+        app.write_real("SETTINGS", "memory", model.recall);
+        app.write_color("SETTINGS", "digitcolor", Color::from_bits(colors.digit));
+        app.write_color("SETTINGS", "hexdigitcolor", Color::from_bits(colors.hex));
+        app.write_color(
+            "SETTINGS",
+            "operatorcolor",
+            Color::from_bits(colors.operator),
+        );
+        app.write_color(
+            "SETTINGS",
+            "functioncolor",
+            Color::from_bits(colors.function),
+        );
+        app.write_color("SETTINGS", "memorycolor", Color::from_bits(colors.memory));
+        app.write_color("SETTINGS", "inversecolor", Color::from_bits(colors.inverse));
+        app.write_color("SETTINGS", "hypercolor", Color::from_bits(colors.hyper));
+        app.write_color("SETTINGS", "clearcolor", Color::from_bits(colors.clear));
+        app.write_color(
+            "SETTINGS",
+            "clearallcolor",
+            Color::from_bits(colors.clear_all),
+        );
+        app.write_color("SETTINGS", "displaycolor", Color::from_bits(colors.display));
+        app.write_color(
+            "SETTINGS",
+            "displaynumbercolor",
+            Color::from_bits(colors.number),
+        );
+        app.write_color("SETTINGS", "numbasecolor", Color::from_bits(colors.base));
+        app.write_color("SETTINGS", "anglemodecolor", Color::from_bits(colors.angle));
+        app.write_string("SETTINGS", "displayfontfamily", &model.font_family);
+        app.write_int("SETTINGS", "displayfontsize", model.font_size);
+        write_geometry(&app, &self.display);
     }
 
     fn view(&mut self, parent: &impl CompositeExt, sender: Sender<Self::Event>) {
@@ -1198,6 +1228,7 @@ impl Component for Calculator {
         let about = foxtk::Icon::from_gif(&app, include_bytes!("icons/information.gif"));
         parent.set_window_icon(&big);
         parent.set_window_mini_icon(&mini);
+        parent.on_close(|window| write_geometry(&window.app(), &window));
         let live_colors = self.live_colors.clone();
         let live_font = self.live_font.clone();
         foxtk::VerticalFrame::new(parent)
@@ -1228,13 +1259,7 @@ impl Component for Calculator {
                     foxtk::Button::new(parent, "Help")
                         .with_icon(&question)
                         .with_callback(|button| {
-                            button.message(
-                                MessageBox::Ok,
-                                "Digits, operators, and functions follow the FOX calculator.\n\
-                                 inv and hyp change the key above them. = evaluates the stack.\n\
-                                 C clears the entry. AC clears the stack. Bases: Hex Dec Oct Bin.",
-                                Message::Information,
-                            );
+                            show_help(&button);
                             false
                         });
                     self.display = foxtk::TextField::new(parent)
@@ -1385,6 +1410,65 @@ impl Component for Calculator {
             });
         let _ = sender.send(Event::Saved(Saved::read(&parent.app())));
     }
+}
+
+fn show_help(owner: &impl WindowExt) {
+    let dialog = foxtk::DialogBox::new(owner, "Calculator Help");
+    let body = foxtk::VerticalFrame::new(&dialog).with_layout(Layout::Fill);
+    let text = foxtk::Text::new(&body).with_editable(false);
+    text.set_text(HELP);
+    let close = foxtk::HorizontalFrame::new(&body);
+    foxtk::Button::new(&close, "Close").with_callback(|button| {
+        button.accept_dialog();
+        false
+    });
+    let (x, y, _, _) = owner.shell_geometry();
+    dialog.position(x + 80, y + 80, 680, 520);
+    dialog.execute_placed();
+}
+
+const HELP: &str = "\
+The FOX Calculator
+
+The keypad follows the FOX desktop calculator. Operators honor precedence, \
+so 2+3*5 is 17. Parentheses change that order.
+
+Entering numbers
+
+Digits build the current entry. +/- changes its sign. The point key and EXP \
+start a fraction or an exponent. C clears the entry. AC clears the stack.
+
+Functions
+
+inv and hyp change the keys above them: sin becomes asin or sinh, log becomes \
+10^x, and sqrt becomes x^2. = evaluates the stack.
+
+Bases and angles
+
+Hex, Dec, Oct, and Bin reinterpret the display. Deg, Rad, and Gra select the \
+angle unit for sin, cos, and tan.
+
+Memory
+
+MR recalls the saved value. M+ and M- add or subtract the display. MC clears \
+the memory. The value is kept in the registry.
+
+Preferences
+
+The title button opens preferences. Display font changes the readout. \
+Double-click a color well to edit that group. Position, size, colors, and \
+the memory are stored in the FOX registry and restored on the next start.
+";
+
+fn write_geometry(app: &foxtk::App, window: &impl WindowExt) {
+    let (x, y, width, height) = window.shell_geometry();
+    if width <= 0 || height <= 0 {
+        return;
+    }
+    app.write_int("SETTINGS", "x", x);
+    app.write_int("SETTINGS", "y", y);
+    app.write_int("SETTINGS", "w", width);
+    app.write_int("SETTINGS", "h", height);
 }
 
 fn same_button(button: &foxtk::Button) -> foxtk::Button {
