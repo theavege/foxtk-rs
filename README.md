@@ -230,6 +230,49 @@ struct inputs.Button implements prelude.TextExt
 - [x] Status
   - [x] [FXStatusBar](docs/FXStatusBar.md) - Status bar with text and help
 
+## Widget Transition Table
+
+This table maps common GTK+ 3 concepts to approximate FOX Toolkit concepts and the
+corresponding `foxtk` wrapper, where one exists. It is a migration aid, not a claim
+that the toolkits have identical behavior or APIs. FOX applications are composed
+from parent-owned widgets and layout managers; `foxtk` exposes those through Rust
+wrapper types and extension traits.
+
+| GTK+ 3 concept | FOX Toolkit equivalent | FoxTK Rust API | Coverage |
+| --- | --- | --- | --- |
+| `GtkWidget` | `FXWindow` and specialized widget classes | `Window`, `WindowExt` | Core window behavior |
+| `GtkContainer`, `GtkBox` | `FXComposite`, `FXPacker`, `FXHorizontalFrame`, `FXVerticalFrame` | `Packer`, `HorizontalFrame`, `VerticalFrame`, `CompositeExt` | Available |
+| `GtkGrid` | `FXMatrix` | `Matrix` | Available |
+| `GtkPaned` | `FXSplitter`, `FX4Splitter` | `Splitter`, `FourSplitter` | Available |
+| `GtkWindow` | `FXMainWindow`, `FXTopWindow` | `MainWindow`, `Window` | Available |
+| `GtkDialog`, `GtkMessageDialog` | `FXDialogBox`, FOX message dialogs | `DialogBox`, `WindowExt::message` | Available |
+| `GtkFileChooserDialog` | FOX file and directory dialogs | `FileDialog`, `DirDialog`, `WindowExt` file-dialog helpers | Available |
+| `GtkButton` | `FXButton`, `FXArrowButton` | `Button`, `ArrowButton` | Available |
+| `GtkCheckButton`, `GtkToggleButton`, `GtkRadioButton` | FOX check, tri-state, toggle, and radio buttons | `CheckButton`, `TriStateButton`, `ToggleButton`, `RadioButton` | Available |
+| `GtkLabel` | `FXLabel` | `Label`, `TextableExt` | Available |
+| `GtkEntry` | `FXTextField` | `TextField`, `EditableExt`, `TextableExt` | Available |
+| `GtkTextView` | `FXText` | `Text`, `EditableExt`, `TextableExt` | Available |
+| `GtkProgressBar` | `FXProgressBar` | `ProgressBar` | Available |
+| `GtkScale`, `GtkSpinButton` | `FXSlider`, `FXSpinner`, and real-valued variants | `Slider`, `RealSlider`, `Spinner`, `RealSpinner`, `RangerExt` | Available |
+| `GtkComboBox`, `GtkComboBoxText` | `FXComboBox`, `FXListBox` | `ComboBox`, `ListBox`, `SelectorExt` | Available |
+| `GtkListBox`, simple list views | `FXList`, `FXIconList`, `FXTable` | `List`, `IconList`, `Table` | Available; APIs differ |
+| `GtkTreeView` | `FXTreeList`, `FXTreeListBox`, `FXFoldingList` | `TreeList`, `TreeListBox`, `FoldingList` | Available; model/view patterns differ |
+| `GtkNotebook` | `FXTabBook` and `FXTabItem` | `TabBook`, `TabItem` | Available |
+| `GtkMenuBar`, `GtkMenu`, menu items | FOX menu bar, panes, commands, checks, and radio items | `MenuBar`, `MenuPane`, `MenuCommand`, `MenuCheck`, `MenuRadio` | Available |
+| `GtkToolbar` | FOX toolbar and docking widgets | `ToolBar`, `DockBar`, `DockSite`, `ToolBarGrip` | Available |
+| `GtkScrolledWindow` | `FXScrollWindow`, `FXScrollPane` | `ScrollWindow`, `ScrollPane` | Available |
+| `GtkSeparator` | FOX horizontal and vertical separators | `HorizontalSeparator`, `VerticalSeparator`, `Separator` | Available |
+| `GtkImage` | FOX image, icon, bitmap, and image-view classes | `Image`, `Icon`, `Bitmap`, `ImageView`, `BitmapView` | Available |
+| `GtkColorButton`, color selection | FOX color selector and color controls | `ColorSelector`, `ColorDialog`, `ColorWell`, `ColorWheel`, `ColorList` | Available |
+| `GtkDrawingArea`, OpenGL drawing | `FXCanvas`, `FXGLCanvas`, `FXGLViewer` | `Canvas`, `GLCanvas`, `GLViewer`, `GLVisual` | Available; rendering APIs differ |
+| `GtkStatusbar` | `FXStatusBar`, `FXStatusLine` | `StatusBar`, `StatusLine` | Available |
+| `GtkTooltip` | FOX tooltip support | `ToolTip` | Available |
+| `GtkCalendar`, web view, video playback | No wrapper or direct equivalent is currently exposed by this project | — | Not currently covered |
+
+For exact FOX behavior and the wrapper methods available in this repository, see the
+focused guides in [`docs/`](docs/) and the crate API documentation. Widget ownership
+follows FOX's parent hierarchy; see [Object lifetime](README.md#object-lifetime).
+
 ## Release plan
 
 The tree is `0.0.8`. [crates.io](https://crates.io/crates/foxtk) has `0.0.2` and `0.0.3` only. There is no git tag and no GitHub release. `0.0.4` through `0.0.8` were version bumps, not publishes. Until 1.0.0, a new minor version may break the API. `foxtk` and `foxtk-sys` always ship as the same version, and `foxtk` depends on that `foxtk-sys` with `=`.
