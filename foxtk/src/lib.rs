@@ -28,6 +28,13 @@ impl_ranger!(Dial, Knob, Slider, Spinner);
 
 impl_editable!(Text, TextField);
 
-impl_help!(ColorBar, ColorRing, ColorWell, ColorWheel, ShutterItem);
+impl_help!(
+    Button,
+    ColorBar,
+    ColorRing,
+    ColorWell,
+    ColorWheel,
+    ShutterItem
+);
 
 impl_selector!(ColorList);

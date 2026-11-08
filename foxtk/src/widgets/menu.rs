@@ -92,6 +92,13 @@ impl MenuCommand {
             ))
         }
     }
+    pub fn set_icon(&self, icon: &super::Icon) {
+        unsafe { FXMenuCommand_set_icon(self.as_raw(), icon.as_raw()) }
+    }
+    pub fn with_icon(self, icon: &super::Icon) -> Self {
+        self.set_icon(icon);
+        self
+    }
 }
 
 impl_widget!(MenuCaption, IdExt, FrameExt, DrawableExt, WindowExt);

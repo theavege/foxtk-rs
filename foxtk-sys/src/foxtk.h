@@ -397,6 +397,9 @@ FXId_get_id(const FXId* self);
   void FXWindow_shell_geometry(const FXWindow* self, int* x, int* y, int* width, int* height);
   // Runs before the shell closes. The callback cannot cancel the close.
   void FXWindow_on_close(FXWindow* self, CbWidget cb, void* ctx, CbDrop drop);
+  void FXWindow_set_shell_title(FXWindow* self, const char* title);
+  // Close the shell without asking its close callback again.
+  void FXWindow_close_shell(FXWindow* self);
   void FXWindow_disable(FXWindow* self);
   void FXWindow_enable(FXWindow* self);
   void FXWindow_set_back_color(FXWindow* self, unsigned color);
@@ -590,6 +593,26 @@ FXId_get_id(const FXId* self);
   FXText* FXText_new(FXComposite* prt);
   EXT_TEXT(FXText)
   EXT_EDITABLE(FXText)
+  int FXText_length(const FXText* self);
+  int FXText_cursor_pos(const FXText* self);
+  int FXText_cursor_row(const FXText* self);
+  int FXText_cursor_column(const FXText* self);
+  unsigned char FXText_is_modified(const FXText* self);
+  void FXText_set_modified(FXText* self, unsigned char modified);
+  void FXText_set_tab_columns(FXText* self, int columns);
+  unsigned FXText_get_style(const FXText* self);
+  void FXText_set_style(FXText* self, unsigned style);
+  int FXText_find_text(FXText* self,
+                       const char* string,
+                       int start,
+                       unsigned flags,
+                       int* beg,
+                       int* end);
+  void FXText_set_selection(FXText* self, int pos, int len);
+  void FXText_cut(FXText* self);
+  void FXText_copy(FXText* self);
+  void FXText_paste(FXText* self);
+  void FXText_delete_selection(FXText* self);
 
   //~ FXTextField.h
   FOXTK_OPAQUE(FXTextField)
@@ -664,6 +687,7 @@ FXId_get_id(const FXId* self);
   EXT_STYLE(FXButton)
   EXT_TEXT(FXButton)
   EXT_STATE(FXButton)
+  EXT_HELP(FXButton)
 
   //~ FXPopup.h
   FOXTK_OPAQUE(FXPopup)
@@ -972,6 +996,7 @@ FXId_get_id(const FXId* self);
   //~ FXMenuCommand.h
   FOXTK_OPAQUE(FXMenuCommand)
   FXMenuCommand* FXMenuCommand_new(FXComposite* prt, const char* text);
+  void FXMenuCommand_set_icon(FXMenuCommand* self, FXIcon* icon);
   void FXMenuCommand_set_accel_text(FXMenuCommand* self, const char* text);
   const char* FXMenuCommand_get_accel_text(const FXMenuCommand* self);
 

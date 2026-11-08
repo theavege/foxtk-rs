@@ -103,6 +103,14 @@ unsafe extern "C" fn cclose<T: WindowExt>(ptr: *mut FXWindow, context: *mut c_vo
     0
 }
 
+unsafe extern "C" fn cclose_if<T: WindowExt>(ptr: *mut FXWindow, context: *mut c_void) -> c_long {
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| unsafe {
+        let func = &mut *(context as *mut Box<dyn FnMut(T) -> bool>);
+        func(T::from_raw(ptr as *mut T::T))
+    }));
+    c_long::from(result.unwrap_or(false))
+}
+
 pub trait ObjectExt: Sized {
     type T: 'static;
     fn as_raw(&self) -> *mut Self::T;
@@ -225,6 +233,27 @@ pub trait WindowExt: DrawableExt {
                 Some(super::drop_callback_context::<Box<dyn FnMut(Self)>>),
             );
         }
+    }
+    /// Called when this shell is about to close. Return true to keep it open.
+    fn on_close_if<F: FnMut(Self) -> bool + 'static>(&self, func: F) {
+        let raw_ptr: *mut Box<dyn FnMut(Self) -> bool> = Box::into_raw(Box::new(Box::new(func)));
+        unsafe {
+            FXWindow_on_close(
+                self.as_raw() as *mut FXWindow,
+                Some(cclose_if::<Self>),
+                raw_ptr as *mut c_void,
+                Some(super::drop_callback_context::<Box<dyn FnMut(Self) -> bool>>),
+            );
+        }
+    }
+    fn set_shell_title(&self, title: &str) {
+        unsafe {
+            FXWindow_set_shell_title(self.as_raw() as *mut FXWindow, to_cstring(title).as_ptr());
+        }
+    }
+    /// Closes the shell without asking [`on_close_if`] again.
+    fn close_shell(&self) {
+        unsafe { FXWindow_close_shell(self.as_raw() as *mut FXWindow) }
     }
     /// Ends the modal dialog that contains this window with accept.
     fn accept_dialog(&self) {
