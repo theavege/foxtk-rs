@@ -115,6 +115,72 @@ impl Text {
             .with_selector(Selector::CHANGED)
             .with_layout(Layout::Fill)
     }
+    pub fn length(&self) -> i32 {
+        unsafe { FXText_length(self.as_raw()) }
+    }
+    pub fn cursor_pos(&self) -> i32 {
+        unsafe { FXText_cursor_pos(self.as_raw()) }
+    }
+    pub fn cursor_row(&self) -> i32 {
+        unsafe { FXText_cursor_row(self.as_raw()) }
+    }
+    pub fn cursor_column(&self) -> i32 {
+        unsafe { FXText_cursor_column(self.as_raw()) }
+    }
+    pub fn is_modified(&self) -> bool {
+        unsafe { FXText_is_modified(self.as_raw()) != 0 }
+    }
+    pub fn set_modified(&self, modified: bool) {
+        unsafe { FXText_set_modified(self.as_raw(), modified as u8) }
+    }
+    pub fn set_tab_columns(&self, columns: i32) {
+        unsafe { FXText_set_tab_columns(self.as_raw(), columns) }
+    }
+    pub fn style(&self) -> u32 {
+        unsafe { FXText_get_style(self.as_raw()) }
+    }
+    pub fn set_style(&self, style: u32) {
+        unsafe { FXText_set_style(self.as_raw(), style) }
+    }
+    pub fn set_word_wrap(&self, wrap: bool) {
+        const WORD_WRAP: u32 = 0x0020_0000;
+        let style = self.style();
+        self.set_style(if wrap {
+            style | WORD_WRAP
+        } else {
+            style & !WORD_WRAP
+        });
+    }
+    pub fn find(&self, needle: &str, start: i32, flags: u32) -> Option<(i32, i32)> {
+        let mut beg = 0;
+        let mut end = 0;
+        let found = unsafe {
+            FXText_find_text(
+                self.as_raw(),
+                to_cstring(needle).as_ptr(),
+                start,
+                flags,
+                &mut beg,
+                &mut end,
+            )
+        };
+        if found == 0 { None } else { Some((beg, end)) }
+    }
+    pub fn select(&self, pos: i32, len: i32) {
+        unsafe { FXText_set_selection(self.as_raw(), pos, len) }
+    }
+    pub fn cut(&self) {
+        unsafe { FXText_cut(self.as_raw()) }
+    }
+    pub fn copy(&self) {
+        unsafe { FXText_copy(self.as_raw()) }
+    }
+    pub fn paste(&self) {
+        unsafe { FXText_paste(self.as_raw()) }
+    }
+    pub fn delete_selection(&self) {
+        unsafe { FXText_delete_selection(self.as_raw()) }
+    }
 }
 
 impl_widget!(TextField, IdExt, FrameExt, DrawableExt, WindowExt);

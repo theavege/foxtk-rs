@@ -408,7 +408,7 @@ public:
   long onClose(FXObject* wgt, FXSelector, void*)
   {
     if (callback)
-      callback(as_raw<FXWindow>(wgt), context);
+      return callback(as_raw<FXWindow>(wgt), context);
     // Returning false lets FXTopWindow::close() proceed.
     return 0;
   }
@@ -953,6 +953,24 @@ extern "C"
       delete old;
     }
     self->setTarget(new CCloseTarget(cb, ctx, drop));
+  }
+  void FXWindow_set_shell_title(FXWindow* self, const char* title)
+  {
+    if (!self || !title) {
+      return;
+    }
+    if (auto* shell = dynamic_cast<FXTopWindow*>(self->getShell())) {
+      shell->setTitle(title);
+    }
+  }
+  void FXWindow_close_shell(FXWindow* self)
+  {
+    if (!self) {
+      return;
+    }
+    if (auto* shell = dynamic_cast<FXTopWindow*>(self->getShell())) {
+      shell->close(FALSE);
+    }
   }
   void FXWindow_set_height(FXWindow* self, int height)
   {
@@ -1998,6 +2016,22 @@ extern "C"
   {
     ext_set_font(self, family, size);
   }
+  const char* FXButton_get_help_text(const FXButton* self)
+  {
+    return ext_get_help_text(self);
+  }
+  const char* FXButton_get_tip_text(const FXButton* self)
+  {
+    return ext_get_tip_text(self);
+  }
+  void FXButton_set_help_text(FXButton* self, const char* text)
+  {
+    ext_set_help_text(self, text);
+  }
+  void FXButton_set_tip_text(FXButton* self, const char* text)
+  {
+    ext_set_tip_text(self, text);
+  }
 
   //~ FXCheckButton.h
   FXCheckButton* FXCheckButton_new(FXComposite* prt, const char* title)
@@ -2087,6 +2121,99 @@ extern "C"
   void FXText_set_font(FXText* self, const char* family, int size)
   {
     ext_set_font(self, family, size);
+  }
+  int FXText_length(const FXText* self)
+  {
+    return self ? self->getLength() : 0;
+  }
+  int FXText_cursor_pos(const FXText* self)
+  {
+    return self ? self->getCursorPos() : 0;
+  }
+  int FXText_cursor_row(const FXText* self)
+  {
+    return self ? self->getCursorRow() : 0;
+  }
+  int FXText_cursor_column(const FXText* self)
+  {
+    return self ? self->getCursorColumn() : 0;
+  }
+  unsigned char FXText_is_modified(const FXText* self)
+  {
+    return self && self->isModified();
+  }
+  void FXText_set_modified(FXText* self, unsigned char modified)
+  {
+    if (self) {
+      self->setModified(modified != 0);
+    }
+  }
+  void FXText_set_tab_columns(FXText* self, int columns)
+  {
+    if (self) {
+      self->setTabColumns(columns);
+    }
+  }
+  unsigned FXText_get_style(const FXText* self)
+  {
+    return self ? self->getTextStyle() : 0;
+  }
+  void FXText_set_style(FXText* self, unsigned style)
+  {
+    if (self) {
+      self->setTextStyle(style);
+    }
+  }
+  int FXText_find_text(FXText* self,
+                       const char* string,
+                       int start,
+                       unsigned flags,
+                       int* beg,
+                       int* end)
+  {
+    if (!self || !string) {
+      return 0;
+    }
+    FXint found_beg = 0;
+    FXint found_end = 0;
+    if (!self->findText(string, &found_beg, &found_end, start, flags)) {
+      return 0;
+    }
+    if (beg) {
+      *beg = found_beg;
+    }
+    if (end) {
+      *end = found_end;
+    }
+    return 1;
+  }
+  void FXText_set_selection(FXText* self, int pos, int len)
+  {
+    if (self) {
+      self->setSelection(pos, len);
+    }
+  }
+  static void text_command(FXText* self, int id)
+  {
+    if (self) {
+      self->handle(self, FXSEL(SEL_COMMAND, id), nullptr);
+    }
+  }
+  void FXText_cut(FXText* self)
+  {
+    text_command(self, FXText::ID_CUT_SEL);
+  }
+  void FXText_copy(FXText* self)
+  {
+    text_command(self, FXText::ID_COPY_SEL);
+  }
+  void FXText_paste(FXText* self)
+  {
+    text_command(self, FXText::ID_PASTE_SEL);
+  }
+  void FXText_delete_selection(FXText* self)
+  {
+    text_command(self, FXText::ID_DELETE_SEL);
   }
 
   //~ FXTextField.h
@@ -3142,6 +3269,12 @@ extern "C"
   FXMenuCommand* FXMenuCommand_new(FXComposite* prt, const char* text)
   {
     return make_widget<FXMenuCommand, FXComposite>(prt, text);
+  }
+  void FXMenuCommand_set_icon(FXMenuCommand* self, FXIcon* icon)
+  {
+    if (self) {
+      self->setIcon(icon);
+    }
   }
   void FXMenuCommand_set_accel_text(FXMenuCommand* self, const char* text)
   {

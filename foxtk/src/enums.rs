@@ -54,6 +54,10 @@ pub enum MessageBox {
     #[default]
     Ok = 0x10000000,
     OkCancel = 0x20000000,
+    YesNo = 0x30000000,
+    YesNoCancel = 0x40000000,
+    QuitCancel = 0x50000000,
+    QuitSaveCancel = 0x60000000,
 }
 
 #[repr(C)]
