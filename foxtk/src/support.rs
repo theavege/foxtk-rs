@@ -90,11 +90,25 @@ pub(crate) unsafe extern "C" fn cmouse_callback<T: ObjectExt>(
     selector: i32,
     x: i32,
     y: i32,
+    last_x: i32,
+    last_y: i32,
+    width: i32,
+    height: i32,
     context: *mut c_void,
 ) -> c_long {
     let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| unsafe {
-        let func = &mut *(context as *mut Box<dyn FnMut(T, i32, i32, i32) -> bool>);
-        func(T::from_raw(ptr), selector, x, y) as c_long
+        let func =
+            &mut *(context as *mut Box<dyn FnMut(T, i32, i32, i32, i32, i32, i32, i32) -> bool>);
+        func(
+            T::from_raw(ptr),
+            selector,
+            x,
+            y,
+            last_x,
+            last_y,
+            width,
+            height,
+        ) as c_long
     }));
     result.unwrap_or(0)
 }
