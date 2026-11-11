@@ -99,7 +99,7 @@ impl Component for Scribble {
         groove.set_style(SEPARATOR_GROOVE);
         groove.set_layout(Layout::FillX);
 
-        let canvas = foxtk::Canvas::new(&canvas_frame).with_frame(FrameStyle::Sunken);
+        let canvas = foxtk::Canvas::new(&canvas_frame);
         canvas.set_layout(Layout::Fill);
         let drawing = self.drawing.clone();
         let canvas_for_mouse = share_canvas(&canvas);

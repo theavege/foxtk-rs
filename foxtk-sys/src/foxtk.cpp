@@ -988,6 +988,19 @@ extern "C"
       shell->close(FALSE);
     }
   }
+  void FXWindow_set_frame_style(FXWindow* self, unsigned style)
+  {
+    if (!self) {
+      return;
+    }
+    if (auto* packer = dynamic_cast<FXPacker*>(self)) {
+      packer->setFrameStyle(style);
+      return;
+    }
+    if (auto* frame = dynamic_cast<FXFrame*>(self)) {
+      frame->setFrameStyle(style);
+    }
+  }
   void FXWindow_set_height(FXWindow* self, int height)
   {
     self->setHeight(height);

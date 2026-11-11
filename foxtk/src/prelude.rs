@@ -450,7 +450,7 @@ pub trait FrameExt: WindowExt {
     }
     fn with_frame(self, frame: FrameStyle) -> Self {
         unsafe {
-            FXFrame_set_style(self.as_raw() as *mut FXFrame, frame as u32);
+            FXWindow_set_frame_style(self.as_raw() as *mut FXWindow, frame as u32);
         }
         self
     }

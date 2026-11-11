@@ -403,6 +403,8 @@ FXId_get_id(const FXId* self);
   void FXWindow_ungrab(FXWindow* self);
   // Close the shell without asking its close callback again.
   void FXWindow_close_shell(FXWindow* self);
+  // Packers and frames both have setFrameStyle, at different layouts.
+  void FXWindow_set_frame_style(FXWindow* self, unsigned style);
   void FXWindow_disable(FXWindow* self);
   void FXWindow_enable(FXWindow* self);
   void FXWindow_set_back_color(FXWindow* self, unsigned color);
