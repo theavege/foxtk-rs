@@ -229,3 +229,97 @@ struct inputs.Button implements prelude.TextExt
   - [x] [FXFileDialog](docs/FXFileDialog.md) - File open/save dialogs
 - [x] Status
   - [x] [FXStatusBar](docs/FXStatusBar.md) - Status bar with text and help
+
+## Widget Transition Table
+
+This table maps common GTK+ 3 concepts to approximate FOX Toolkit concepts and the
+corresponding `foxtk` wrapper, where one exists. It is a migration aid, not a claim
+that the toolkits have identical behavior or APIs. FOX applications are composed
+from parent-owned widgets and layout managers; `foxtk` exposes those through Rust
+wrapper types and extension traits.
+
+| GTK+ 3 concept | FOX Toolkit equivalent | FoxTK Rust API | Coverage |
+| --- | --- | --- | --- |
+| `GtkWidget` | `FXWindow` and specialized widget classes | `Window`, `WindowExt` | Core window behavior |
+| `GtkContainer`, `GtkBox` | `FXComposite`, `FXPacker`, `FXHorizontalFrame`, `FXVerticalFrame` | `Packer`, `HorizontalFrame`, `VerticalFrame`, `CompositeExt` | Available |
+| `GtkGrid` | `FXMatrix` | `Matrix` | Available |
+| `GtkPaned` | `FXSplitter`, `FX4Splitter` | `Splitter`, `FourSplitter` | Available |
+| `GtkWindow` | `FXMainWindow`, `FXTopWindow` | `MainWindow`, `Window` | Available |
+| `GtkDialog`, `GtkMessageDialog` | `FXDialogBox`, FOX message dialogs | `DialogBox`, `WindowExt::message` | Available |
+| `GtkFileChooserDialog` | FOX file and directory dialogs | `FileDialog`, `DirDialog`, `WindowExt` file-dialog helpers | Available |
+| `GtkButton` | `FXButton`, `FXArrowButton` | `Button`, `ArrowButton` | Available |
+| `GtkCheckButton`, `GtkToggleButton`, `GtkRadioButton` | FOX check, tri-state, toggle, and radio buttons | `CheckButton`, `TriStateButton`, `ToggleButton`, `RadioButton` | Available |
+| `GtkLabel` | `FXLabel` | `Label`, `TextableExt` | Available |
+| `GtkEntry` | `FXTextField` | `TextField`, `EditableExt`, `TextableExt` | Available |
+| `GtkTextView` | `FXText` | `Text`, `EditableExt`, `TextableExt` | Available |
+| `GtkProgressBar` | `FXProgressBar` | `ProgressBar` | Available |
+| `GtkScale`, `GtkSpinButton` | `FXSlider`, `FXSpinner`, and real-valued variants | `Slider`, `RealSlider`, `Spinner`, `RealSpinner`, `RangerExt` | Available |
+| `GtkComboBox`, `GtkComboBoxText` | `FXComboBox`, `FXListBox` | `ComboBox`, `ListBox`, `SelectorExt` | Available |
+| `GtkListBox`, simple list views | `FXList`, `FXIconList`, `FXTable` | `List`, `IconList`, `Table` | Available; APIs differ |
+| `GtkTreeView` | `FXTreeList`, `FXTreeListBox`, `FXFoldingList` | `TreeList`, `TreeListBox`, `FoldingList` | Available; model/view patterns differ |
+| `GtkNotebook` | `FXTabBook` and `FXTabItem` | `TabBook`, `TabItem` | Available |
+| `GtkMenuBar`, `GtkMenu`, menu items | FOX menu bar, panes, commands, checks, and radio items | `MenuBar`, `MenuPane`, `MenuCommand`, `MenuCheck`, `MenuRadio` | Available |
+| `GtkToolbar` | FOX toolbar and docking widgets | `ToolBar`, `DockBar`, `DockSite`, `ToolBarGrip` | Available |
+| `GtkScrolledWindow` | `FXScrollWindow`, `FXScrollPane` | `ScrollWindow`, `ScrollPane` | Available |
+| `GtkSeparator` | FOX horizontal and vertical separators | `HorizontalSeparator`, `VerticalSeparator`, `Separator` | Available |
+| `GtkImage` | FOX image, icon, bitmap, and image-view classes | `Image`, `Icon`, `Bitmap`, `ImageView`, `BitmapView` | Available |
+| `GtkColorButton`, color selection | FOX color selector and color controls | `ColorSelector`, `ColorDialog`, `ColorWell`, `ColorWheel`, `ColorList` | Available |
+| `GtkDrawingArea`, OpenGL drawing | `FXCanvas`, `FXGLCanvas`, `FXGLViewer` | `Canvas`, `GLCanvas`, `GLViewer`, `GLVisual` | Available; rendering APIs differ |
+| `GtkStatusbar` | `FXStatusBar`, `FXStatusLine` | `StatusBar`, `StatusLine` | Available |
+| `GtkTooltip` | FOX tooltip support | `ToolTip` | Available |
+| `GtkCalendar`, web view, video playback | No wrapper or direct equivalent is currently exposed by this project | — | Not currently covered |
+
+For exact FOX behavior and the wrapper methods available in this repository, see the
+focused guides in [`docs/`](docs/) and the crate API documentation. Widget ownership
+follows FOX's parent hierarchy; see [Object lifetime](README.md#object-lifetime).
+
+## Release plan
+
+The tree is `0.0.8`. [crates.io](https://crates.io/crates/foxtk) has `0.0.2` and `0.0.3` only. There is no git tag and no GitHub release. `0.0.4` through `0.0.8` were version bumps, not publishes. Until 1.0.0, a new minor version may break the API. `foxtk` and `foxtk-sys` always ship as the same version, and `foxtk` depends on that `foxtk-sys` with `=`.
+
+Release from `main` only, after `alpha/9` has been merged and the Make workflow is green on Linux and Windows. Publish `foxtk-sys` first, then `foxtk`. The GitHub release notes are the changelog.
+
+| Milestone | Publish | Done when |
+|---|---|---|
+| 0.0.9 | yes, first since 0.0.3 | the soundness list below is on `main` |
+| 0.1.0 | yes | a new user can build from the README, and the limits are written down |
+| 0.2.0 | yes | a worker thread can wake the UI thread |
+| 0.3.0 | yes | ownership is either in the types or an explicit, tested exception |
+| 1.0.0 | yes | the supported platforms and the public API are stable |
+
+### 0.0.9 — soundness
+
+Already on `alpha/9`, still to merge to `main`: the module split, library tests in Make, the component chore living until its callback returns, and `App` keeping the `argv` that FOX stores.
+
+- [ ] `alpha/9` merged to `main`, Linux and Windows Make green on that commit
+- [ ] `parent` returns `Option<Window>` and `root` returns `Window`, not `Self`
+- [ ] `set_width`, `set_height`, and `with_height` change the size without replacing the rest of the layout hints
+- [ ] `HorizontalFrame`'s forced 30px height is either removed or documented as the default
+- [ ] changelog covers everything since crates.io `0.0.3`
+- [ ] tag `v0.0.9` and publish both crates
+
+### 0.1.0 — pre-release people can depend on
+
+- [ ] MSRV pinned to the Rust version CI actually runs, and recorded in the crate
+- [ ] README shows `cargo add foxtk` and the Linux and Windows build requirements
+- [ ] `calculator`, `adie`, and `simple` build in CI
+- [ ] rustdoc builds on docs.rs
+- [ ] these limits are part of the crate docs, not only this file: most widgets do not borrow their parent, worker messages wait on a 50 ms poll, macOS is experimental, and the toolkit is FOX 1.6.59 (timeouts are milliseconds, not the nanoseconds of FOX 1.7)
+
+### 0.2.0 — wake the UI thread
+
+- [ ] `ComponentSender::send` from a worker wakes FOX without waiting for the 50 ms poll, and does not call `addChore` off the UI thread
+- [ ] `ComponentOutcome::Stop` removes the chore and the poll, instead of leaving the timer armed until the mount is dropped
+
+### 0.3.0 — ownership
+
+- [ ] a child wrapper that can name its parent borrows it, or the docs and a test say why it cannot
+- [ ] `ObjectExt::from_raw` stays unsafe
+- [ ] dropping a `ComponentMount` still cancels that component's chore and poll
+
+### 1.0.0 — stable
+
+- [ ] Linux and Windows Make are release blockers; macOS is either in that set or documented as unsupported
+- [ ] no open item from the 0.0.9 soundness list
+- [ ] a breaking change after this tag is a major version
+- [ ] FOX 1.6.59 stays the supported toolkit until that major version

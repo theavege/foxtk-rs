@@ -95,6 +95,22 @@ unsafe extern "C" fn ccallback<T: WindowExt>(ptr: *mut FXWindow, context: *mut c
     result.unwrap_or(0)
 }
 
+unsafe extern "C" fn cclose<T: WindowExt>(ptr: *mut FXWindow, context: *mut c_void) -> c_long {
+    let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| unsafe {
+        let func = &mut *(context as *mut Box<dyn FnMut(T)>);
+        func(T::from_raw(ptr as *mut T::T));
+    }));
+    0
+}
+
+unsafe extern "C" fn cclose_if<T: WindowExt>(ptr: *mut FXWindow, context: *mut c_void) -> c_long {
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| unsafe {
+        let func = &mut *(context as *mut Box<dyn FnMut(T) -> bool>);
+        func(T::from_raw(ptr as *mut T::T))
+    }));
+    c_long::from(result.unwrap_or(false))
+}
+
 pub trait ObjectExt: Sized {
     type T: 'static;
     fn as_raw(&self) -> *mut Self::T;
@@ -151,6 +167,109 @@ pub trait WindowExt: DrawableExt {
             FXWindow_enable(self.as_raw() as *mut FXWindow);
         }
     }
+    fn grab(&self) {
+        unsafe { FXWindow_grab(self.as_raw() as *mut FXWindow) }
+    }
+    fn ungrab(&self) {
+        unsafe { FXWindow_ungrab(self.as_raw() as *mut FXWindow) }
+    }
+    /// Title-bar icon of the shell that contains this window.
+    fn set_window_icon(&self, icon: &super::Icon) {
+        unsafe {
+            let shell = FXWindow_get_shell(self.as_raw() as *const FXWindow);
+            if !shell.is_null() {
+                FXTopWindow_set_icon(shell as *mut FXTopWindow, icon.as_raw());
+            }
+        }
+    }
+    /// Small title-bar icon of the shell that contains this window.
+    fn set_window_mini_icon(&self, icon: &super::Icon) {
+        unsafe {
+            let shell = FXWindow_get_shell(self.as_raw() as *const FXWindow);
+            if !shell.is_null() {
+                FXTopWindow_set_mini_icon(shell as *mut FXTopWindow, icon.as_raw());
+            }
+        }
+    }
+    fn set_back_color(&self, color: Color) {
+        unsafe { FXWindow_set_back_color(self.as_raw() as *mut FXWindow, color.bits()) }
+    }
+    fn back_color(&self) -> Color {
+        unsafe { Color::from_bits(FXWindow_get_back_color(self.as_raw() as *const FXWindow)) }
+    }
+    fn x(&self) -> i32 {
+        unsafe { FXWindow_get_x(self.as_raw() as *const FXWindow) }
+    }
+    fn y(&self) -> i32 {
+        unsafe { FXWindow_get_y(self.as_raw() as *const FXWindow) }
+    }
+    /// Move and resize this window. Does not change layout hints.
+    fn position(&self, x: i32, y: i32, width: i32, height: i32) {
+        unsafe { FXWindow_position(self.as_raw() as *mut FXWindow, x, y, width, height) }
+    }
+    /// Move the shell that contains this window. Non-positive width or height
+    /// keeps the shell's current size.
+    fn place_shell(&self, x: i32, y: i32, width: i32, height: i32) {
+        unsafe { FXWindow_place_shell(self.as_raw() as *mut FXWindow, x, y, width, height) }
+    }
+    fn shell_geometry(&self) -> (i32, i32, i32, i32) {
+        let mut x = 0;
+        let mut y = 0;
+        let mut width = 0;
+        let mut height = 0;
+        unsafe {
+            FXWindow_shell_geometry(
+                self.as_raw() as *const FXWindow,
+                &mut x,
+                &mut y,
+                &mut width,
+                &mut height,
+            );
+        }
+        (x, y, width, height)
+    }
+    /// Called when this shell is about to close. The window still closes.
+    fn on_close<F: FnMut(Self) + 'static>(&self, func: F) {
+        let raw_ptr: *mut Box<dyn FnMut(Self)> = Box::into_raw(Box::new(Box::new(func)));
+        unsafe {
+            FXWindow_on_close(
+                self.as_raw() as *mut FXWindow,
+                Some(cclose::<Self>),
+                raw_ptr as *mut c_void,
+                Some(super::drop_callback_context::<Box<dyn FnMut(Self)>>),
+            );
+        }
+    }
+    /// Called when this shell is about to close. Return true to keep it open.
+    fn on_close_if<F: FnMut(Self) -> bool + 'static>(&self, func: F) {
+        let raw_ptr: *mut Box<dyn FnMut(Self) -> bool> = Box::into_raw(Box::new(Box::new(func)));
+        unsafe {
+            FXWindow_on_close(
+                self.as_raw() as *mut FXWindow,
+                Some(cclose_if::<Self>),
+                raw_ptr as *mut c_void,
+                Some(super::drop_callback_context::<Box<dyn FnMut(Self) -> bool>>),
+            );
+        }
+    }
+    fn set_shell_title(&self, title: &str) {
+        unsafe {
+            FXWindow_set_shell_title(self.as_raw() as *mut FXWindow, to_cstring(title).as_ptr());
+        }
+    }
+    /// Closes the shell without asking [`on_close_if`] again.
+    fn close_shell(&self) {
+        unsafe { FXWindow_close_shell(self.as_raw() as *mut FXWindow) }
+    }
+    /// Ends the modal dialog that contains this window with accept.
+    fn accept_dialog(&self) {
+        unsafe {
+            let shell = FXWindow_get_shell(self.as_raw() as *const FXWindow);
+            if !shell.is_null() {
+                FXDialogBox_accept(shell as *mut FXDialogBox);
+            }
+        }
+    }
     fn with_layout(self, layout: Layout) -> Self {
         self.set_layout(layout);
         self
@@ -175,7 +294,7 @@ pub trait WindowExt: DrawableExt {
     fn open_file_dialog(&self, caption: &str, path: &str, patterns: &str, initial: i32) -> String {
         unsafe {
             let ptr = FXFileDialog_get_open_filename(
-                self.root().as_raw() as *mut FXWindow,
+                self.root().as_raw(),
                 to_cstring(caption).as_ptr(),
                 to_cstring(path).as_ptr(),
                 to_cstring(patterns).as_ptr(),
@@ -187,7 +306,7 @@ pub trait WindowExt: DrawableExt {
     fn save_file_dialog(&self, caption: &str, path: &str, patterns: &str, initial: i32) -> String {
         unsafe {
             let ptr = FXFileDialog_get_save_filename(
-                self.root().as_raw() as *mut FXWindow,
+                self.root().as_raw(),
                 to_cstring(caption).as_ptr(),
                 to_cstring(path).as_ptr(),
                 to_cstring(patterns).as_ptr(),
@@ -242,39 +361,44 @@ pub trait WindowExt: DrawableExt {
         }
         self
     }
-    fn parent(&self) -> Self {
-        unsafe {
-            Self::from_raw(FXWindow_get_parent(self.as_raw() as *const FXWindow) as *mut Self::T)
+    /// The parent window, or `None` when this window is the top of the tree.
+    /// The result is an `FXWindow`, not `Self`: a button's parent is not a button.
+    fn parent(&self) -> Option<super::Window> {
+        let ptr = unsafe { FXWindow_get_parent(self.as_raw() as *const FXWindow) };
+        if ptr.is_null() {
+            None
+        } else {
+            Some(unsafe { super::Window::from_raw(ptr) })
         }
     }
-    fn root(&self) -> Self {
-        unsafe {
-            Self::from_raw(FXWindow_get_root(self.as_raw() as *const FXWindow) as *mut Self::T)
-        }
+    /// The top window. FOX walks parents until one has none, so this is never null
+    /// for a live window, and it is an `FXWindow` rather than `Self`.
+    fn root(&self) -> super::Window {
+        unsafe { super::Window::from_raw(FXWindow_get_root(self.as_raw() as *const FXWindow)) }
     }
     fn message(&self, opts: MessageBox, message: &str, kind: Message) -> u32 {
         unsafe {
             match kind {
                 Message::Error => FXMessageBox_error(
-                    self.root().as_raw() as *mut FXWindow,
+                    self.root().as_raw(),
                     opts as u32,
                     to_cstring("Error").as_ptr(),
                     to_cstring(message).as_ptr(),
                 ),
                 Message::Information => FXMessageBox_information(
-                    self.root().as_raw() as *mut FXWindow,
+                    self.root().as_raw(),
                     opts as u32,
                     to_cstring("Information").as_ptr(),
                     to_cstring(message).as_ptr(),
                 ),
                 Message::Question => FXMessageBox_question(
-                    self.root().as_raw() as *mut FXWindow,
+                    self.root().as_raw(),
                     opts as u32,
                     to_cstring("Question").as_ptr(),
                     to_cstring(message).as_ptr(),
                 ),
                 Message::Warning => FXMessageBox_warning(
-                    self.root().as_raw() as *mut FXWindow,
+                    self.root().as_raw(),
                     opts as u32,
                     to_cstring("Warning").as_ptr(),
                     to_cstring(message).as_ptr(),
@@ -309,6 +433,12 @@ pub trait WindowExt: DrawableExt {
 //~ }
 
 pub trait FrameExt: WindowExt {
+    fn set_hilite_color(&self, color: Color) {
+        unsafe { FXFrame_set_hilite_color(self.as_raw() as *mut FXFrame, color.bits()) }
+    }
+    fn set_shadow_color(&self, color: Color) {
+        unsafe { FXFrame_set_shadow_color(self.as_raw() as *mut FXFrame, color.bits()) }
+    }
     fn with_pad(self, pad: i32) -> Self {
         unsafe {
             FXFrame_set_pad_bottom(self.as_raw() as *mut FXFrame, pad);
@@ -320,7 +450,7 @@ pub trait FrameExt: WindowExt {
     }
     fn with_frame(self, frame: FrameStyle) -> Self {
         unsafe {
-            FXFrame_set_style(self.as_raw() as *mut FXFrame, frame as u32);
+            FXWindow_set_frame_style(self.as_raw() as *mut FXWindow, frame as u32);
         }
         self
     }
@@ -503,6 +633,11 @@ pub trait RangerExt: WindowExt {
     }
 }
 
+/// FOX 1.6 `FXApp::addTimeout` takes milliseconds. This polls for a `send`
+/// from a thread other than the UI thread, which must not call `addChore`.
+const COMPONENT_POLL_MS: u32 = 50;
+type ComponentDispatchSlot = Rc<RefCell<Option<Box<dyn FnMut()>>>>;
+
 pub trait Component: Default + 'static {
     type Event: 'static;
     type State: Default + 'static;
@@ -515,7 +650,7 @@ pub trait Component: Default + 'static {
     fn view(&mut self, parent: &impl CompositeExt, sender: Sender<Self::Event>);
     fn mount(parent: &impl CompositeExt) -> ComponentMount {
         let (channel, receiver) = mpsc::channel::<Self::Event>();
-        let dispatch_slot: Rc<RefCell<Option<Box<dyn FnMut()>>>> = Rc::new(RefCell::new(None));
+        let dispatch_slot: ComponentDispatchSlot = Rc::new(RefCell::new(None));
         let app = parent.app();
         let app_ptr = NonNull::new(app.as_raw()).expect("FOX application pointer was null");
         let scheduler = Arc::new(Mutex::new(ComponentScheduler {
@@ -548,7 +683,7 @@ pub trait Component: Default + 'static {
             FXApp_add_timeout(
                 app_ptr.as_ptr(),
                 Some(super::ctimer_callback::<super::App>),
-                50,
+                COMPONENT_POLL_MS,
                 timeout_context,
                 Some(super::drop_callback_context::<Box<dyn FnMut(super::App) -> bool>>),
             )
@@ -603,7 +738,7 @@ pub trait Component: Default + 'static {
 }
 
 fn component_callback_context(
-    dispatch_slot: Rc<RefCell<Option<Box<dyn FnMut()>>>>,
+    dispatch_slot: ComponentDispatchSlot,
     scheduler: Option<Arc<Mutex<ComponentScheduler>>>,
     clear_scheduled: bool,
 ) -> *mut c_void {
@@ -617,7 +752,11 @@ fn component_callback_context(
                 scheduler.scheduled = false;
             }
         }
-        if let Some(dispatch) = dispatch_slot.borrow_mut().as_mut() {
+        // A modal loop inside handle() re-enters this callback. The outer
+        // dispatch is already draining the channel, so skip instead of panicking.
+        if let Ok(mut slot) = dispatch_slot.try_borrow_mut()
+            && let Some(dispatch) = slot.as_mut()
+        {
             dispatch();
         }
         true
