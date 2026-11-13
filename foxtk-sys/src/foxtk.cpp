@@ -580,14 +580,6 @@ private:
   void* context = nullptr;
 
 public:
-  enum
-  {
-    SEL_LBP = SEL_LEFTBUTTONPRESS,
-    SEL_LBR = SEL_LEFTBUTTONRELEASE,
-    SEL_MOT = SEL_MOTION,
-    SEL_RBP = SEL_RIGHTBUTTONPRESS,
-    SEL_RBR = SEL_RIGHTBUTTONRELEASE
-  };
   CMouseTarget(CbMouse cb, void* ctx, CbDrop drop)
     : CWrapperTarget(ctx, drop)
     , callback(cb)
@@ -600,23 +592,39 @@ public:
     if (this->callback) {
       int x = 0;
       int y = 0;
+      int last_x = 0;
+      int last_y = 0;
+      int width = 0;
+      int height = 0;
       auto ev = as_raw<FXEvent>(ptr);
+      int type = FXSELTYPE(sel);
       if (ev) {
         x = ev->win_x;
         y = ev->win_y;
+        last_x = ev->last_x;
+        last_y = ev->last_y;
+        if (type == SEL_PAINT) {
+          x = ev->rect.x;
+          y = ev->rect.y;
+          width = ev->rect.w;
+          height = ev->rect.h;
+        }
       }
       int code = 0;
-      if (sel == SEL_LEFTBUTTONPRESS)
+      if (type == SEL_LEFTBUTTONPRESS)
         code = 1;
-      else if (sel == SEL_LEFTBUTTONRELEASE)
+      else if (type == SEL_LEFTBUTTONRELEASE)
         code = 2;
-      else if (sel == SEL_MOTION)
+      else if (type == SEL_MOTION)
         code = 3;
-      else if (sel == SEL_RIGHTBUTTONPRESS)
+      else if (type == SEL_RIGHTBUTTONPRESS)
         code = 4;
-      else if (sel == SEL_RIGHTBUTTONRELEASE)
+      else if (type == SEL_RIGHTBUTTONRELEASE)
         code = 5;
-      result = this->callback(as_raw<FXCanvas>(wgt), code, x, y, this->context);
+      else if (type == SEL_PAINT)
+        code = 6;
+      result = this->callback(
+        as_raw<FXCanvas>(wgt), code, x, y, last_x, last_y, width, height, this->context);
     }
     return result;
   }
@@ -624,17 +632,13 @@ public:
 
 FXDEFMAP(CMouseTarget)
 CMouseTargetMap[] = {
-  FXMAPFUNC(SEL_LEFTBUTTONPRESS, CMouseTarget::SEL_LBP, CMouseTarget::callBack),
-  FXMAPFUNC(SEL_LEFTBUTTONRELEASE,
-            CMouseTarget::SEL_LBR,
-            CMouseTarget::callBack),
-  FXMAPFUNC(SEL_MOTION, CMouseTarget::SEL_MOT, CMouseTarget::callBack),
-  FXMAPFUNC(SEL_RIGHTBUTTONPRESS,
-            CMouseTarget::SEL_RBP,
-            CMouseTarget::callBack),
-  FXMAPFUNC(SEL_RIGHTBUTTONRELEASE,
-            CMouseTarget::SEL_RBR,
-            CMouseTarget::callBack),
+  // The canvas message id stays 0, which is FXCanvas's default selector.
+  FXMAPFUNC(SEL_PAINT, 0, CMouseTarget::callBack),
+  FXMAPFUNC(SEL_LEFTBUTTONPRESS, 0, CMouseTarget::callBack),
+  FXMAPFUNC(SEL_LEFTBUTTONRELEASE, 0, CMouseTarget::callBack),
+  FXMAPFUNC(SEL_MOTION, 0, CMouseTarget::callBack),
+  FXMAPFUNC(SEL_RIGHTBUTTONPRESS, 0, CMouseTarget::callBack),
+  FXMAPFUNC(SEL_RIGHTBUTTONRELEASE, 0, CMouseTarget::callBack),
 };
 FXIMPLEMENT(CMouseTarget,
             FXObject,
@@ -963,6 +967,18 @@ extern "C"
       shell->setTitle(title);
     }
   }
+  void FXWindow_grab(FXWindow* self)
+  {
+    if (self) {
+      self->grab();
+    }
+  }
+  void FXWindow_ungrab(FXWindow* self)
+  {
+    if (self) {
+      self->ungrab();
+    }
+  }
   void FXWindow_close_shell(FXWindow* self)
   {
     if (!self) {
@@ -970,6 +986,19 @@ extern "C"
     }
     if (auto* shell = dynamic_cast<FXTopWindow*>(self->getShell())) {
       shell->close(FALSE);
+    }
+  }
+  void FXWindow_set_frame_style(FXWindow* self, unsigned style)
+  {
+    if (!self) {
+      return;
+    }
+    if (auto* packer = dynamic_cast<FXPacker*>(self)) {
+      packer->setFrameStyle(style);
+      return;
+    }
+    if (auto* frame = dynamic_cast<FXFrame*>(self)) {
+      frame->setFrameStyle(style);
     }
   }
   void FXWindow_set_height(FXWindow* self, int height)
@@ -2674,6 +2703,10 @@ extern "C"
   FXDCWindow* FXDCWindow_new(FXDrawable* drawable)
   {
     return make_widget<FXDCWindow, FXDrawable>(drawable);
+  }
+  void FXDCWindow_free(FXDCWindow* self)
+  {
+    delete self;
   }
   void FXDCWindow_set_foreground(FXDCWindow* self, unsigned color)
   {

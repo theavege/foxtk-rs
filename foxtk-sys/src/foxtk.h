@@ -373,6 +373,7 @@ FXId_get_id(const FXId* self);
   //~ FXDCWindow.h
   FOXTK_OPAQUE(FXDCWindow)
   FXDCWindow* FXDCWindow_new(FXDrawable* drawable);
+  void FXDCWindow_free(FXDCWindow* self);
   EXT_DRAWING(FXDCWindow)
 
   //~ FXWindow.h
@@ -398,8 +399,12 @@ FXId_get_id(const FXId* self);
   // Runs before the shell closes. The callback cannot cancel the close.
   void FXWindow_on_close(FXWindow* self, CbWidget cb, void* ctx, CbDrop drop);
   void FXWindow_set_shell_title(FXWindow* self, const char* title);
+  void FXWindow_grab(FXWindow* self);
+  void FXWindow_ungrab(FXWindow* self);
   // Close the shell without asking its close callback again.
   void FXWindow_close_shell(FXWindow* self);
+  // Packers and frames both have setFrameStyle, at different layouts.
+  void FXWindow_set_frame_style(FXWindow* self, unsigned style);
   void FXWindow_disable(FXWindow* self);
   void FXWindow_enable(FXWindow* self);
   void FXWindow_set_back_color(FXWindow* self, unsigned color);
@@ -891,8 +896,15 @@ FXId_get_id(const FXId* self);
 
   //~ FXCanvas.h
   FOXTK_OPAQUE(FXCanvas)
-  typedef long (
-    *CbMouse)(FXCanvas* widget, int event_code, int x, int y, void* context);
+  typedef long (*CbMouse)(FXCanvas* widget,
+                          int event_code,
+                          int x,
+                          int y,
+                          int last_x,
+                          int last_y,
+                          int width,
+                          int height,
+                          void* context);
   FXCanvas* FXCanvas_new(FXComposite* prt);
   void FXCanvas_set_mouse_callback(FXCanvas* self, CbMouse cb, void* ctx,
                                    CbDrop drop);

@@ -98,6 +98,19 @@ impl DCWindow {
     pub fn new(drawable: &impl DrawableExt) -> Self {
         unsafe { Self::from_raw(FXDCWindow_new(drawable.as_raw() as *mut FXDrawable)) }
     }
+    pub fn set_foreground(&self, color: Color) {
+        unsafe { FXDCWindow_set_foreground(self.as_raw(), color.bits()) }
+    }
+    pub fn draw_line(&self, x1: i32, y1: i32, x2: i32, y2: i32) {
+        unsafe { FXDCWindow_draw_line(self.as_raw(), x1, y1, x2, y2) }
+    }
+    pub fn fill_rectangle(&self, x: i32, y: i32, width: i32, height: i32) {
+        unsafe { FXDCWindow_fill_rect(self.as_raw(), x, y, width, height) }
+    }
+    /// Ends the drawing context. The C++ object is not owned by a parent.
+    pub fn finish(self) {
+        unsafe { FXDCWindow_free(self.as_raw()) }
+    }
 }
 
 impl_widget!(Bitmap, IdExt);

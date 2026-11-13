@@ -167,6 +167,12 @@ pub trait WindowExt: DrawableExt {
             FXWindow_enable(self.as_raw() as *mut FXWindow);
         }
     }
+    fn grab(&self) {
+        unsafe { FXWindow_grab(self.as_raw() as *mut FXWindow) }
+    }
+    fn ungrab(&self) {
+        unsafe { FXWindow_ungrab(self.as_raw() as *mut FXWindow) }
+    }
     /// Title-bar icon of the shell that contains this window.
     fn set_window_icon(&self, icon: &super::Icon) {
         unsafe {
@@ -444,7 +450,7 @@ pub trait FrameExt: WindowExt {
     }
     fn with_frame(self, frame: FrameStyle) -> Self {
         unsafe {
-            FXFrame_set_style(self.as_raw() as *mut FXFrame, frame as u32);
+            FXWindow_set_frame_style(self.as_raw() as *mut FXWindow, frame as u32);
         }
         self
     }

@@ -27,15 +27,25 @@ impl Canvas {
     pub fn new(parent: &impl CompositeExt) -> Self {
         unsafe { Self::from_raw(FXCanvas_new(parent.as_raw() as *mut FXComposite)) }
     }
-    pub fn set_mouse_callback<F: FnMut(Self, i32, i32, i32) -> bool + 'static>(&self, func: F) {
-        let context: *mut Box<dyn FnMut(Self, i32, i32, i32) -> bool> =
+    /// `code` is 1 left press, 2 left release, 3 motion, 4 right press,
+    /// 5 right release, or 6 paint. Paint uses `x`, `y`, `width`, and `height`
+    /// as the expose rectangle. Motion uses `last_x` and `last_y`.
+    pub fn set_mouse_callback<F>(&self, func: F)
+    where
+        F: FnMut(Self, i32, i32, i32, i32, i32, i32, i32) -> bool + 'static,
+    {
+        let context: *mut Box<dyn FnMut(Self, i32, i32, i32, i32, i32, i32, i32) -> bool> =
             Box::into_raw(Box::new(Box::new(func)));
         unsafe {
             FXCanvas_set_mouse_callback(
                 self.as_raw(),
                 Some(cmouse_callback::<Self>),
                 context as *mut c_void,
-                Some(drop_callback_context::<Box<dyn FnMut(Self, i32, i32, i32) -> bool>>),
+                Some(
+                    drop_callback_context::<
+                        Box<dyn FnMut(Self, i32, i32, i32, i32, i32, i32, i32) -> bool>,
+                    >,
+                ),
             );
         }
     }
