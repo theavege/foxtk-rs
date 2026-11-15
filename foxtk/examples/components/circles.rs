@@ -249,16 +249,24 @@ impl Component for Circles {
                     }
                 });
                 let menu = menu.alias();
+                let live = live.clone();
                 canvas.set_mouse_callback(
                     move |canvas, code, x, y, _, _, width, height| match code {
                         1 => {
-                            if models::hit(&live.borrow().circles, x, y).is_none() {
+                            let miss = {
+                                let guard = live.borrow();
+                                models::hit(&guard.circles, x, y).is_none()
+                            };
+                            if miss {
                                 let _ = sender.send(Msg::Add(x, y));
                             }
                             true
                         }
                         3 => {
-                            let hover = models::hit(&live.borrow().circles, x, y);
+                            let hover = {
+                                let guard = live.borrow();
+                                models::hit(&guard.circles, x, y)
+                            };
                             if live.borrow().hover != hover {
                                 live.borrow_mut().hover = hover;
                                 canvas.refresh();
@@ -266,7 +274,10 @@ impl Component for Circles {
                             true
                         }
                         4 => {
-                            let hit = models::hit(&live.borrow().circles, x, y);
+                            let hit = {
+                                let guard = live.borrow();
+                                models::hit(&guard.circles, x, y)
+                            };
                             if let Some(index) = hit {
                                 chosen.set(Some(index));
                                 live.borrow_mut().hover = Some(index);
@@ -276,7 +287,8 @@ impl Component for Circles {
                             true
                         }
                         6 => {
-                            paint(&canvas, &live.borrow(), x, y, width, height);
+                            let guard = live.borrow();
+                            paint(&canvas, &guard, x, y, width, height);
                             true
                         }
                         _ => false,
