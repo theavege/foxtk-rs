@@ -40,6 +40,10 @@ impl Component for Simple {
                     "Timer",
                     "Dialect",
                     "NicCalc",
+                    "7GUIs Timer",
+                    "CRUD",
+                    "Circle Drawer",
+                    "Cells",
                 ]
                 .iter()
                 .enumerate()
@@ -90,6 +94,10 @@ impl Component for Simple {
             mounts.push(components::Timer::mount(prt));
             mounts.push(components::Dialect::mount(prt));
             mounts.push(components::NicCalc::mount(prt));
+            mounts.push(components::GuiTimer::mount(prt));
+            mounts.push(components::Crud::mount(prt));
+            mounts.push(components::Circles::mount(prt));
+            mounts.push(components::Cells::mount(prt));
         });
         self.mounts = mounts;
     }

@@ -28,6 +28,11 @@ impl MenuPane {
     pub fn new(parent: &impl WindowExt) -> Self {
         unsafe { Self::from_raw(foxtk_sys::FXMenuPane_new(parent.as_raw() as *mut FXWindow)) }
     }
+    /// `x` and `y` are root coordinates. [`WindowExt::translate_to_root`]
+    /// converts a point in a child window.
+    pub fn popup(&self, owner: &impl WindowExt, x: i32, y: i32) {
+        unsafe { foxtk_sys::FXMenuPane_popup(self.as_raw(), owner.as_raw() as *mut FXWindow, x, y) }
+    }
 }
 
 impl_widget!(MenuButton, IdExt, DrawableExt, WindowExt, FrameExt);

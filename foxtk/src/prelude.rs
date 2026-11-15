@@ -120,6 +120,10 @@ pub trait ObjectExt: Sized {
     /// `ptr` must be a live pointer to the native type represented by `Self`
     /// and must remain valid for every use of the returned wrapper.
     unsafe fn from_raw(ptr: *mut Self::T) -> Self;
+    /// Another wrapper for the same native object.
+    fn alias(&self) -> Self {
+        unsafe { Self::from_raw(self.as_raw()) }
+    }
 }
 
 pub trait IdExt: ObjectExt {
@@ -260,6 +264,17 @@ pub trait WindowExt: DrawableExt {
     /// Closes the shell without asking [`on_close_if`] again.
     fn close_shell(&self) {
         unsafe { FXWindow_close_shell(self.as_raw() as *mut FXWindow) }
+    }
+    fn refresh(&self) {
+        unsafe { FXWindow_refresh(self.as_raw() as *mut FXWindow) }
+    }
+    fn translate_to_root(&self, x: i32, y: i32) -> (i32, i32) {
+        let mut ox = x;
+        let mut oy = y;
+        unsafe {
+            FXWindow_translate_to_root(self.as_raw() as *const FXWindow, x, y, &mut ox, &mut oy);
+        }
+        (ox, oy)
     }
     /// Ends the modal dialog that contains this window with accept.
     fn accept_dialog(&self) {

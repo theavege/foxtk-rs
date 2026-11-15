@@ -374,6 +374,20 @@ FXId_get_id(const FXId* self);
   FOXTK_OPAQUE(FXDCWindow)
   FXDCWindow* FXDCWindow_new(FXDrawable* drawable);
   void FXDCWindow_free(FXDCWindow* self);
+  void FXDCWindow_draw_arc(FXDCWindow* self,
+                           int x,
+                           int y,
+                           int w,
+                           int h,
+                           int ang1,
+                           int ang2);
+  void FXDCWindow_fill_arc(FXDCWindow* self,
+                           int x,
+                           int y,
+                           int w,
+                           int h,
+                           int ang1,
+                           int ang2);
   EXT_DRAWING(FXDCWindow)
 
   //~ FXWindow.h
@@ -405,6 +419,8 @@ FXId_get_id(const FXId* self);
   void FXWindow_close_shell(FXWindow* self);
   // Packers and frames both have setFrameStyle, at different layouts.
   void FXWindow_set_frame_style(FXWindow* self, unsigned style);
+  void FXWindow_refresh(FXWindow* self);
+  void FXWindow_translate_to_root(const FXWindow* self, int x, int y, int* ox, int* oy);
   void FXWindow_disable(FXWindow* self);
   void FXWindow_enable(FXWindow* self);
   void FXWindow_set_back_color(FXWindow* self, unsigned color);
@@ -888,6 +904,12 @@ FXId_get_id(const FXId* self);
   const char* FXTable_get_item_text(const FXTable* self, int r, int c);
   void FXTable_set_table_size(FXTable* self, int nr, int nc);
   void FXTable_set_item_text(FXTable* self, int r, int c, const char* text);
+  int FXTable_get_current_row(const FXTable* self);
+  int FXTable_get_current_column(const FXTable* self);
+  void FXTable_set_row_text(FXTable* self, int index, const char* text);
+  void FXTable_set_column_text(FXTable* self, int index, const char* text);
+  void FXTable_set_column_width(FXTable* self, int col, int width);
+  void FXTable_set_row_header_width(FXTable* self, int width);
   EXT_JUSTIFY(FXTable)
 
   //~ FXTableItem.h
@@ -998,6 +1020,7 @@ FXId_get_id(const FXId* self);
   //~ FXMenuPane.h
   FOXTK_OPAQUE(FXMenuPane)
   FXMenuPane* FXMenuPane_new(FXWindow* prt);
+  void FXMenuPane_popup(FXMenuPane* self, FXWindow* owner, int x, int y);
 
   //~ FXMenuTitle.h
   FOXTK_OPAQUE(FXMenuTitle)
