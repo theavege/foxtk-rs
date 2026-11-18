@@ -51,6 +51,7 @@ mod models {
             &self.display[Self::index(row, col)]
         }
 
+        #[cfg(test)]
         pub fn generation(&self, row: usize, col: usize) -> u32 {
             self.generation[Self::index(row, col)]
         }
@@ -159,17 +160,17 @@ mod models {
                     index += 1;
                 }
                 if column < COLS && digits < index {
-                    if let Ok(row) = std::str::from_utf8(&bytes[digits..index])
+                    let row = std::str::from_utf8(&bytes[digits..index])
                         .unwrap_or("")
-                        .parse::<usize>()
+                        .parse::<usize>();
+                    if let Ok(row) = row
+                        && row < ROWS
                     {
-                        if row < ROWS {
-                            let cell = row * COLS + column;
-                            if !found.contains(&cell) {
-                                found.push(cell);
-                            }
-                            continue;
+                        let cell = row * COLS + column;
+                        if !found.contains(&cell) {
+                            found.push(cell);
                         }
+                        continue;
                     }
                 }
                 index = start + 1;

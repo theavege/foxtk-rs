@@ -151,6 +151,7 @@ pub enum Msg {
     Redo,
 }
 
+#[derive(Default)]
 struct Live {
     circles: Vec<models::Circle>,
     hover: Option<usize>,
@@ -162,15 +163,6 @@ pub struct Circles {
     undo: foxtk::Button,
     redo: foxtk::Button,
     live: Rc<RefCell<Live>>,
-}
-
-impl Default for Live {
-    fn default() -> Self {
-        Self {
-            circles: Vec::new(),
-            hover: None,
-        }
-    }
 }
 
 impl Component for Circles {
@@ -250,6 +242,7 @@ impl Component for Circles {
                 });
                 let menu = menu.alias();
                 let live = live.clone();
+                let sender = sender.clone();
                 canvas.set_mouse_callback(
                     move |canvas, code, x, y, _, _, width, height| match code {
                         1 => {

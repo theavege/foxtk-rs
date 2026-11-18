@@ -49,6 +49,7 @@ mod models {
                 .unwrap_or(-1)
         }
 
+        #[cfg(test)]
         pub fn select_visible(&mut self, index: i32) {
             self.selected = self.visible().get(index as usize).copied();
         }

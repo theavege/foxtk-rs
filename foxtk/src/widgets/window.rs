@@ -34,18 +34,14 @@ impl Canvas {
     where
         F: FnMut(Self, i32, i32, i32, i32, i32, i32, i32) -> bool + 'static,
     {
-        let context: *mut Box<dyn FnMut(Self, i32, i32, i32, i32, i32, i32, i32) -> bool> =
-            Box::into_raw(Box::new(Box::new(func)));
+        type MouseCallback = dyn FnMut(Canvas, i32, i32, i32, i32, i32, i32, i32) -> bool;
+        let context: *mut Box<MouseCallback> = Box::into_raw(Box::new(Box::new(func)));
         unsafe {
             FXCanvas_set_mouse_callback(
                 self.as_raw(),
                 Some(cmouse_callback::<Self>),
                 context as *mut c_void,
-                Some(
-                    drop_callback_context::<
-                        Box<dyn FnMut(Self, i32, i32, i32, i32, i32, i32, i32) -> bool>,
-                    >,
-                ),
+                Some(drop_callback_context::<Box<MouseCallback>>),
             );
         }
     }
