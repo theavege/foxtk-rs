@@ -382,6 +382,10 @@ FXDEFMAP(CTarget)
 CTargetMap[] = {
   FXMAPFUNC(SEL_COMMAND, CTarget::SEL_COMMAND, CTarget::callBack),
   FXMAPFUNC(SEL_CHANGED, CTarget::SEL_CHANGED, CTarget::callBack),
+  // Id 0 is the widget's default message. A table uses these to open and
+  // commit its cell editor. Buttons do not forward either message.
+  FXMAPFUNC(SEL_DOUBLECLICKED, 0, CTarget::callBack),
+  FXMAPFUNC(SEL_REPLACED, 0, CTarget::callBack),
 };
 FXIMPLEMENT(CTarget, FXObject, CTargetMap, ARRAYNUMBER(CTargetMap))
 
@@ -999,6 +1003,28 @@ extern "C"
     }
     if (auto* frame = dynamic_cast<FXFrame*>(self)) {
       frame->setFrameStyle(style);
+    }
+  }
+  void FXWindow_refresh(FXWindow* self)
+  {
+    if (self) {
+      self->update();
+    }
+  }
+  void FXWindow_translate_to_root(const FXWindow* self, int x, int y, int* ox, int* oy)
+  {
+    int tx = x;
+    int ty = y;
+    if (self) {
+      if (FXWindow* root = self->getRoot()) {
+        self->translateCoordinatesTo(tx, ty, root, x, y);
+      }
+    }
+    if (ox) {
+      *ox = tx;
+    }
+    if (oy) {
+      *oy = ty;
     }
   }
   void FXWindow_set_height(FXWindow* self, int height)
@@ -2708,6 +2734,14 @@ extern "C"
   {
     delete self;
   }
+  void FXDCWindow_draw_arc(FXDCWindow* self, int x, int y, int w, int h, int ang1, int ang2)
+  {
+    self->drawArc(x, y, w, h, ang1, ang2);
+  }
+  void FXDCWindow_fill_arc(FXDCWindow* self, int x, int y, int w, int h, int ang1, int ang2)
+  {
+    self->fillArc(x, y, w, h, ang1, ang2);
+  }
   void FXDCWindow_set_foreground(FXDCWindow* self, unsigned color)
   {
     self->setForeground(color);
@@ -3053,6 +3087,30 @@ extern "C"
   {
     return string_result(self->getItemText(r, c));
   }
+  int FXTable_get_current_row(const FXTable* self)
+  {
+    return self->getCurrentRow();
+  }
+  int FXTable_get_current_column(const FXTable* self)
+  {
+    return self->getCurrentColumn();
+  }
+  void FXTable_set_row_text(FXTable* self, int index, const char* text)
+  {
+    self->setRowText(index, text ? text : "");
+  }
+  void FXTable_set_column_text(FXTable* self, int index, const char* text)
+  {
+    self->setColumnText(index, text ? text : "");
+  }
+  void FXTable_set_column_width(FXTable* self, int col, int width)
+  {
+    self->setColumnWidth(col, width);
+  }
+  void FXTable_set_row_header_width(FXTable* self, int width)
+  {
+    self->setRowHeaderWidth(width);
+  }
   // NOTE: EXT_JUSTIFY(FXTable) is declared in the header, but FXTable has
   // no table-wide justify in the real FOX API — justification is a
   // per-cell property on FXTableItem, not the table itself. Left
@@ -3210,6 +3268,12 @@ extern "C"
   FXMenuPane* FXMenuPane_new(FXWindow* prt)
   {
     return make_widget<FXMenuPane, FXWindow>(prt);
+  }
+  void FXMenuPane_popup(FXMenuPane* self, FXWindow* owner, int x, int y)
+  {
+    if (self) {
+      self->popup(owner, x, y);
+    }
   }
 
   //~ FXPopup.h

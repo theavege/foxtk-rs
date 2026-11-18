@@ -107,6 +107,13 @@ impl DCWindow {
     pub fn fill_rectangle(&self, x: i32, y: i32, width: i32, height: i32) {
         unsafe { FXDCWindow_fill_rect(self.as_raw(), x, y, width, height) }
     }
+    /// Angles are in 64ths of a degree, the same units FOX uses.
+    pub fn draw_arc(&self, x: i32, y: i32, width: i32, height: i32, start: i32, span: i32) {
+        unsafe { FXDCWindow_draw_arc(self.as_raw(), x, y, width, height, start, span) }
+    }
+    pub fn fill_arc(&self, x: i32, y: i32, width: i32, height: i32, start: i32, span: i32) {
+        unsafe { FXDCWindow_fill_arc(self.as_raw(), x, y, width, height, start, span) }
+    }
     /// Ends the drawing context. The C++ object is not owned by a parent.
     pub fn finish(self) {
         unsafe { FXDCWindow_free(self.as_raw()) }

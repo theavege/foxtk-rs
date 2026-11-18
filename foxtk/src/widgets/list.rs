@@ -75,6 +75,24 @@ impl Table {
             cstr_lossy(ptr)
         }
     }
+    pub fn current_row(&self) -> i32 {
+        unsafe { FXTable_get_current_row(self.as_raw()) }
+    }
+    pub fn current_column(&self) -> i32 {
+        unsafe { FXTable_get_current_column(self.as_raw()) }
+    }
+    pub fn set_row_text(&self, index: i32, text: &str) {
+        unsafe { FXTable_set_row_text(self.as_raw(), index, to_cstring(text).as_ptr()) }
+    }
+    pub fn set_column_text(&self, index: i32, text: &str) {
+        unsafe { FXTable_set_column_text(self.as_raw(), index, to_cstring(text).as_ptr()) }
+    }
+    pub fn set_column_width(&self, column: i32, width: i32) {
+        unsafe { FXTable_set_column_width(self.as_raw(), column, width) }
+    }
+    pub fn set_row_header_width(&self, width: i32) {
+        unsafe { FXTable_set_row_header_width(self.as_raw(), width) }
+    }
 }
 
 impl_widget!(
