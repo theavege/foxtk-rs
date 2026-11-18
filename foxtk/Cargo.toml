@@ -18,6 +18,6 @@ paste = { version = "1.0" }
 once_cell = { version = "1.18" }
 
 [dev-dependencies]
-reqwest = { version = "0.13", features = ["json", "native-tls", "blocking"] }
+reqwest = { version = "0.13", default-features = false, features = ["json", "native-tls", "blocking"] }
 xlsxwriter = { version = "0" }
 chrono = { version = "0.4" }

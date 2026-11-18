@@ -332,7 +332,7 @@ Besides widget messages, `FXApp` can deliver four kinds of non-GUI messages to a
 
 ### Timers
 
-Intervals in the current docs are given in **nanoseconds**. (I believe older FOX 1.6 releases used milliseconds, so check your version's headers.)
+Intervals in the current (1.7) docs are **nanoseconds**. This crate builds fox-1.6.59, whose `FXApp::addTimeout` takes **milliseconds** (`FXuint ms=1000`).
 
 Timers fire **once**, so animations re-arm themselves:
 
