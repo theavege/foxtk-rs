@@ -268,6 +268,11 @@ pub trait WindowExt: DrawableExt {
     fn refresh(&self) {
         unsafe { FXWindow_refresh(self.as_raw() as *mut FXWindow) }
     }
+    /// Move keyboard focus here. A canvas can take focus; call this after
+    /// the window is shown so key events arrive.
+    fn set_focus(&self) {
+        unsafe { FXWindow_set_focus(self.as_raw() as *mut FXWindow) }
+    }
     fn translate_to_root(&self, x: i32, y: i32) -> (i32, i32) {
         let mut ox = x;
         let mut oy = y;

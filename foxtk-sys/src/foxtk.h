@@ -420,6 +420,7 @@ FXId_get_id(const FXId* self);
   // Packers and frames both have setFrameStyle, at different layouts.
   void FXWindow_set_frame_style(FXWindow* self, unsigned style);
   void FXWindow_refresh(FXWindow* self);
+  void FXWindow_set_focus(FXWindow* self);
   void FXWindow_translate_to_root(const FXWindow* self, int x, int y, int* ox, int* oy);
   void FXWindow_disable(FXWindow* self);
   void FXWindow_enable(FXWindow* self);

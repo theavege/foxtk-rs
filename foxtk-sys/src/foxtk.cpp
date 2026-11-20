@@ -627,6 +627,18 @@ public:
         code = 5;
       else if (type == SEL_PAINT)
         code = 6;
+      else if (type == SEL_KEYPRESS)
+        code = 7;
+      else if (type == SEL_KEYRELEASE)
+        code = 8;
+      if (code == 7 || code == 8) {
+        x = ev ? ev->code : 0;
+        y = 0;
+        last_x = 0;
+        last_y = 0;
+        width = 0;
+        height = 0;
+      }
       result = this->callback(
         as_raw<FXCanvas>(wgt), code, x, y, last_x, last_y, width, height, this->context);
     }
@@ -643,6 +655,8 @@ CMouseTargetMap[] = {
   FXMAPFUNC(SEL_MOTION, 0, CMouseTarget::callBack),
   FXMAPFUNC(SEL_RIGHTBUTTONPRESS, 0, CMouseTarget::callBack),
   FXMAPFUNC(SEL_RIGHTBUTTONRELEASE, 0, CMouseTarget::callBack),
+  FXMAPFUNC(SEL_KEYPRESS, 0, CMouseTarget::callBack),
+  FXMAPFUNC(SEL_KEYRELEASE, 0, CMouseTarget::callBack),
 };
 FXIMPLEMENT(CMouseTarget,
             FXObject,
@@ -1009,6 +1023,12 @@ extern "C"
   {
     if (self) {
       self->update();
+    }
+  }
+  void FXWindow_set_focus(FXWindow* self)
+  {
+    if (self) {
+      self->setFocus();
     }
   }
   void FXWindow_translate_to_root(const FXWindow* self, int x, int y, int* ox, int* oy)
