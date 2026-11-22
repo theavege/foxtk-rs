@@ -28,8 +28,11 @@ impl Canvas {
         unsafe { Self::from_raw(FXCanvas_new(parent.as_raw() as *mut FXComposite)) }
     }
     /// `code` is 1 left press, 2 left release, 3 motion, 4 right press,
-    /// 5 right release, or 6 paint. Paint uses `x`, `y`, `width`, and `height`
-    /// as the expose rectangle. Motion uses `last_x` and `last_y`.
+    /// 5 right release, 6 paint, 7 key press, or 8 key release. Paint uses
+    /// `x`, `y`, `width`, and `height` as the expose rectangle. Motion uses
+    /// `last_x` and `last_y`. A key event puts the FOX keysym in `x`.
+    /// Return true for a key so the shell does not treat arrows as focus
+    /// movement. The canvas must have focus; see [`WindowExt::set_focus`].
     pub fn set_mouse_callback<F>(&self, func: F)
     where
         F: FnMut(Self, i32, i32, i32, i32, i32, i32, i32) -> bool + 'static,
