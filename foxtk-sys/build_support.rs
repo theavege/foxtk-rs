@@ -25,13 +25,23 @@ pub fn fox_source_dir(extract_dir: &Path, distribution: &str) -> Result<PathBuf,
     .into())
 }
 
+pub fn sha256_hex(bytes: &[u8]) -> String {
+    const HEX: &[u8; 16] = b"0123456789abcdef";
+    let mut hex = String::with_capacity(bytes.len() * 2);
+    for byte in Sha256::digest(bytes) {
+        hex.push(HEX[(byte >> 4) as usize] as char);
+        hex.push(HEX[(byte & 0x0f) as usize] as char);
+    }
+    hex
+}
+
 pub fn extract_fox_archive(
     archive: &[u8],
     destination: &Path,
     distribution: &str,
     expected_sha256: &str,
 ) -> Result<PathBuf, Box<dyn Error>> {
-    let actual_sha256 = format!("{:x}", Sha256::digest(archive));
+    let actual_sha256 = sha256_hex(archive);
     if actual_sha256 != expected_sha256 {
         return Err(format!(
             "SHA-256 mismatch for {distribution}: expected {expected_sha256}, got {actual_sha256}"
