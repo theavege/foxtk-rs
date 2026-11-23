@@ -1,6 +1,7 @@
 #![doc = include_str!("../README.md")]
 
 pub mod enums;
+pub mod game;
 pub mod prelude;
 
 #[macro_use]

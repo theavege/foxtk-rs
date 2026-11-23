@@ -1,4 +1,5 @@
 pub use super::enums::*;
+pub use crate::game::{Args, Game, Graphics};
 use {
     super::{cstr_lossy, to_cstring},
     foxtk_sys::*,
