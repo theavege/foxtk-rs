@@ -1,6 +1,6 @@
 [package]
 name = "foxtk"
-version = "0.0.8"
+version = "0.0.9"
 authors = ["Artem V. Ageev <artem.v.ageev@gmail.com>"]
 license = "LGPL-2.1-only"
 repository = "https://github.com/theavege/foxtk-rs"
@@ -13,7 +13,7 @@ edition = "2024"
 nobuild = ["foxtk-sys/nobuild"]
 
 [dependencies]
-foxtk-sys = { path = "../foxtk-sys", version = "=0.0.8"}
+foxtk-sys = { path = "../foxtk-sys", version = "=0.0.9"}
 paste = { version = "1.0" }
 once_cell = { version = "1.18" }
 

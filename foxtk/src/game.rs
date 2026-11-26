@@ -89,7 +89,7 @@ impl Graphics<'_> {
 
 /// Callbacks a LÖVE game implements. Defaults do nothing, so a game only
 /// writes the ones it uses.
-pub trait Game: Sized + 'static {
+pub trait Game: Default + 'static {
     fn load(&mut self) {}
     fn update(&mut self, dt: f32);
     fn draw(&self, graphics: &mut Graphics<'_>);
@@ -104,90 +104,85 @@ pub trait Game: Sized + 'static {
     }
 
     /// Open the window and run until it closes.
-    fn run(self, args: Args<'_>) -> i32 {
-        run_game(self, args)
-    }
-}
-
-fn run_game<G: Game>(mut game: G, args: Args<'_>) -> i32 {
-    let app = crate::App::new(args.name, "FoxTest");
-    let window = crate::MainWindow::new(&app, args.title, args.width, args.height);
-    let canvas = crate::Canvas::new(&window);
-    canvas.set_layout(Layout::Fill);
-    game.load();
-    let game = Rc::new(RefCell::new(game));
-    let game_for_canvas = game.clone();
-    canvas.set_mouse_callback(move |canvas, code, x, y, _, _, _, _| {
-        let width = canvas.width() as f32;
-        let height = canvas.height() as f32;
-        let px = x as f32;
-        let py = y as f32;
-        match code {
-            1 => {
-                game_for_canvas
-                    .borrow_mut()
-                    .mousepressed(1, px, py, width, height);
-                canvas.refresh();
-                true
-            }
-            3 => {
-                game_for_canvas
-                    .borrow_mut()
-                    .mousemoved(px, py, width, height);
-                false
-            }
-            4 => {
-                game_for_canvas
-                    .borrow_mut()
-                    .mousepressed(2, px, py, width, height);
-                canvas.refresh();
-                true
-            }
-            6 => {
-                canvas.set_focus();
-                let dc = crate::DCWindow::new(&canvas);
-                {
-                    let mut graphics = Graphics {
-                        canvas: &canvas,
-                        dc: &dc,
-                    };
-                    game_for_canvas.borrow().draw(&mut graphics);
+    fn run(name: &str, title: &str, width: i32, height: i32) -> i32 {
+        let app = crate::App::new(name, "FoxTest");
+        let window = crate::MainWindow::new(&app, title, width, height);
+        let canvas = crate::Canvas::new(&window);
+        canvas.set_layout(Layout::Fill);
+        let game = Rc::new(RefCell::new(Self::default()));
+        game.borrow_mut().load();
+        let game_for_canvas = game.clone();
+        canvas.set_mouse_callback(move |canvas, code, x, y, _, _, _, _| {
+            let width = canvas.width() as f32;
+            let height = canvas.height() as f32;
+            let px = x as f32;
+            let py = y as f32;
+            match code {
+                1 => {
+                    game_for_canvas
+                        .borrow_mut()
+                        .mousepressed(1, px, py, width, height);
+                    canvas.refresh();
+                    true
                 }
-                dc.finish();
-                true
+                3 => {
+                    game_for_canvas
+                        .borrow_mut()
+                        .mousemoved(px, py, width, height);
+                    false
+                }
+                4 => {
+                    game_for_canvas
+                        .borrow_mut()
+                        .mousepressed(2, px, py, width, height);
+                    canvas.refresh();
+                    true
+                }
+                6 => {
+                    canvas.set_focus();
+                    let dc = crate::DCWindow::new(&canvas);
+                    {
+                        let mut graphics = Graphics {
+                            canvas: &canvas,
+                            dc: &dc,
+                        };
+                        game_for_canvas.borrow().draw(&mut graphics);
+                    }
+                    dc.finish();
+                    true
+                }
+                7 => {
+                    game_for_canvas.borrow_mut().keypressed(key_name(x));
+                    canvas.refresh();
+                    true
+                }
+                8 => {
+                    game_for_canvas.borrow_mut().keyreleased(key_name(x));
+                    true
+                }
+                _ => false,
             }
-            7 => {
-                game_for_canvas.borrow_mut().keypressed(key_name(x));
-                canvas.refresh();
-                true
+        });
+        let canvas_for_tick = canvas.alias();
+        let mut previous = Instant::now();
+        let _timer = app.add_timeout(16, move |_| {
+            let now = Instant::now();
+            let dt = (now - previous).as_secs_f32().clamp(0.0, 0.1);
+            previous = now;
+            {
+                let mut game = game.borrow_mut();
+                game.update(dt);
             }
-            8 => {
-                game_for_canvas.borrow_mut().keyreleased(key_name(x));
-                true
+            if game.borrow().quit() {
+                canvas_for_tick.close_shell();
             }
-            _ => false,
-        }
-    });
-    let canvas_for_tick = canvas.alias();
-    let game_for_tick = game.clone();
-    let mut previous = Instant::now();
-    let _timer = app.add_timeout(16, move |_| {
-        let now = Instant::now();
-        let dt = (now - previous).as_secs_f32().clamp(0.0, 0.1);
-        previous = now;
-        {
-            let mut game = game_for_tick.borrow_mut();
-            game.update(dt);
-        }
-        if game_for_tick.borrow().quit() {
-            canvas_for_tick.close_shell();
-        }
-        canvas_for_tick.refresh();
-        false
-    });
-    window.show();
-    canvas.set_focus();
-    app.run()
+            canvas_for_tick.refresh();
+            false
+        });
+        window.show();
+        canvas.set_focus();
+        app.run()
+    }
 }
 
 fn glyph(ch: char) -> [u8; 5] {

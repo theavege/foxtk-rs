@@ -26,12 +26,12 @@ impl Component for Rangers {
     }
     fn update(&self, model: &Self::State) {
         self.progress.set_value(*model as u32);
-        //~ self.spinner.update(*model);
+        self.spinner.update(*model);
         self.slider.update(*model);
     }
     fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
         const WIDTH: i32 = 90;
-        foxtk::GroupBox::new(prt, "Rangers").inside(|prt| {
+        foxtk::GroupBox::new(prt, "Counter").inside(|prt| {
             foxtk::VerticalFrame::new(prt).inside(|prt| {
                 foxtk::HorizontalFrame::new(prt).inside(|prt| {
                     self.spinner = foxtk::Spinner::new(prt).with_range(0, 8).with_callback({

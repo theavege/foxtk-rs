@@ -46,7 +46,11 @@ impl Component for Booker {
         self.back.set_enable(model.flight);
         self.back.update(&model.back);
     }
-    fn handle(msg: Self::Event, model: &mut Self::State, _: Sender<Self::Event>) -> ComponentOutcome {
+    fn handle(
+        msg: Self::Event,
+        model: &mut Self::State,
+        _: Sender<Self::Event>,
+    ) -> ComponentOutcome {
         match msg {
             Msg::Start(value) => {
                 model.start = value;
@@ -95,37 +99,41 @@ impl Component for Booker {
                     }
                 });
             });
-            foxtk::HorizontalFrame::new(prt).with_frame(FrameStyle::Thick).inside(|prt| {
-                foxtk::Label::new(prt, "Return data")
-                    .with_width(WIDTH)
-                    .set_text_color(Color::from_rgb(108, 113, 196));
-                self.back = foxtk::TextField::new(prt)
-                    .with_selector(Selector::COMMAND)
-                    .with_callback({
-                        let sender = sender.clone();
-                        move |wgt| {
-                            if wgt.has_focus() {
-                                if chrono::NaiveDate::parse_from_str(&wgt.text(), "%Y-%m-%d")
-                                    .is_ok()
-                                {
-                                    sender.send(Msg::Back(wgt.text())).unwrap();
-                                } else {
-                                    wgt.message(MessageBox::Ok, "ERROR", Message::Warning);
+            foxtk::HorizontalFrame::new(prt)
+                .with_frame(FrameStyle::Thick)
+                .inside(|prt| {
+                    foxtk::Label::new(prt, "Return data")
+                        .with_width(WIDTH)
+                        .set_text_color(Color::from_rgb(108, 113, 196));
+                    self.back = foxtk::TextField::new(prt)
+                        .with_selector(Selector::COMMAND)
+                        .with_callback({
+                            let sender = sender.clone();
+                            move |wgt| {
+                                if wgt.has_focus() {
+                                    if chrono::NaiveDate::parse_from_str(&wgt.text(), "%Y-%m-%d")
+                                        .is_ok()
+                                    {
+                                        sender.send(Msg::Back(wgt.text())).unwrap();
+                                    } else {
+                                        wgt.message(MessageBox::Ok, "ERROR", Message::Warning);
+                                    }
                                 }
+                                false
                             }
-                            false
+                        });
+                });
+            self.book = foxtk::Button::new(prt, "Book")
+                .with_width(WIDTH)
+                .with_callback({
+                    let sender = sender.clone();
+                    move |wgt| {
+                        if wgt.has_focus() {
+                            sender.send(Msg::Book).unwrap();
                         }
-                    });
-            });
-            self.book = foxtk::Button::new(prt, "Book").with_width(WIDTH).with_callback({
-                let sender = sender.clone();
-                move |wgt| {
-                    if wgt.has_focus() {
-                        sender.send(Msg::Book).unwrap();
+                        false
                     }
-                    false
-                }
-            });
+                });
         });
     }
 }

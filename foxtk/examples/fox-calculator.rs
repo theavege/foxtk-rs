@@ -19,7 +19,7 @@ const MOD_INV: u8 = 1;
 const MOD_HYP: u8 = 2;
 const MOD_ENT: u8 = 4;
 
-#[derive(Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Clone, Copy, PartialEq, Eq, Default, Debug)]
 enum Angle {
     Deg,
     #[default]
@@ -27,7 +27,7 @@ enum Angle {
     Gra,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Clone, Copy, PartialEq, Eq, Default, Debug)]
 enum Exponent {
     Always,
     Never,
