@@ -373,16 +373,6 @@ pub struct Cells {
     shown: RefCell<Vec<String>>,
 }
 
-impl Default for Cells {
-    fn default() -> Self {
-        Self {
-            table: foxtk::Table::default(),
-            sheet: Rc::new(RefCell::new(models::Sheet::default())),
-            shown: RefCell::new(Vec::new()),
-        }
-    }
-}
-
 impl Component for Cells {
     type Event = Msg;
     type State = models::Sheet;
@@ -430,30 +420,30 @@ impl Component for Cells {
         }
     }
 
-    fn view(&mut self, parent: &impl CompositeExt, sender: Sender<Self::Event>) {
-        self.table = foxtk::Table::new(parent);
-        self.table.set_layout(Layout::Fill);
-        self.table
-            .set_table_size(models::ROWS as i32, models::COLS as i32);
-        self.table.set_row_header_width(36);
+    fn new(parent: &impl CompositeExt, sender: Sender<Self::Event>) -> Self {
+        let table = foxtk::Table::new(parent);
+        table.set_layout(Layout::Fill);
+        table.set_table_size(models::ROWS as i32, models::COLS as i32);
+        table.set_row_header_width(36);
         for column in 0..models::COLS {
             let name = ((b'A' + column as u8) as char).to_string();
-            self.table.set_column_text(column as i32, &name);
-            self.table.set_column_width(column as i32, 64);
+            table.set_column_text(column as i32, &name);
+            table.set_column_width(column as i32, 64);
         }
         for row in 0..models::ROWS {
-            self.table.set_row_text(row as i32, &row.to_string());
+            table.set_row_text(row as i32, &row.to_string());
         }
-        let sheet = self.sheet.clone();
-        let table = self.table.alias();
-        table.with_callback(move |table| {
+        let sheet = Rc::new(RefCell::new(models::Sheet::default()));
+        let shown = RefCell::new(Vec::new());
+        let sheet_for_edit = sheet.clone();
+        table.alias().with_callback(move |table| {
             let row = table.current_row();
             let col = table.current_column();
             if row < 0 || col < 0 {
                 return false;
             }
             let text = table.item_text(row, col);
-            let guard = sheet.borrow();
+            let guard = sheet_for_edit.borrow();
             let formula = guard.formula(row as usize, col as usize).to_string();
             let display = guard.display(row as usize, col as usize).to_string();
             drop(guard);
@@ -468,5 +458,10 @@ impl Component for Cells {
             }
             false
         });
+        Self {
+            table,
+            sheet,
+            shown,
+        }
     }
 }

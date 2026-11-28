@@ -80,7 +80,7 @@ FOX owns the GUI event loop. `App::run` enters it, and native event callbacks ar
 `Component` is a model/update/view style abstraction:
 
 - `State` is the model and starts with `Default`.
-- `view` constructs widgets and receives a typed `Sender<Event>`.
+- `new` constructs the component and its widgets and receives a typed `Sender<Event>`.
 - `handle` processes an event and may mutate the model, returning `Unchanged`, `Changed`, or `Stop`.
 - `update` refreshes the view from the model when at least one drained event reports `Changed`.
 

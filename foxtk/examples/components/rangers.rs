@@ -4,7 +4,6 @@ pub enum Msg {
     Set(i32),
 }
 
-#[derive(Default)]
 pub struct Rangers {
     progress: foxtk::ProgressBar,
     slider: foxtk::Slider,
@@ -29,37 +28,40 @@ impl Component for Rangers {
         self.spinner.update(*model);
         self.slider.update(*model);
     }
-    fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
+    fn new(prt: &impl CompositeExt, sender: Sender<Self::Event>) -> Self {
         const WIDTH: i32 = 90;
-        foxtk::GroupBox::new(prt, "Counter").inside(|prt| {
-            foxtk::VerticalFrame::new(prt).inside(|prt| {
-                foxtk::HorizontalFrame::new(prt).inside(|prt| {
-                    self.spinner = foxtk::Spinner::new(prt).with_range(0, 8).with_callback({
-                        let sender = sender.clone();
-                        move |wgt| {
-                            if wgt.has_focus() {
-                                sender.send(Msg::Set(wgt.value())).unwrap();
-                            }
-                            false
-                        }
-                    });
-                });
-                foxtk::HorizontalFrame::new(prt).inside(|prt| {
-                    self.progress = foxtk::ProgressBar::new(prt).with_total(8);
-                    self.slider = foxtk::Slider::new(prt)
-                        .with_width(WIDTH)
-                        .with_range(0, 8)
-                        .with_callback({
-                            let sender = sender.clone();
-                            move |wgt| {
-                                if wgt.has_focus() {
-                                    sender.send(Msg::Set(wgt.value())).unwrap();
-                                }
-                                false
-                            }
-                        });
-                });
+        let group = foxtk::GroupBox::new(prt, "Counter");
+        let column = foxtk::VerticalFrame::new(&group);
+        let spinner_row = foxtk::HorizontalFrame::new(&column);
+        let spinner = foxtk::Spinner::new(&spinner_row)
+            .with_range(0, 8)
+            .with_callback({
+                let sender = sender.clone();
+                move |wgt| {
+                    if wgt.has_focus() {
+                        sender.send(Msg::Set(wgt.value())).unwrap();
+                    }
+                    false
+                }
             });
-        });
+        let slider_row = foxtk::HorizontalFrame::new(&column);
+        let progress = foxtk::ProgressBar::new(&slider_row).with_total(8);
+        let slider = foxtk::Slider::new(&slider_row)
+            .with_width(WIDTH)
+            .with_range(0, 8)
+            .with_callback({
+                let sender = sender.clone();
+                move |wgt| {
+                    if wgt.has_focus() {
+                        sender.send(Msg::Set(wgt.value())).unwrap();
+                    }
+                    false
+                }
+            });
+        Self {
+            progress,
+            slider,
+            spinner,
+        }
     }
 }

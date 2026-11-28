@@ -934,7 +934,6 @@ fn trim_trailing_zeros(text: &str) -> String {
     }
 }
 
-#[derive(Default)]
 struct Calculator {
     display: foxtk::TextField,
     memory: foxtk::Label,
@@ -1183,7 +1182,7 @@ impl Component for Calculator {
         self.persist(model);
     }
 
-    fn view(&mut self, parent: &impl CompositeExt, sender: Sender<Self::Event>) {
+    fn new(parent: &impl CompositeExt, sender: Sender<Self::Event>) -> Self {
         let app = parent.app();
         let big = foxtk::Icon::from_gif(&app, include_bytes!("icons/bigcalc.gif"));
         let mini = foxtk::Icon::from_gif(&app, include_bytes!("icons/tinycalc.gif"));
@@ -1194,186 +1193,229 @@ impl Component for Calculator {
         parent.set_window_icon(&big);
         parent.set_window_mini_icon(&mini);
         parent.on_close(|window| write_geometry(&window.app(), &window));
-        let live_colors = self.live_colors.clone();
-        let live_font = self.live_font.clone();
-        foxtk::VerticalFrame::new(parent)
-            .with_spacing(4)
-            .inside(|parent| {
-                foxtk::HorizontalFrame::new(parent).inside(|parent| {
-                    let title = foxtk::Button::new(parent, "FOX Calculator").with_icon(&big);
-                    title.set_text("FOX Calculator");
-                    title.with_callback({
-                        let sender = sender.clone();
-                        let live_colors = live_colors.clone();
-                        let live_font = live_font.clone();
-                        let big = same_icon(&big);
-                        let palette = same_icon(&palette);
-                        let about = same_icon(&about);
-                        move |button| {
-                            let colors = *live_colors.borrow();
-                            let font = live_font.borrow().clone();
-                            if let Some((colors, family, size)) =
-                                edit_preferences(&button, colors, font, &big, &palette, &about)
-                            {
-                                let _ = sender.send(Event::Colors(colors));
-                                let _ = sender.send(Event::Font(family, size));
-                            }
-                            false
-                        }
-                    });
-                    foxtk::Button::new(parent, "Help")
-                        .with_icon(&question)
-                        .with_callback(|button| {
-                            show_help(&button);
-                            false
-                        });
-                    self.display = foxtk::TextField::new(parent)
-                        .with_editable(false)
-                        .with_layout(Layout::Fill);
-                    self.memory = foxtk::Label::new(parent, "").with_icon(&memory_icon);
-                });
-                foxtk::HorizontalFrame::new(parent).inside(|parent| {
-                    self.precision = foxtk::Spinner::new(parent)
-                        .with_range(0, 16)
-                        .with_callback({
-                            let sender = sender.clone();
-                            move |spinner| {
-                                if spinner.has_focus() {
-                                    let _ = sender.send(Event::Precision(spinner.value()));
-                                }
-                                false
-                            }
-                        });
-                    self.exponent_mode = key(parent, "exp: auto", &sender, Event::Exponent);
-                    self.beep = foxtk::CheckButton::new(parent, "Beep")
-                        .with_check(true)
-                        .with_callback({
-                            let sender = sender.clone();
-                            move |check| {
-                                let _ = sender.send(Event::Beep(check.check()));
-                                false
-                            }
-                        });
-                });
-                foxtk::HorizontalFrame::new(parent).inside(|parent| {
-                    for (slot, (title, base)) in ["Hex", "Dec", "Oct", "Bin"]
-                        .into_iter()
-                        .zip([16, 10, 8, 2])
-                        .enumerate()
-                    {
-                        self.bases[slot] = key(parent, title, &sender, Event::Key(Key::Base(base)));
-                    }
-                    for (slot, (title, angle)) in ["Deg", "Rad", "Gra"]
-                        .into_iter()
-                        .zip([Angle::Deg, Angle::Rad, Angle::Gra])
-                        .enumerate()
-                    {
-                        self.angles[slot] =
-                            key(parent, title, &sender, Event::Key(Key::Angle(angle)));
-                    }
-                });
-                foxtk::HorizontalFrame::new(parent)
-                    .with_height(0)
-                    .inside(|parent| {
-                        let functions = foxtk::Matrix::new(parent, 6);
-                        self.inverse = key(&functions, "inv", &sender, Event::Key(Key::Inverse));
-                        self.plus_min = key(&functions, "+/-", &sender, Event::Key(Key::PlusMin));
-                        self.recip = key(&functions, "1/x", &sender, Event::Key(Key::Recip));
-                        self.power = key(&functions, "x^y", &sender, Event::Key(Key::Power));
-                        self.sqrt = key(&functions, "sqrt", &sender, Event::Key(Key::Sqrt));
-                        self.log2 = key(&functions, "2log", &sender, Event::Key(Key::Log2));
-
-                        self.pi = key(&functions, "pi", &sender, Event::Key(Key::Pi));
-                        self.shift_left = key(&functions, "SHL", &sender, Event::Key(Key::Shl));
-                        self.shift_right = key(&functions, "SHR", &sender, Event::Key(Key::Shr));
-                        self.factorial = key(&functions, "x!", &sender, Event::Key(Key::Fac));
-                        self.permut = key(&functions, "nPr", &sender, Event::Key(Key::Per));
-                        self.combin = key(&functions, "nCr", &sender, Event::Key(Key::Com));
-
-                        self.hyper = key(&functions, "hyp", &sender, Event::Key(Key::Hyper));
-                        self.sin = key(&functions, "sin", &sender, Event::Key(Key::Sin));
-                        self.cos = key(&functions, "cos", &sender, Event::Key(Key::Cos));
-                        self.tan = key(&functions, "tan", &sender, Event::Key(Key::Tan));
-                        self.log = key(&functions, "log", &sender, Event::Key(Key::Log));
-                        self.ln = key(&functions, "ln", &sender, Event::Key(Key::Ln));
-
-                        for (offset, title) in
-                            ["A", "B", "C", "D", "E", "F"].into_iter().enumerate()
-                        {
-                            self.digits[10 + offset] = key(
-                                &functions,
-                                title,
-                                &sender,
-                                Event::Key(Key::Digit((10 + offset) as u32)),
-                            );
-                        }
-
-                        let keys = foxtk::Matrix::new(parent, 5);
-                        let column = [
-                            (Key::MemRec, "MR"),
-                            (Key::Digit(7), "7"),
-                            (Key::Digit(4), "4"),
-                            (Key::Digit(1), "1"),
-                            (Key::Digit(0), "0"),
-                            (Key::MemAdd, "M+"),
-                            (Key::Digit(8), "8"),
-                            (Key::Digit(5), "5"),
-                            (Key::Digit(2), "2"),
-                            (Key::Point, "."),
-                            (Key::MemSub, "M-"),
-                            (Key::Digit(9), "9"),
-                            (Key::Digit(6), "6"),
-                            (Key::Digit(3), "3"),
-                            (Key::Exp, "EXP"),
-                            (Key::MemClr, "MC"),
-                            (Key::LPar, "("),
-                            (Key::Mul, "*"),
-                            (Key::Add, "+"),
-                            (Key::Enter, "="),
-                            (Key::Clear, "C"),
-                            (Key::RPar, ")"),
-                            (Key::Div, "/"),
-                            (Key::Sub, "-"),
-                            (Key::Mod, "mod"),
-                            (Key::ClearAll, "AC"),
-                            (Key::And, "AND"),
-                            (Key::Or, "OR"),
-                            (Key::Xor, "XOR"),
-                            (Key::Not, "NOT"),
-                        ];
-                        for (key_id, title) in column {
-                            let button = key(&keys, title, &sender, Event::Key(key_id));
-                            match key_id {
-                                Key::Digit(digit) => self.digits[digit as usize] = button,
-                                Key::Point => self.operators[0] = button,
-                                Key::Exp => self.operators[1] = button,
-                                Key::LPar => self.operators[2] = button,
-                                Key::Mul => self.operators[3] = button,
-                                Key::Add => self.operators[4] = button,
-                                Key::Enter => self.operators[5] = button,
-                                Key::RPar => self.operators[6] = button,
-                                Key::Div => self.operators[7] = button,
-                                Key::Sub => self.operators[8] = button,
-                                Key::Mod => self.operators[9] = button,
-                                Key::And => self.operators[10] = button,
-                                Key::Or => self.operators[11] = button,
-                                Key::Xor => self.operators[12] = button,
-                                Key::Not => self.operators[13] = button,
-                                Key::MemRec => self.memory_keys[0] = button,
-                                Key::MemAdd => self.memory_keys[1] = button,
-                                Key::MemSub => self.memory_keys[2] = button,
-                                Key::MemClr => self.memory_keys[3] = button,
-                                Key::Clear => self.clear = button,
-                                Key::ClearAll => self.clear_all = button,
-                                _ => {}
-                            }
-                        }
-                        self.point = same_button(&self.operators[0]);
-                        self.exp = same_button(&self.operators[1]);
-                        self.modulo = same_button(&self.operators[9]);
-                    });
+        let live_colors = Rc::new(RefCell::new(Colors::default()));
+        let live_font = Rc::new(RefCell::new((String::new(), 0)));
+        let root = foxtk::VerticalFrame::new(parent).with_spacing(4);
+        let header = foxtk::HorizontalFrame::new(&root);
+        let title = foxtk::Button::new(&header, "FOX Calculator").with_icon(&big);
+        title.set_text("FOX Calculator");
+        title.with_callback({
+            let sender = sender.clone();
+            let live_colors = live_colors.clone();
+            let live_font = live_font.clone();
+            let big = same_icon(&big);
+            let palette = same_icon(&palette);
+            let about = same_icon(&about);
+            move |button| {
+                let colors = *live_colors.borrow();
+                let font = live_font.borrow().clone();
+                if let Some((colors, family, size)) =
+                    edit_preferences(&button, colors, font, &big, &palette, &about)
+                {
+                    let _ = sender.send(Event::Colors(colors));
+                    let _ = sender.send(Event::Font(family, size));
+                }
+                false
+            }
+        });
+        foxtk::Button::new(&header, "Help")
+            .with_icon(&question)
+            .with_callback(|button| {
+                show_help(&button);
+                false
             });
+        let display = foxtk::TextField::new(&header)
+            .with_editable(false)
+            .with_layout(Layout::Fill);
+        let memory = foxtk::Label::new(&header, "").with_icon(&memory_icon);
+        let modes = foxtk::HorizontalFrame::new(&root);
+        let precision = foxtk::Spinner::new(&modes)
+            .with_range(0, 16)
+            .with_callback({
+                let sender = sender.clone();
+                move |spinner| {
+                    if spinner.has_focus() {
+                        let _ = sender.send(Event::Precision(spinner.value()));
+                    }
+                    false
+                }
+            });
+        let exponent_mode = key(&modes, "exp: auto", &sender, Event::Exponent);
+        let beep = foxtk::CheckButton::new(&modes, "Beep")
+            .with_check(true)
+            .with_callback({
+                let sender = sender.clone();
+                move |check| {
+                    let _ = sender.send(Event::Beep(check.check()));
+                    false
+                }
+            });
+        let units = foxtk::HorizontalFrame::new(&root);
+        let base_titles = ["Hex", "Dec", "Oct", "Bin"];
+        let base_values = [16, 10, 8, 2];
+        let bases = std::array::from_fn(|slot| {
+            key(
+                &units,
+                base_titles[slot],
+                &sender,
+                Event::Key(Key::Base(base_values[slot])),
+            )
+        });
+        let angle_titles = ["Deg", "Rad", "Gra"];
+        let angle_values = [Angle::Deg, Angle::Rad, Angle::Gra];
+        let angles = std::array::from_fn(|slot| {
+            key(
+                &units,
+                angle_titles[slot],
+                &sender,
+                Event::Key(Key::Angle(angle_values[slot])),
+            )
+        });
+        let keypad = foxtk::HorizontalFrame::new(&root).with_height(0);
+        let functions = foxtk::Matrix::new(&keypad, 6);
+        let inverse = key(&functions, "inv", &sender, Event::Key(Key::Inverse));
+        let plus_min = key(&functions, "+/-", &sender, Event::Key(Key::PlusMin));
+        let recip = key(&functions, "1/x", &sender, Event::Key(Key::Recip));
+        let power = key(&functions, "x^y", &sender, Event::Key(Key::Power));
+        let sqrt = key(&functions, "sqrt", &sender, Event::Key(Key::Sqrt));
+        let log2 = key(&functions, "2log", &sender, Event::Key(Key::Log2));
+
+        let pi = key(&functions, "pi", &sender, Event::Key(Key::Pi));
+        let shift_left = key(&functions, "SHL", &sender, Event::Key(Key::Shl));
+        let shift_right = key(&functions, "SHR", &sender, Event::Key(Key::Shr));
+        let factorial = key(&functions, "x!", &sender, Event::Key(Key::Fac));
+        let permut = key(&functions, "nPr", &sender, Event::Key(Key::Per));
+        let combin = key(&functions, "nCr", &sender, Event::Key(Key::Com));
+
+        let hyper = key(&functions, "hyp", &sender, Event::Key(Key::Hyper));
+        let sin = key(&functions, "sin", &sender, Event::Key(Key::Sin));
+        let cos = key(&functions, "cos", &sender, Event::Key(Key::Cos));
+        let tan = key(&functions, "tan", &sender, Event::Key(Key::Tan));
+        let log = key(&functions, "log", &sender, Event::Key(Key::Log));
+        let ln = key(&functions, "ln", &sender, Event::Key(Key::Ln));
+
+        let mut digits: [Option<foxtk::Button>; 16] = std::array::from_fn(|_| None);
+        for (offset, title) in ["A", "B", "C", "D", "E", "F"].into_iter().enumerate() {
+            digits[10 + offset] = Some(key(
+                &functions,
+                title,
+                &sender,
+                Event::Key(Key::Digit((10 + offset) as u32)),
+            ));
+        }
+
+        let keys = foxtk::Matrix::new(&keypad, 5);
+        let column = [
+            (Key::MemRec, "MR"),
+            (Key::Digit(7), "7"),
+            (Key::Digit(4), "4"),
+            (Key::Digit(1), "1"),
+            (Key::Digit(0), "0"),
+            (Key::MemAdd, "M+"),
+            (Key::Digit(8), "8"),
+            (Key::Digit(5), "5"),
+            (Key::Digit(2), "2"),
+            (Key::Point, "."),
+            (Key::MemSub, "M-"),
+            (Key::Digit(9), "9"),
+            (Key::Digit(6), "6"),
+            (Key::Digit(3), "3"),
+            (Key::Exp, "EXP"),
+            (Key::MemClr, "MC"),
+            (Key::LPar, "("),
+            (Key::Mul, "*"),
+            (Key::Add, "+"),
+            (Key::Enter, "="),
+            (Key::Clear, "C"),
+            (Key::RPar, ")"),
+            (Key::Div, "/"),
+            (Key::Sub, "-"),
+            (Key::Mod, "mod"),
+            (Key::ClearAll, "AC"),
+            (Key::And, "AND"),
+            (Key::Or, "OR"),
+            (Key::Xor, "XOR"),
+            (Key::Not, "NOT"),
+        ];
+        let mut operators: [Option<foxtk::Button>; 14] = std::array::from_fn(|_| None);
+        let mut memory_keys: [Option<foxtk::Button>; 4] = std::array::from_fn(|_| None);
+        let mut clear = None;
+        let mut clear_all = None;
+        for (key_id, title) in column {
+            let button = key(&keys, title, &sender, Event::Key(key_id));
+            match key_id {
+                Key::Digit(digit) => digits[digit as usize] = Some(button),
+                Key::Point => operators[0] = Some(button),
+                Key::Exp => operators[1] = Some(button),
+                Key::LPar => operators[2] = Some(button),
+                Key::Mul => operators[3] = Some(button),
+                Key::Add => operators[4] = Some(button),
+                Key::Enter => operators[5] = Some(button),
+                Key::RPar => operators[6] = Some(button),
+                Key::Div => operators[7] = Some(button),
+                Key::Sub => operators[8] = Some(button),
+                Key::Mod => operators[9] = Some(button),
+                Key::And => operators[10] = Some(button),
+                Key::Or => operators[11] = Some(button),
+                Key::Xor => operators[12] = Some(button),
+                Key::Not => operators[13] = Some(button),
+                Key::MemRec => memory_keys[0] = Some(button),
+                Key::MemAdd => memory_keys[1] = Some(button),
+                Key::MemSub => memory_keys[2] = Some(button),
+                Key::MemClr => memory_keys[3] = Some(button),
+                Key::Clear => clear = Some(button),
+                Key::ClearAll => clear_all = Some(button),
+                _ => {}
+            }
+        }
+        let digits = digits.map(|button| button.expect("calculator digit"));
+        let operators = operators.map(|button| button.expect("calculator operator"));
+        let memory_keys = memory_keys.map(|button| button.expect("calculator memory key"));
+        let clear = clear.expect("calculator clear");
+        let clear_all = clear_all.expect("calculator clear all");
+        let point = same_button(&operators[0]);
+        let exp = same_button(&operators[1]);
+        let modulo = same_button(&operators[9]);
         let _ = sender.send(Event::Saved(Saved::read(&parent.app())));
+        Self {
+            display,
+            memory,
+            bases,
+            angles,
+            inverse,
+            hyper,
+            recip,
+            power,
+            sqrt,
+            log2,
+            pi,
+            shift_right,
+            factorial,
+            permut,
+            combin,
+            sin,
+            cos,
+            tan,
+            log,
+            ln,
+            point,
+            exp,
+            modulo,
+            digits,
+            exponent_mode,
+            precision,
+            beep,
+            plus_min,
+            shift_left,
+            operators,
+            memory_keys,
+            clear,
+            clear_all,
+            live_colors,
+            live_font,
+            updates: Cell::new(0),
+            placed: Cell::new(false),
+        }
     }
 }
 

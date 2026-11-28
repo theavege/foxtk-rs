@@ -157,7 +157,6 @@ struct Live {
     hover: Option<usize>,
 }
 
-#[derive(Default)]
 pub struct Circles {
     canvas: foxtk::Canvas,
     undo: foxtk::Button,
@@ -195,99 +194,97 @@ impl Component for Circles {
         self.canvas.refresh();
     }
 
-    fn view(&mut self, parent: &impl CompositeExt, sender: Sender<Self::Event>) {
-        let live = self.live.clone();
-        foxtk::VerticalFrame::new(parent)
-            .with_layout(Layout::Fill)
-            .inside(|parent| {
-                foxtk::HorizontalFrame::new(parent).inside(|parent| {
-                    self.undo = foxtk::Button::new(parent, "Undo").with_callback({
-                        let sender = sender.clone();
-                        move |_| {
-                            let _ = sender.send(Msg::Undo);
-                            false
-                        }
-                    });
-                    self.redo = foxtk::Button::new(parent, "Redo").with_callback({
-                        let sender = sender.clone();
-                        move |_| {
-                            let _ = sender.send(Msg::Redo);
-                            false
-                        }
-                    });
-                    self.undo.set_enable(false);
-                    self.redo.set_enable(false);
-                });
-                self.canvas = foxtk::Canvas::new(parent);
-                self.canvas.set_layout(Layout::Fill);
-                let canvas = self.canvas.alias();
-                let menu = foxtk::MenuPane::new(&canvas);
-                let chosen = Rc::new(Cell::new(None::<usize>));
-                let chosen_for_menu = chosen.clone();
-                let live_for_menu = live.clone();
-                let canvas_for_menu = canvas.alias();
-                foxtk::MenuCommand::new(&menu, "Adjust diameter..").with_callback({
-                    let sender = sender.clone();
-                    move |_| {
-                        if let Some(index) = chosen_for_menu.get() {
-                            let from = live_for_menu.borrow().circles.get(index).map(|c| c.d);
-                            if let Some(from) = from {
-                                let to =
-                                    adjust_diameter(&canvas_for_menu, &live_for_menu, index, from);
-                                let _ = sender.send(Msg::Resize { index, from, to });
-                            }
-                        }
-                        false
+    fn new(parent: &impl CompositeExt, sender: Sender<Self::Event>) -> Self {
+        let live = Rc::new(RefCell::new(Live::default()));
+        let root = foxtk::VerticalFrame::new(parent).with_layout(Layout::Fill);
+        let buttons = foxtk::HorizontalFrame::new(&root);
+        let undo = foxtk::Button::new(&buttons, "Undo").with_callback({
+            let sender = sender.clone();
+            move |_| {
+                let _ = sender.send(Msg::Undo);
+                false
+            }
+        });
+        let redo = foxtk::Button::new(&buttons, "Redo").with_callback({
+            let sender = sender.clone();
+            move |_| {
+                let _ = sender.send(Msg::Redo);
+                false
+            }
+        });
+        undo.set_enable(false);
+        redo.set_enable(false);
+        let canvas = foxtk::Canvas::new(&root);
+        canvas.set_layout(Layout::Fill);
+        let menu = foxtk::MenuPane::new(&canvas);
+        let chosen = Rc::new(Cell::new(None::<usize>));
+        let chosen_for_menu = chosen.clone();
+        let live_for_menu = live.clone();
+        let canvas_for_menu = canvas.alias();
+        foxtk::MenuCommand::new(&menu, "Adjust diameter..").with_callback({
+            let sender = sender.clone();
+            move |_| {
+                if let Some(index) = chosen_for_menu.get() {
+                    let from = live_for_menu.borrow().circles.get(index).map(|c| c.d);
+                    if let Some(from) = from {
+                        let to = adjust_diameter(&canvas_for_menu, &live_for_menu, index, from);
+                        let _ = sender.send(Msg::Resize { index, from, to });
                     }
-                });
-                let menu = menu.alias();
-                let live = live.clone();
-                let sender = sender.clone();
-                canvas.set_mouse_callback(
-                    move |canvas, code, x, y, _, _, width, height| match code {
-                        1 => {
-                            let miss = {
-                                let guard = live.borrow();
-                                models::hit(&guard.circles, x, y).is_none()
-                            };
-                            if miss {
-                                let _ = sender.send(Msg::Add(x, y));
-                            }
-                            true
-                        }
-                        3 => {
-                            let hover = {
-                                let guard = live.borrow();
-                                models::hit(&guard.circles, x, y)
-                            };
-                            if live.borrow().hover != hover {
-                                live.borrow_mut().hover = hover;
-                                canvas.refresh();
-                            }
-                            true
-                        }
-                        4 => {
-                            let hit = {
-                                let guard = live.borrow();
-                                models::hit(&guard.circles, x, y)
-                            };
-                            if let Some(index) = hit {
-                                chosen.set(Some(index));
-                                live.borrow_mut().hover = Some(index);
-                                let (root_x, root_y) = canvas.translate_to_root(x, y);
-                                menu.popup(&canvas, root_x, root_y);
-                            }
-                            true
-                        }
-                        6 => {
-                            let guard = live.borrow();
-                            paint(&canvas, &guard, x, y, width, height);
-                            true
-                        }
-                        _ => false,
-                    },
-                );
-            });
+                }
+                false
+            }
+        });
+        let menu = menu.alias();
+        let live_for_mouse = live.clone();
+        let sender = sender.clone();
+        canvas.set_mouse_callback(move |canvas, code, x, y, _, _, width, height| match code {
+            1 => {
+                let miss = {
+                    let guard = live_for_mouse.borrow();
+                    models::hit(&guard.circles, x, y).is_none()
+                };
+                if miss {
+                    let _ = sender.send(Msg::Add(x, y));
+                }
+                true
+            }
+            3 => {
+                let hover = {
+                    let guard = live_for_mouse.borrow();
+                    models::hit(&guard.circles, x, y)
+                };
+                if live_for_mouse.borrow().hover != hover {
+                    live_for_mouse.borrow_mut().hover = hover;
+                    canvas.refresh();
+                }
+                true
+            }
+            4 => {
+                let hit = {
+                    let guard = live_for_mouse.borrow();
+                    models::hit(&guard.circles, x, y)
+                };
+                if let Some(index) = hit {
+                    chosen.set(Some(index));
+                    live_for_mouse.borrow_mut().hover = Some(index);
+                    let (root_x, root_y) = canvas.translate_to_root(x, y);
+                    menu.popup(&canvas, root_x, root_y);
+                }
+                true
+            }
+            6 => {
+                let guard = live_for_mouse.borrow();
+                paint(&canvas, &guard, x, y, width, height);
+                true
+            }
+            _ => false,
+        });
+        Self {
+            canvas,
+            undo,
+            redo,
+            live,
+        }
     }
 }
 

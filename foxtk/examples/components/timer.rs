@@ -100,7 +100,6 @@ pub enum Msg {
     Tick,
 }
 
-#[derive(Default)]
 pub struct Timer {
     gauge: foxtk::ProgressBar,
     elapsed: foxtk::Label,
@@ -148,40 +147,40 @@ impl Component for Timer {
             .set_text(&format!("{} s", model.duration_secs()));
     }
 
-    fn view(&mut self, parent: &impl CompositeExt, sender: Sender<Self::Event>) {
-        foxtk::VerticalFrame::new(parent)
-            .with_layout(Layout::Fill)
-            .inside(|parent| {
-                self.gauge = foxtk::ProgressBar::new(parent).with_total(15_000);
-                self.gauge.set_progress(0);
-                let elapsed = foxtk::Label::new(parent, "Elapsed");
-                elapsed.set_text("0.0 s");
-                self.elapsed = elapsed;
-                foxtk::HorizontalFrame::new(parent).inside(|parent| {
-                    let caption = foxtk::Label::new(parent, "Duration");
-                    caption.set_text("Duration");
-                    self.slider = foxtk::Slider::new(parent)
-                        .with_range(0, 100)
-                        .with_value(15)
-                        .with_callback({
-                            let sender = sender.clone();
-                            move |slider| {
-                                let _ = sender.send(Msg::Duration(slider.value()));
-                                false
-                            }
-                        });
-                    let duration = foxtk::Label::new(parent, "15 s");
-                    duration.set_text("15 s");
-                    self.duration = duration;
-                });
-                foxtk::Button::new(parent, "Reset").with_callback({
-                    let sender = sender.clone();
-                    move |_| {
-                        let _ = sender.send(Msg::Reset);
-                        false
-                    }
-                });
+    fn new(parent: &impl CompositeExt, sender: Sender<Self::Event>) -> Self {
+        let root = foxtk::VerticalFrame::new(parent).with_layout(Layout::Fill);
+        let gauge = foxtk::ProgressBar::new(&root).with_total(15_000);
+        gauge.set_progress(0);
+        let elapsed = foxtk::Label::new(&root, "Elapsed");
+        elapsed.set_text("0.0 s");
+        let row = foxtk::HorizontalFrame::new(&root);
+        let caption = foxtk::Label::new(&row, "Duration");
+        caption.set_text("Duration");
+        let slider = foxtk::Slider::new(&row)
+            .with_range(0, 100)
+            .with_value(15)
+            .with_callback({
+                let sender = sender.clone();
+                move |slider| {
+                    let _ = sender.send(Msg::Duration(slider.value()));
+                    false
+                }
             });
+        let duration = foxtk::Label::new(&row, "15 s");
+        duration.set_text("15 s");
+        foxtk::Button::new(&root, "Reset").with_callback({
+            let sender = sender.clone();
+            move |_| {
+                let _ = sender.send(Msg::Reset);
+                false
+            }
+        });
         let _ = sender.send(Msg::Start);
+        Self {
+            gauge,
+            elapsed,
+            slider,
+            duration,
+        }
     }
 }

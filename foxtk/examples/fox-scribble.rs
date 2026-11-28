@@ -55,7 +55,6 @@ impl Model {
     }
 }
 
-#[derive(Default)]
 struct Scribble {
     canvas: foxtk::Canvas,
     clear: foxtk::Button,
@@ -84,7 +83,8 @@ impl Component for Scribble {
         self.clear.set_enable(model.dirty);
     }
 
-    fn view(&mut self, parent: &impl CompositeExt, sender: Sender<Self::Event>) {
+    fn new(parent: &impl CompositeExt, sender: Sender<Self::Event>) -> Self {
+        let drawing = Rc::new(Cell::new(false));
         let contents = foxtk::HorizontalFrame::new(parent);
         contents.set_height(0);
 
@@ -101,27 +101,27 @@ impl Component for Scribble {
 
         let canvas = foxtk::Canvas::new(&canvas_frame);
         canvas.set_layout(Layout::Fill);
-        let drawing = self.drawing.clone();
+        let drawing_for_mouse = drawing.clone();
         let canvas_for_mouse = share_canvas(&canvas);
         let mouse_sender = sender.clone();
         canvas.set_mouse_callback(
             move |_, code, x, y, last_x, last_y, width, height| match code {
                 LEFT_PRESS => {
                     canvas_for_mouse.grab();
-                    drawing.set(true);
+                    drawing_for_mouse.set(true);
                     let _ = mouse_sender.send(Event::Down);
                     true
                 }
-                MOTION if drawing.get() => {
+                MOTION if drawing_for_mouse.get() => {
                     stroke(&canvas_for_mouse, last_x, last_y, x, y);
                     let _ = mouse_sender.send(Event::Stroke);
                     true
                 }
                 LEFT_RELEASE => {
                     canvas_for_mouse.ungrab();
-                    if drawing.get() {
+                    if drawing_for_mouse.get() {
                         stroke(&canvas_for_mouse, last_x, last_y, x, y);
-                        drawing.set(false);
+                        drawing_for_mouse.set(false);
                         let _ = mouse_sender.send(Event::Up);
                     }
                     true
@@ -133,7 +133,6 @@ impl Component for Scribble {
                 _ => false,
             },
         );
-        self.canvas = canvas;
 
         let button_frame = foxtk::VerticalFrame::new(&contents)
             .with_frame(FrameStyle::Sunken)
@@ -146,10 +145,10 @@ impl Component for Scribble {
         ridge.set_style(SEPARATOR_RIDGE);
         ridge.set_layout(Layout::FillX);
 
-        let canvas_for_clear = share_canvas(&self.canvas);
-        let drawing = self.drawing.clone();
+        let canvas_for_clear = share_canvas(&canvas);
+        let drawing_for_clear = drawing.clone();
         let clear_sender = sender.clone();
-        self.clear = foxtk::Button::new(&button_frame, "Clear")
+        let clear = foxtk::Button::new(&button_frame, "Clear")
             .with_pad(10)
             .with_callback(move |_| {
                 wipe(
@@ -159,7 +158,7 @@ impl Component for Scribble {
                     canvas_for_clear.width(),
                     canvas_for_clear.height(),
                 );
-                drawing.set(false);
+                drawing_for_clear.set(false);
                 let _ = clear_sender.send(Event::Clear);
                 false
             });
@@ -169,6 +168,11 @@ impl Component for Scribble {
                 button.close_shell();
                 false
             });
+        Self {
+            canvas,
+            clear,
+            drawing,
+        }
     }
 }
 

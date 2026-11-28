@@ -205,7 +205,6 @@ impl Model {
     }
 }
 
-#[derive(Default)]
 struct Adie {
     editor: foxtk::Text,
     status: foxtk::StatusBar,
@@ -310,7 +309,7 @@ impl Component for Adie {
         self.persist(model);
     }
 
-    fn view(&mut self, parent: &impl CompositeExt, sender: Sender<Self::Event>) {
+    fn new(parent: &impl CompositeExt, sender: Sender<Self::Event>) -> Self {
         let app = parent.app();
         let big = foxtk::Icon::from_gif(&app, include_bytes!("icons/adie/big_gif.gif"));
         let mini = foxtk::Icon::from_gif(&app, include_bytes!("icons/adie/small_gif.gif"));
@@ -335,321 +334,318 @@ impl Component for Adie {
         parent.set_window_icon(&big);
         parent.set_window_mini_icon(&mini);
 
-        let live = self.live.clone();
-        let applying = self.applying.clone();
-        foxtk::VerticalFrame::new(parent)
-            .with_layout(Layout::Fill)
-            .inside(|parent| {
-                let menu = foxtk::MenuBar::new(parent);
-                let file_pane = foxtk::MenuPane::new(parent);
-                let edit_pane = foxtk::MenuPane::new(parent);
-                let search_pane = foxtk::MenuPane::new(parent);
-                let options_pane = foxtk::MenuPane::new(parent);
-                let help_pane = foxtk::MenuPane::new(parent);
-                foxtk::MenuTitle::new(&menu, "&File", &file_pane);
-                foxtk::MenuTitle::new(&menu, "&Edit", &edit_pane);
-                foxtk::MenuTitle::new(&menu, "&Search", &search_pane);
-                foxtk::MenuTitle::new(&menu, "&Options", &options_pane);
-                foxtk::MenuTitle::new(&menu, "&Help", &help_pane);
-                let bar = foxtk::ToolBar::new(parent);
+        let live = Rc::new(RefCell::new(Live::default()));
+        let applying = Rc::new(Cell::new(false));
+        let root = foxtk::VerticalFrame::new(parent).with_layout(Layout::Fill);
+        let menu = foxtk::MenuBar::new(&root);
+        let file_pane = foxtk::MenuPane::new(&root);
+        let edit_pane = foxtk::MenuPane::new(&root);
+        let search_pane = foxtk::MenuPane::new(&root);
+        let options_pane = foxtk::MenuPane::new(&root);
+        let help_pane = foxtk::MenuPane::new(&root);
+        foxtk::MenuTitle::new(&menu, "&File", &file_pane);
+        foxtk::MenuTitle::new(&menu, "&Edit", &edit_pane);
+        foxtk::MenuTitle::new(&menu, "&Search", &search_pane);
+        foxtk::MenuTitle::new(&menu, "&Options", &options_pane);
+        foxtk::MenuTitle::new(&menu, "&Help", &help_pane);
+        let bar = foxtk::ToolBar::new(&root);
 
-                let editor = foxtk::Text::new(parent);
-                self.editor = share_text(&editor);
-                editor.set_tab_columns(8);
-                let editor_for_edits = share_text(&self.editor);
-                let applying_for_edits = applying.clone();
-                editor.with_callback({
-                    let sender = sender.clone();
-                    move |_| {
-                        if !applying_for_edits.get() {
-                            let _ = sender.send(Event::Edited(editor_for_edits.text()));
-                        }
-                        false
-                    }
-                });
+        let editor = foxtk::Text::new(&root);
+        let editor_handle = share_text(&editor);
+        editor.set_tab_columns(8);
+        let editor_for_edits = share_text(&editor_handle);
+        let applying_for_edits = applying.clone();
+        editor.with_callback({
+            let sender = sender.clone();
+            move |_| {
+                if !applying_for_edits.get() {
+                    let _ = sender.send(Event::Edited(editor_for_edits.text()));
+                }
+                false
+            }
+        });
 
-                file_command(&file_pane, "&New", Some(&new_icon), {
-                    let sender = sender.clone();
-                    let live = live.clone();
-                    let editor = share_text(&self.editor);
-                    move |item| {
-                        if keep_or_save(&item, &editor, &live, Some(&sender)) {
-                            let _ = sender.send(Event::Load {
-                                path: String::new(),
-                                text: String::new(),
-                            });
-                        }
-                        false
+        file_command(&file_pane, "&New", Some(&new_icon), {
+            let sender = sender.clone();
+            let live = live.clone();
+            let editor = share_text(&editor_handle);
+            move |item| {
+                if keep_or_save(&item, &editor, &live, Some(&sender)) {
+                    let _ = sender.send(Event::Load {
+                        path: String::new(),
+                        text: String::new(),
+                    });
+                }
+                false
+            }
+        });
+        file_command(&file_pane, "&Open...", Some(&open_icon), {
+            let sender = sender.clone();
+            let live = live.clone();
+            let editor = share_text(&editor_handle);
+            move |item| {
+                if !keep_or_save(&item, &editor, &live, Some(&sender)) {
+                    return false;
+                }
+                let directory = live.borrow().directory.clone();
+                let path = item.open_file_dialog("Open File", &directory, PATTERNS, 0);
+                if path.is_empty() {
+                    return false;
+                }
+                match std::fs::read(&path) {
+                    Ok(bytes) => {
+                        let _ = sender.send(Event::Load {
+                            path: path.clone(),
+                            text: String::from_utf8_lossy(&bytes).into_owned(),
+                        });
                     }
-                });
-                file_command(&file_pane, "&Open...", Some(&open_icon), {
-                    let sender = sender.clone();
-                    let live = live.clone();
-                    let editor = share_text(&self.editor);
-                    move |item| {
-                        if !keep_or_save(&item, &editor, &live, Some(&sender)) {
-                            return false;
-                        }
-                        let directory = live.borrow().directory.clone();
-                        let path = item.open_file_dialog("Open File", &directory, PATTERNS, 0);
-                        if path.is_empty() {
-                            return false;
-                        }
-                        match std::fs::read(&path) {
-                            Ok(bytes) => {
-                                let _ = sender.send(Event::Load {
-                                    path: path.clone(),
-                                    text: String::from_utf8_lossy(&bytes).into_owned(),
-                                });
-                            }
-                            Err(err) => {
-                                item.message(
-                                    MessageBox::Ok,
-                                    &format!("Could not open {path}: {err}"),
-                                    Message::Error,
-                                );
-                            }
-                        }
-                        false
+                    Err(err) => {
+                        item.message(
+                            MessageBox::Ok,
+                            &format!("Could not open {path}: {err}"),
+                            Message::Error,
+                        );
                     }
-                });
-                file_command(&file_pane, "&Save", Some(&save_icon), {
-                    let sender = sender.clone();
-                    let live = live.clone();
-                    let editor = share_text(&self.editor);
-                    move |item| {
-                        save_buffer(&item, &editor, &live, &sender);
-                        false
-                    }
-                });
-                file_command(&file_pane, "Save &As...", Some(&save_as_icon), {
-                    let sender = sender.clone();
-                    let live = live.clone();
-                    let editor = share_text(&self.editor);
-                    move |item| {
-                        save_buffer_as(&item, &editor, &live, &sender);
-                        false
-                    }
-                });
-                foxtk::MenuSeparator::new(&file_pane);
-                file_command(&file_pane, "&Quit", Some(&quit_icon), {
-                    let live = live.clone();
-                    let editor = share_text(&self.editor);
-                    move |item| {
-                        if keep_or_save(&item, &editor, &live, None) {
-                            write_settings(&item);
-                            item.close_shell();
-                        }
-                        false
-                    }
-                });
+                }
+                false
+            }
+        });
+        file_command(&file_pane, "&Save", Some(&save_icon), {
+            let sender = sender.clone();
+            let live = live.clone();
+            let editor = share_text(&editor_handle);
+            move |item| {
+                save_buffer(&item, &editor, &live, &sender);
+                false
+            }
+        });
+        file_command(&file_pane, "Save &As...", Some(&save_as_icon), {
+            let sender = sender.clone();
+            let live = live.clone();
+            let editor = share_text(&editor_handle);
+            move |item| {
+                save_buffer_as(&item, &editor, &live, &sender);
+                false
+            }
+        });
+        foxtk::MenuSeparator::new(&file_pane);
+        file_command(&file_pane, "&Quit", Some(&quit_icon), {
+            let live = live.clone();
+            let editor = share_text(&editor_handle);
+            move |item| {
+                if keep_or_save(&item, &editor, &live, None) {
+                    write_settings(&item);
+                    item.close_shell();
+                }
+                false
+            }
+        });
 
-                edit_command(&edit_pane, "&Undo", &undo_icon, &sender, Event::Undo);
-                edit_command(&edit_pane, "&Redo", &redo_icon, &sender, Event::Redo);
-                foxtk::MenuSeparator::new(&edit_pane);
-                widget_command(
-                    &edit_pane,
-                    "Cu&t",
-                    &cut_icon,
-                    &self.editor,
-                    foxtk::Text::cut,
-                );
-                widget_command(
-                    &edit_pane,
-                    "&Copy",
-                    &copy_icon,
-                    &self.editor,
-                    foxtk::Text::copy,
-                );
-                widget_command(
-                    &edit_pane,
-                    "&Paste",
-                    &paste_icon,
-                    &self.editor,
-                    foxtk::Text::paste,
-                );
-                widget_command(
-                    &edit_pane,
-                    "&Delete",
-                    &delete_icon,
-                    &self.editor,
-                    foxtk::Text::delete_selection,
-                );
+        edit_command(&edit_pane, "&Undo", &undo_icon, &sender, Event::Undo);
+        edit_command(&edit_pane, "&Redo", &redo_icon, &sender, Event::Redo);
+        foxtk::MenuSeparator::new(&edit_pane);
+        widget_command(
+            &edit_pane,
+            "Cu&t",
+            &cut_icon,
+            &editor_handle,
+            foxtk::Text::cut,
+        );
+        widget_command(
+            &edit_pane,
+            "&Copy",
+            &copy_icon,
+            &editor_handle,
+            foxtk::Text::copy,
+        );
+        widget_command(
+            &edit_pane,
+            "&Paste",
+            &paste_icon,
+            &editor_handle,
+            foxtk::Text::paste,
+        );
+        widget_command(
+            &edit_pane,
+            "&Delete",
+            &delete_icon,
+            &editor_handle,
+            foxtk::Text::delete_selection,
+        );
 
-                file_command(&search_pane, "&Find...", Some(&search_icon), {
-                    let sender = sender.clone();
-                    let live = live.clone();
-                    move |item| {
-                        let dialog = foxtk::SearchDialog::new(&item, "Find");
-                        dialog.set_search_text(&live.borrow().search);
-                        if dialog.execute() != 0 {
-                            let _ = sender.send(Event::Find(dialog.search_text()));
-                        }
-                        false
-                    }
-                });
-                edit_command(
-                    &search_pane,
-                    "Find &Next",
-                    &next_icon,
-                    &sender,
-                    Event::FindNext,
-                );
-                edit_command(
-                    &search_pane,
-                    "Find &Previous",
-                    &prev_icon,
-                    &sender,
-                    Event::FindPrev,
-                );
+        file_command(&search_pane, "&Find...", Some(&search_icon), {
+            let sender = sender.clone();
+            let live = live.clone();
+            move |item| {
+                let dialog = foxtk::SearchDialog::new(&item, "Find");
+                dialog.set_search_text(&live.borrow().search);
+                if dialog.execute() != 0 {
+                    let _ = sender.send(Event::Find(dialog.search_text()));
+                }
+                false
+            }
+        });
+        edit_command(
+            &search_pane,
+            "Find &Next",
+            &next_icon,
+            &sender,
+            Event::FindNext,
+        );
+        edit_command(
+            &search_pane,
+            "Find &Previous",
+            &prev_icon,
+            &sender,
+            Event::FindPrev,
+        );
 
-                file_command(&options_pane, "&Word wrap", None, {
-                    let sender = sender.clone();
-                    let live = live.clone();
-                    move |_| {
-                        let _ = sender.send(Event::Wrap(!live.borrow().wrap));
-                        false
-                    }
-                });
-                file_command(&options_pane, "&Font...", Some(&font_icon), {
-                    let sender = sender.clone();
-                    move |item| {
-                        let dialog = foxtk::FontDialog::new(&item, "Editor Font");
-                        if dialog.execute() != 0 {
-                            let (family, size) = dialog.font_selection();
-                            let _ = sender.send(Event::Font(family, size));
-                        }
-                        false
-                    }
-                });
-                file_command(&help_pane, "&Help", Some(&help_icon), |item| {
-                    show_help(&item);
-                    false
-                });
+        file_command(&options_pane, "&Word wrap", None, {
+            let sender = sender.clone();
+            let live = live.clone();
+            move |_| {
+                let _ = sender.send(Event::Wrap(!live.borrow().wrap));
+                false
+            }
+        });
+        file_command(&options_pane, "&Font...", Some(&font_icon), {
+            let sender = sender.clone();
+            move |item| {
+                let dialog = foxtk::FontDialog::new(&item, "Editor Font");
+                if dialog.execute() != 0 {
+                    let (family, size) = dialog.font_selection();
+                    let _ = sender.send(Event::Font(family, size));
+                }
+                false
+            }
+        });
+        file_command(&help_pane, "&Help", Some(&help_icon), |item| {
+            show_help(&item);
+            false
+        });
 
-                tool(&bar, &new_icon, "New", {
-                    let sender = sender.clone();
-                    let live = live.clone();
-                    let editor = share_text(&self.editor);
-                    move |button| {
-                        if keep_or_save(&button, &editor, &live, Some(&sender)) {
-                            let _ = sender.send(Event::Load {
-                                path: String::new(),
-                                text: String::new(),
-                            });
-                        }
-                        false
+        tool(&bar, &new_icon, "New", {
+            let sender = sender.clone();
+            let live = live.clone();
+            let editor = share_text(&editor_handle);
+            move |button| {
+                if keep_or_save(&button, &editor, &live, Some(&sender)) {
+                    let _ = sender.send(Event::Load {
+                        path: String::new(),
+                        text: String::new(),
+                    });
+                }
+                false
+            }
+        });
+        tool(&bar, &open_icon, "Open", {
+            let sender = sender.clone();
+            let live = live.clone();
+            let editor = share_text(&editor_handle);
+            move |button| {
+                if !keep_or_save(&button, &editor, &live, Some(&sender)) {
+                    return false;
+                }
+                let directory = live.borrow().directory.clone();
+                let path = button.open_file_dialog("Open File", &directory, PATTERNS, 0);
+                if path.is_empty() {
+                    return false;
+                }
+                match std::fs::read(&path) {
+                    Ok(bytes) => {
+                        let _ = sender.send(Event::Load {
+                            path,
+                            text: String::from_utf8_lossy(&bytes).into_owned(),
+                        });
                     }
-                });
-                tool(&bar, &open_icon, "Open", {
-                    let sender = sender.clone();
-                    let live = live.clone();
-                    let editor = share_text(&self.editor);
-                    move |button| {
-                        if !keep_or_save(&button, &editor, &live, Some(&sender)) {
-                            return false;
-                        }
-                        let directory = live.borrow().directory.clone();
-                        let path = button.open_file_dialog("Open File", &directory, PATTERNS, 0);
-                        if path.is_empty() {
-                            return false;
-                        }
-                        match std::fs::read(&path) {
-                            Ok(bytes) => {
-                                let _ = sender.send(Event::Load {
-                                    path,
-                                    text: String::from_utf8_lossy(&bytes).into_owned(),
-                                });
-                            }
-                            Err(err) => {
-                                button.message(
-                                    MessageBox::Ok,
-                                    &format!("Could not open the file: {err}"),
-                                    Message::Error,
-                                );
-                            }
-                        }
-                        false
+                    Err(err) => {
+                        button.message(
+                            MessageBox::Ok,
+                            &format!("Could not open the file: {err}"),
+                            Message::Error,
+                        );
                     }
-                });
-                tool(&bar, &save_icon, "Save", {
-                    let sender = sender.clone();
-                    let live = live.clone();
-                    let editor = share_text(&self.editor);
-                    move |button| {
-                        save_buffer(&button, &editor, &live, &sender);
-                        false
-                    }
-                });
-                tool(&bar, &cut_icon, "Cut", {
-                    let editor = share_text(&self.editor);
-                    move |_| {
-                        editor.cut();
-                        false
-                    }
-                });
-                tool(&bar, &copy_icon, "Copy", {
-                    let editor = share_text(&self.editor);
-                    move |_| {
-                        editor.copy();
-                        false
-                    }
-                });
-                tool(&bar, &paste_icon, "Paste", {
-                    let editor = share_text(&self.editor);
-                    move |_| {
-                        editor.paste();
-                        false
-                    }
-                });
-                tool(&bar, &undo_icon, "Undo", {
-                    let sender = sender.clone();
-                    move |_| {
-                        let _ = sender.send(Event::Undo);
-                        false
-                    }
-                });
-                tool(&bar, &redo_icon, "Redo", {
-                    let sender = sender.clone();
-                    move |_| {
-                        let _ = sender.send(Event::Redo);
-                        false
-                    }
-                });
-                tool(&bar, &search_icon, "Find", {
-                    let sender = sender.clone();
-                    let live = live.clone();
-                    move |button| {
-                        let dialog = foxtk::SearchDialog::new(&button, "Find");
-                        dialog.set_search_text(&live.borrow().search);
-                        if dialog.execute() != 0 {
-                            let _ = sender.send(Event::Find(dialog.search_text()));
-                        }
-                        false
-                    }
-                });
-                tool(&bar, &next_icon, "Find next", {
-                    let sender = sender.clone();
-                    move |_| {
-                        let _ = sender.send(Event::FindNext);
-                        false
-                    }
-                });
-                tool(&bar, &prev_icon, "Find previous", {
-                    let sender = sender.clone();
-                    move |_| {
-                        let _ = sender.send(Event::FindPrev);
-                        false
-                    }
-                });
+                }
+                false
+            }
+        });
+        tool(&bar, &save_icon, "Save", {
+            let sender = sender.clone();
+            let live = live.clone();
+            let editor = share_text(&editor_handle);
+            move |button| {
+                save_buffer(&button, &editor, &live, &sender);
+                false
+            }
+        });
+        tool(&bar, &cut_icon, "Cut", {
+            let editor = share_text(&editor_handle);
+            move |_| {
+                editor.cut();
+                false
+            }
+        });
+        tool(&bar, &copy_icon, "Copy", {
+            let editor = share_text(&editor_handle);
+            move |_| {
+                editor.copy();
+                false
+            }
+        });
+        tool(&bar, &paste_icon, "Paste", {
+            let editor = share_text(&editor_handle);
+            move |_| {
+                editor.paste();
+                false
+            }
+        });
+        tool(&bar, &undo_icon, "Undo", {
+            let sender = sender.clone();
+            move |_| {
+                let _ = sender.send(Event::Undo);
+                false
+            }
+        });
+        tool(&bar, &redo_icon, "Redo", {
+            let sender = sender.clone();
+            move |_| {
+                let _ = sender.send(Event::Redo);
+                false
+            }
+        });
+        tool(&bar, &search_icon, "Find", {
+            let sender = sender.clone();
+            let live = live.clone();
+            move |button| {
+                let dialog = foxtk::SearchDialog::new(&button, "Find");
+                dialog.set_search_text(&live.borrow().search);
+                if dialog.execute() != 0 {
+                    let _ = sender.send(Event::Find(dialog.search_text()));
+                }
+                false
+            }
+        });
+        tool(&bar, &next_icon, "Find next", {
+            let sender = sender.clone();
+            move |_| {
+                let _ = sender.send(Event::FindNext);
+                false
+            }
+        });
+        tool(&bar, &prev_icon, "Find previous", {
+            let sender = sender.clone();
+            move |_| {
+                let _ = sender.send(Event::FindPrev);
+                false
+            }
+        });
 
-                self.status = foxtk::StatusBar::new(parent);
-            });
+        let status = foxtk::StatusBar::new(&root);
 
-        let editor = share_text(&self.editor);
-        let live = self.live.clone();
+        let editor = share_text(&editor_handle);
+        let live_for_close = live.clone();
         parent.on_close_if(move |window| {
-            if keep_or_save(&window, &editor, &live, None) {
+            if keep_or_save(&window, &editor, &live_for_close, None) {
                 write_settings(&window);
                 false
             } else {
@@ -657,6 +653,17 @@ impl Component for Adie {
             }
         });
         let _ = sender.send(Event::Saved(Saved::read(&parent.app())));
+        Self {
+            editor: editor_handle,
+            status,
+            live,
+            applying,
+            updates: Cell::new(0),
+            placed: Cell::new(false),
+            shown: Cell::new(0),
+            seen_search: Cell::new(0),
+            search_at: Cell::new(0),
+        }
     }
 }
 

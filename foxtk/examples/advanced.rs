@@ -3,7 +3,6 @@
 use foxtk::prelude::*;
 mod components;
 
-#[derive(Default)]
 struct Example {
     switcher: foxtk::Switcher,
     mounts: Vec<ComponentMount>,
@@ -23,7 +22,7 @@ impl Component for Example {
     fn update(&self, model: &Self::State) {
         self.switcher.set_current(*model);
     }
-    fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
+    fn new(prt: &impl CompositeExt, sender: Sender<Self::Event>) -> Self {
         foxtk::MenuBar::new(prt).inside(|prt| {
             foxtk::MenuPane::new(prt).inside(|mpaine| {
                 foxtk::MenuTitle::new(prt, "7GUIs", mpaine);
@@ -57,21 +56,18 @@ impl Component for Example {
                 foxtk::MenuRadio::new(mpaine, "2 untitled");
             });
         });
-        self.switcher = foxtk::Switcher::new(prt);
+        let switcher = foxtk::Switcher::new(prt);
         let mut mounts = Vec::new();
-        self.switcher.inside(|prt| {
-            foxtk::VerticalFrame::new(prt).inside(|prt| {
-                mounts.push(components::Rangers::mount(prt));
-                mounts.push(components::Converter::mount(prt));
-                mounts.push(components::Booker::mount(prt));
-                mounts.push(components::Selectors::mount(prt));
-            });
-            mounts.push(components::Timer::mount(prt));
-            mounts.push(components::Crud::mount(prt));
-            mounts.push(components::Circles::mount(prt));
-            mounts.push(components::Cells::mount(prt));
-        });
-        self.mounts = mounts;
+        let first = foxtk::VerticalFrame::new(&switcher);
+        mounts.push(components::Rangers::mount(&first));
+        mounts.push(components::Converter::mount(&first));
+        mounts.push(components::Booker::mount(&first));
+        mounts.push(components::Selectors::mount(&first));
+        mounts.push(components::Timer::mount(&switcher));
+        mounts.push(components::Crud::mount(&switcher));
+        mounts.push(components::Circles::mount(&switcher));
+        mounts.push(components::Cells::mount(&switcher));
+        Self { switcher, mounts }
     }
 }
 

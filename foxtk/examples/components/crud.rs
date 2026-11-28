@@ -135,7 +135,6 @@ pub enum Msg {
     Delete,
 }
 
-#[derive(Default)]
 pub struct Crud {
     list: foxtk::List,
     update_button: foxtk::Button,
@@ -192,83 +191,77 @@ impl Component for Crud {
         self.delete_button.set_enable(enabled);
     }
 
-    fn view(&mut self, parent: &impl CompositeExt, sender: Sender<Self::Event>) {
-        let applying = self.applying.clone();
-        foxtk::VerticalFrame::new(parent)
-            .with_layout(Layout::Fill)
-            .inside(|parent| {
-                foxtk::HorizontalFrame::new(parent).inside(|parent| {
-                    let caption = foxtk::Label::new(parent, "Prefix");
-                    caption.set_text("Prefix");
-                    foxtk::TextField::new(parent).with_callback({
-                        let sender = sender.clone();
-                        move |field| {
-                            if field.has_focus() {
-                                let _ = sender.send(Msg::Prefix(field.text()));
-                            }
-                            false
-                        }
-                    });
-                });
-                foxtk::HorizontalFrame::new(parent)
-                    .with_layout(Layout::Fill)
-                    .inside(|parent| {
-                        self.list = foxtk::List::new(parent).with_callback({
-                            let sender = sender.clone();
-                            let applying = applying.clone();
-                            move |list| {
-                                if !applying.get() {
-                                    let _ = sender.send(Msg::Select(list.current_item()));
-                                }
-                                false
-                            }
-                        });
-                        foxtk::VerticalFrame::new(parent)
-                            .with_layout(Layout::FillY)
-                            .inside(|parent| {
-                                let name_caption = foxtk::Label::new(parent, "Name");
-                                name_caption.set_text("Name");
-                                let name = foxtk::TextField::new(parent);
-                                let surname_caption = foxtk::Label::new(parent, "Surname");
-                                surname_caption.set_text("Surname");
-                                let surname = foxtk::TextField::new(parent);
-                                let name_for_create = name.alias();
-                                let surname_for_create = surname.alias();
-                                foxtk::Button::new(parent, "Create").with_callback({
-                                    let sender = sender.clone();
-                                    move |_| {
-                                        let _ = sender.send(Msg::Create(
-                                            name_for_create.text(),
-                                            surname_for_create.text(),
-                                        ));
-                                        false
-                                    }
-                                });
-                                let name_for_update = name.alias();
-                                let surname_for_update = surname.alias();
-                                self.update_button = foxtk::Button::new(parent, "Update")
-                                    .with_callback({
-                                        let sender = sender.clone();
-                                        move |_| {
-                                            let _ = sender.send(Msg::Update(
-                                                name_for_update.text(),
-                                                surname_for_update.text(),
-                                            ));
-                                            false
-                                        }
-                                    });
-                                self.delete_button = foxtk::Button::new(parent, "Delete")
-                                    .with_callback({
-                                        let sender = sender.clone();
-                                        move |_| {
-                                            let _ = sender.send(Msg::Delete);
-                                            false
-                                        }
-                                    });
-                                self.update_button.set_enable(false);
-                                self.delete_button.set_enable(false);
-                            });
-                    });
-            });
+    fn new(parent: &impl CompositeExt, sender: Sender<Self::Event>) -> Self {
+        let applying = Rc::new(Cell::new(false));
+        let root = foxtk::VerticalFrame::new(parent).with_layout(Layout::Fill);
+        let prefix_row = foxtk::HorizontalFrame::new(&root);
+        let caption = foxtk::Label::new(&prefix_row, "Prefix");
+        caption.set_text("Prefix");
+        foxtk::TextField::new(&prefix_row).with_callback({
+            let sender = sender.clone();
+            move |field| {
+                if field.has_focus() {
+                    let _ = sender.send(Msg::Prefix(field.text()));
+                }
+                false
+            }
+        });
+        let body = foxtk::HorizontalFrame::new(&root).with_layout(Layout::Fill);
+        let list = foxtk::List::new(&body).with_callback({
+            let sender = sender.clone();
+            let applying = applying.clone();
+            move |list| {
+                if !applying.get() {
+                    let _ = sender.send(Msg::Select(list.current_item()));
+                }
+                false
+            }
+        });
+        let side = foxtk::VerticalFrame::new(&body).with_layout(Layout::FillY);
+        let name_caption = foxtk::Label::new(&side, "Name");
+        name_caption.set_text("Name");
+        let name = foxtk::TextField::new(&side);
+        let surname_caption = foxtk::Label::new(&side, "Surname");
+        surname_caption.set_text("Surname");
+        let surname = foxtk::TextField::new(&side);
+        let name_for_create = name.alias();
+        let surname_for_create = surname.alias();
+        foxtk::Button::new(&side, "Create").with_callback({
+            let sender = sender.clone();
+            move |_| {
+                let _ = sender.send(Msg::Create(
+                    name_for_create.text(),
+                    surname_for_create.text(),
+                ));
+                false
+            }
+        });
+        let name_for_update = name.alias();
+        let surname_for_update = surname.alias();
+        let update_button = foxtk::Button::new(&side, "Update").with_callback({
+            let sender = sender.clone();
+            move |_| {
+                let _ = sender.send(Msg::Update(
+                    name_for_update.text(),
+                    surname_for_update.text(),
+                ));
+                false
+            }
+        });
+        let delete_button = foxtk::Button::new(&side, "Delete").with_callback({
+            let sender = sender.clone();
+            move |_| {
+                let _ = sender.send(Msg::Delete);
+                false
+            }
+        });
+        update_button.set_enable(false);
+        delete_button.set_enable(false);
+        Self {
+            list,
+            update_button,
+            delete_button,
+            applying,
+        }
     }
 }
