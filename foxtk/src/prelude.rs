@@ -497,7 +497,7 @@ pub trait EditableExt: ObjectExt {
 }
 
 pub trait CompositeExt: WindowExt {
-    fn inside(&self, mut func: impl FnMut(&Self)) {
+    fn inside(&self, func: impl Fn(&Self)) {
         func(self);
     }
     fn child_width(&self) -> i32 {
@@ -659,7 +659,7 @@ pub trait RangerExt: WindowExt {
 const COMPONENT_POLL_MS: u32 = 50;
 type ComponentDispatchSlot = Rc<RefCell<Option<Box<dyn FnMut()>>>>;
 
-pub trait Component: Default + 'static {
+pub trait Component: Sized + 'static {
     type Event: 'static;
     type State: Default + 'static;
     fn handle(
@@ -668,7 +668,7 @@ pub trait Component: Default + 'static {
         sender: Sender<Self::Event>,
     ) -> ComponentOutcome;
     fn update(&self, model: &Self::State);
-    fn view(&mut self, parent: &impl CompositeExt, sender: Sender<Self::Event>);
+    fn new(parent: &impl CompositeExt, sender: Sender<Self::Event>) -> Self;
     fn mount(parent: &impl CompositeExt) -> ComponentMount {
         let (channel, receiver) = mpsc::channel::<Self::Event>();
         let dispatch_slot: ComponentDispatchSlot = Rc::new(RefCell::new(None));
@@ -727,10 +727,9 @@ pub trait Component: Default + 'static {
             channel,
             scheduler: Arc::downgrade(&scheduler),
         };
-        let mut page = Self::default();
+        let view = Self::new(parent, sender.clone());
         let mut model = Self::State::default();
-        page.view(parent, sender.clone());
-        page.update(&model);
+        view.update(&model);
         *dispatch_slot.borrow_mut() = Some(Box::new(move || {
             let mut changed = false;
             while let Ok(msg) = receiver.try_recv() {
@@ -744,7 +743,7 @@ pub trait Component: Default + 'static {
                 }
             }
             if changed {
-                page.update(&model);
+                view.update(&model);
             }
         }));
         mount

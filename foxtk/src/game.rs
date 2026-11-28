@@ -10,14 +10,6 @@ use std::time::Instant;
 
 use crate::prelude::{Color, DrawableExt, Layout, ObjectExt, WindowExt};
 
-/// Arguments for [`Game::run`]. `name` is the FOX application name.
-pub struct Args<'a> {
-    pub name: &'a str,
-    pub title: &'a str,
-    pub width: i32,
-    pub height: i32,
-}
-
 /// Drawing commands for one paint. Coordinates are canvas pixels.
 pub struct Graphics<'a> {
     canvas: &'a crate::Canvas,

@@ -18,14 +18,13 @@ mod models {
     }
 }
 
-use foxtk::prelude::*;
-
 pub enum Msg {
     Cel(f64),
     Far(f64),
 }
 
-#[derive(Default)]
+use foxtk::prelude::*;
+
 pub struct Converter {
     cel: foxtk::TextField,
     far: foxtk::TextField,
@@ -53,30 +52,30 @@ impl Component for Converter {
             self.far.update(&value.to_string());
         }
     }
-    fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
-        foxtk::GroupBox::new(prt, "Converter").inside(|prt| {
-            foxtk::HorizontalFrame::new(prt).inside(|prt| {
-                self.cel = foxtk::TextField::new(prt).with_callback({
-                    let sender = sender.clone();
-                    move |wgt| {
-                        if wgt.has_focus() {
-                            let value = wgt.text().parse::<f64>().unwrap_or_default();
-                            sender.send(Msg::Cel(value)).unwrap();
-                        }
-                        false
+    fn new(prt: &impl CompositeExt, sender: Sender<Self::Event>) -> Self {
+        let gb = foxtk::GroupBox::new(prt, "Converter");
+        let hf = foxtk::HorizontalFrame::new(&gb);
+        Self {
+            cel: foxtk::TextField::new(prt).with_callback({
+                let sender = sender.clone();
+                move |wgt| {
+                    if wgt.has_focus() {
+                        let value = wgt.text().parse::<f64>().unwrap_or_default();
+                        sender.send(Msg::Cel(value)).unwrap();
                     }
-                });
-                self.far = foxtk::TextField::new(prt).with_callback({
-                    let sender = sender.clone();
-                    move |wgt| {
-                        if wgt.has_focus() {
-                            let value = wgt.text().parse::<f64>().unwrap_or_default();
-                            sender.send(Msg::Far(value)).unwrap();
-                        }
-                        false
+                    false
+                }
+            }),
+            far: foxtk::TextField::new(prt).with_callback({
+                let sender = sender.clone();
+                move |wgt| {
+                    if wgt.has_focus() {
+                        let value = wgt.text().parse::<f64>().unwrap_or_default();
+                        sender.send(Msg::Far(value)).unwrap();
                     }
-                });
-            });
-        });
+                    false
+                }
+            }),
+        }
     }
 }

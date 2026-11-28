@@ -1,6 +1,5 @@
 macro_rules! impl_widget {
     (@as $name:ident, $raw:ident, $($dep:ident),*) => {
-        #[derive(Default)]
         pub struct $name(std::option::Option<std::ptr::NonNull<$raw>>);
 
         impl ObjectExt for $name {
