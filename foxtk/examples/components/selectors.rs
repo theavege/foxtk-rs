@@ -4,7 +4,6 @@ pub enum Msg {
     Set(i32),
 }
 
-#[derive(Default)]
 pub struct Selectors {
     list: foxtk::List,
     listbox: foxtk::ListBox,
@@ -27,31 +26,31 @@ impl Component for Selectors {
         };
         ComponentOutcome::Changed
     }
-    fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
-        foxtk::GroupBox::new(prt, "Selectors").inside(|prt| {
-            let items = ["Item 1", "Item 2", "Item 3", "Item 4", "Item 5"];
-            self.listbox = foxtk::ListBox::new(prt)
-                .with_items(&items)
-                .with_num_visible(3)
-                .with_callback({
-                    let sender = sender.clone();
-                    move |wgt| {
+    fn new(prt: &impl CompositeExt, sender: Sender<Self::Event>) -> Self {
+        let group = foxtk::GroupBox::new(prt, "Selectors");
+        let items = ["Item 1", "Item 2", "Item 3", "Item 4", "Item 5"];
+        let listbox = foxtk::ListBox::new(&group)
+            .with_items(&items)
+            .with_num_visible(3)
+            .with_callback({
+                let sender = sender.clone();
+                move |wgt| {
+                    sender.send(Msg::Set(wgt.current_item())).unwrap();
+                    false
+                }
+            });
+        let list = foxtk::List::new(&group)
+            .with_items(&items)
+            .with_num_visible(3)
+            .with_callback({
+                let sender = sender.clone();
+                move |wgt| {
+                    if wgt.has_focus() {
                         sender.send(Msg::Set(wgt.current_item())).unwrap();
-                        false
                     }
-                });
-            self.list = foxtk::List::new(prt)
-                .with_items(&items)
-                .with_num_visible(3)
-                .with_callback({
-                    let sender = sender.clone();
-                    move |wgt| {
-                        if wgt.has_focus() {
-                            sender.send(Msg::Set(wgt.current_item())).unwrap();
-                        }
-                        false
-                    }
-                });
-        });
+                    false
+                }
+            });
+        Self { list, listbox }
     }
 }

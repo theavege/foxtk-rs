@@ -68,7 +68,6 @@ The current help text
 ```rust
 use foxtk::prelude::*;
 
-#[derive(Default)]
 struct MyApp {
     statusbar: foxtk::StatusBar,
 }
@@ -81,11 +80,12 @@ impl Component for MyApp {
         self.statusbar.set_text(&format!("Counter: {}", model));
     }
 
-    fn view(&mut self, parent: &impl CompositeExt, _sender: Sender<Self::Event>) {
-        foxtk::VerticalFrame::new(parent).inside(|prt| {
-            // ... other widgets ...
-            self.statusbar = foxtk::StatusBar::new(prt);
-        });
+    fn new(parent: &impl CompositeExt, _sender: Sender<Self::Event>) -> Self {
+        let column = foxtk::VerticalFrame::new(parent);
+        // ... other widgets ...
+        Self {
+            statusbar: foxtk::StatusBar::new(&column),
+        }
     }
 }
 ```

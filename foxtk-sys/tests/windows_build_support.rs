@@ -8,7 +8,6 @@ use std::{
 };
 
 use flate2::{Compression, write::GzEncoder};
-use sha2::{Digest, Sha256};
 use tar::{Builder, Header};
 
 const DIST: &str = "fox-1.6.59";
@@ -52,7 +51,7 @@ fn archive_with_path(path: &str) -> Vec<u8> {
 fn extracts_and_locates_fox_sources() {
     let temp = TempDir::new();
     let archive = archive_with_path(&format!("{DIST}/src/probe.cpp"));
-    let digest = format!("{:x}", Sha256::digest(&archive));
+    let digest = build_support::sha256_hex(&archive);
 
     let source_dir = build_support::extract_fox_archive(&archive, &temp.0, DIST, &digest).unwrap();
 

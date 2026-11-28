@@ -18,14 +18,13 @@ mod models {
     }
 }
 
-use foxtk::prelude::*;
-
 pub enum Msg {
     Cel(f64),
     Far(f64),
 }
 
-#[derive(Default)]
+use foxtk::prelude::*;
+
 pub struct Converter {
     cel: foxtk::TextField,
     far: foxtk::TextField,
@@ -53,9 +52,11 @@ impl Component for Converter {
             self.far.update(&value.to_string());
         }
     }
-    fn view(&mut self, prt: &impl CompositeExt, sender: Sender<Self::Event>) {
-        foxtk::HorizontalFrame::new(prt).inside(|prt| {
-            self.cel = foxtk::TextField::new(prt).with_callback({
+    fn new(prt: &impl CompositeExt, sender: Sender<Self::Event>) -> Self {
+        let gb = foxtk::GroupBox::new(prt, "Converter");
+        let hf = foxtk::HorizontalFrame::new(&gb);
+        Self {
+            cel: foxtk::TextField::new(prt).with_callback({
                 let sender = sender.clone();
                 move |wgt| {
                     if wgt.has_focus() {
@@ -64,8 +65,8 @@ impl Component for Converter {
                     }
                     false
                 }
-            });
-            self.far = foxtk::TextField::new(prt).with_callback({
+            }),
+            far: foxtk::TextField::new(prt).with_callback({
                 let sender = sender.clone();
                 move |wgt| {
                     if wgt.has_focus() {
@@ -74,7 +75,7 @@ impl Component for Converter {
                     }
                     false
                 }
-            });
-        });
+            }),
+        }
     }
 }
